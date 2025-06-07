@@ -40,13 +40,13 @@ export default function AboutUsPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">How It All Began</h2>
                 <p className="text-gray-600 mb-4">
-                  Avito Scent was born in 2015 when our founder, Rajan Sharma, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
+                  Avito Scent was born in 1993 when our founder, Arvind Soni, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
                 </p>
                 <p className="text-gray-600 mb-4">
                   Driven by his passion for scents and with a background in chemistry, Rajan started experimenting with creating unique fragrances in his Mumbai apartment. What began as a personal project quickly gained attention among friends and family.
                 </p>
                 <p className="text-gray-600">
-                  By 2016, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
+                  By 1993, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
                 </p>
               </div>
               <div>
@@ -64,65 +64,7 @@ export default function AboutUsPage() {
                 {/* Timeline line */}
                 <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200"></div>
                 
-                {/* Timeline items */}
-                <div className="relative z-10">
-                  <div className="mb-12 grid grid-cols-9 items-center">
-                    <div className="col-span-4 text-right pr-6">
-                      <h3 className="font-bold">2015</h3>
-                      <p className="text-gray-600">Avito Scent is founded in Mumbai</p>
-                    </div>
-                    <div className="col-span-1 flex justify-center">
-                      <div className="w-4 h-4 bg-black rounded-full"></div>
-                    </div>
-                    <div className="col-span-4"></div>
-                  </div>
-                  
-                  <div className="mb-12 grid grid-cols-9 items-center">
-                    <div className="col-span-4"></div>
-                    <div className="col-span-1 flex justify-center">
-                      <div className="w-4 h-4 bg-black rounded-full"></div>
-                    </div>
-                    <div className="col-span-4 pl-6">
-                      <h3 className="font-bold">2016</h3>
-                      <p className="text-gray-600">Launch of first signature collection</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-12 grid grid-cols-9 items-center">
-                    <div className="col-span-4 text-right pr-6">
-                      <h3 className="font-bold">2018</h3>
-                      <p className="text-gray-600">Opened our first flagship store in Delhi</p>
-                    </div>
-                    <div className="col-span-1 flex justify-center">
-                      <div className="w-4 h-4 bg-black rounded-full"></div>
-                    </div>
-                    <div className="col-span-4"></div>
-                  </div>
-                  
-                  <div className="mb-12 grid grid-cols-9 items-center">
-                    <div className="col-span-4"></div>
-                    <div className="col-span-1 flex justify-center">
-                      <div className="w-4 h-4 bg-black rounded-full"></div>
-                    </div>
-                    <div className="col-span-4 pl-6">
-                      <h3 className="font-bold">2020</h3>
-                      <p className="text-gray-600">Launched our e-commerce platform</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-9 items-center">
-                    <div className="col-span-4 text-right pr-6">
-                      <h3 className="font-bold">2023</h3>
-                      <p className="text-gray-600">Expanded to 10 stores across India</p>
-                    </div>
-                    <div className="col-span-1 flex justify-center">
-                      <div className="w-4 h-4 bg-black rounded-full"></div>
-                    </div>
-                    <div className="col-span-4"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                
             
             <div className="text-center">
               <Link 
