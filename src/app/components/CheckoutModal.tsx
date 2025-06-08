@@ -34,9 +34,16 @@ interface Address {
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  cartItems?: CartItem[];
+  subtotal?: number;
 }
 
-export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
+export default function CheckoutModal({ 
+  isOpen, 
+  onClose,
+  cartItems: propCartItems,
+  subtotal: propSubtotal
+}: CheckoutModalProps) {
   const { isAuthenticated, user } = useAuth();
   const [currentStep, setCurrentStep] = useState<'contact' | 'address' | 'payment'>(
     user?.phone ? 'address' : 'contact'
@@ -90,13 +97,28 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
         setShowPhoneModal(true);
       }
 
-      // Fetch cart and addresses
-      fetchCart();
+      // Use provided cart items or fetch from API/localStorage
+      if (propCartItems && propCartItems.length > 0) {
+        setCartItems(propCartItems);
+        const subtotalAmount = propSubtotal || 
+          propCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setSubtotal(subtotalAmount);
+        
+        // Set shipping price (free shipping for orders over 500)
+        const shippingAmount = subtotalAmount > 500 ? 0 : 50;
+        setShippingPrice(shippingAmount);
+        setLoading(false);
+      } else {
+        // Fetch cart and addresses if not provided
+        fetchCart();
+      }
+      
+      // Fetch addresses if authenticated
       if (isAuthenticated) {
         fetchUserAddresses();
       }
     }
-  }, [isOpen, isAuthenticated, user]);
+  }, [isOpen, isAuthenticated, user, propCartItems, propSubtotal]);
 
   // Function to fetch the cart from API or localStorage
   const fetchCart = async () => {

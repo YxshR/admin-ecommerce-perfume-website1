@@ -71,7 +71,34 @@ export default function AccountPage() {
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   
-  // Modify the useEffect to fetch addresses
+  // Fetch user profile data
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.profile) {
+        setProfileData({
+          name: data.profile.name || '',
+          email: data.profile.email || '',
+          phone: data.profile.phone || '',
+          gender: data.profile.gender || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  // Modify the useEffect to fetch addresses and profile
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login?redirect=/account');
@@ -79,13 +106,16 @@ export default function AccountPage() {
     }
 
     if (user) {
-      // Populate profile data
+      // Initialize profile data with what we have from the user context
       setProfileData({
         name: user.name || '',
         email: user.email || '',
-        phone: '', // User type doesn't have this property yet
-        gender: '' // User type doesn't have this property yet
+        phone: '',
+        gender: ''
       });
+      
+      // Fetch complete profile data from API
+      fetchUserProfile();
       
       // Fetch addresses from API
       fetchAddresses();
@@ -99,11 +129,35 @@ export default function AccountPage() {
     setProfileStatus({ message: '', isError: false });
     
     try {
-      // In a real application, this would be an API call to update the user profile
-      console.log('Updating profile with data:', profileData);
+      // Call API to update user profile
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: profileData.name,
+          phone: profileData.phone,
+          gender: profileData.gender
+        }),
+        credentials: 'include' // Important for cookies
+      });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile');
+      }
+      
+      // Update profile data from response
+      if (data.profile) {
+        setProfileData({
+          name: data.profile.name || '',
+          email: data.profile.email || '', // Email cannot be changed
+          phone: data.profile.phone || '',
+          gender: data.profile.gender || ''
+        });
+      }
       
       // Success message
       setProfileStatus({ 
@@ -113,7 +167,7 @@ export default function AccountPage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       setProfileStatus({ 
-        message: 'Failed to update profile. Please try again.', 
+        message: error instanceof Error ? error.message : 'Failed to update profile. Please try again.', 
         isError: true 
       });
     } finally {
@@ -548,10 +602,11 @@ export default function AccountPage() {
                         <input
                           type="email"
                           value={profileData.email}
-                          onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                          readOnly
+                          className="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-md focus:outline-none cursor-not-allowed"
                           required
                         />
+                        <p className="mt-1 text-xs text-gray-500">Email address cannot be changed</p>
                       </div>
                       
                       <div>

@@ -20,6 +20,7 @@ export interface IUserBase {
     isDefault: boolean;
   }>;
   phone?: string;
+  gender?: string;
   wishlist?: Array<{
     productId: mongoose.Types.ObjectId;
     addedAt: Date;
@@ -126,6 +127,10 @@ const UserSchema = new Schema({
     type: String,
     trim: true,
     index: false // Explicitly disable automatic indexing
+  },
+  gender: {
+    type: String,
+    trim: true
   },
   wishlist: [{
     productId: {

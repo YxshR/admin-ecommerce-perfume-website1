@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiShoppingBag, FiHeart, FiStar, FiArrowLeft, FiVideo } from 'react-icons/fi';
+import { FiShoppingBag, FiHeart, FiStar, FiArrowLeft, FiVideo, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Image from 'next/image';
+import { useAuth } from '@/app/components/AuthProvider';
+import AddToCartButton from '@/app/components/AddToCartButton';
+import AddToWishlistButton from '@/app/components/AddToWishlistButton';
+import { UserActivityTracker } from '@/app/services/UserActivityTracker';
 
 interface Product {
   _id: string;
@@ -37,9 +41,10 @@ export default function ProductDetailPage() {
   const [error, setError] = useState('');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const { user } = useAuth();
   
   // Check user login status
   useEffect(() => {
@@ -51,6 +56,17 @@ export default function ProductDetailPage() {
       checkWishlistStatus();
     }
   }, []);
+  
+  // Track product view
+  useEffect(() => {
+    if (product && !loading) {
+      UserActivityTracker.trackProductView(
+        product._id,
+        window.location.pathname,
+        user?.userId
+      );
+    }
+  }, [product, loading, user]);
   
   // Fetch product data
   useEffect(() => {
@@ -238,6 +254,22 @@ export default function ProductDetailPage() {
     ? Math.round(((product.price - product.discountedPrice) / product.price) * 100)
     : 0;
   
+  const handlePreviousImage = () => {
+    if (!product || !product.images.length) return;
+    
+    setCurrentImageIndex(prevIndex => 
+      prevIndex === 0 ? product.images.length - 1 : prevIndex - 1
+    );
+  };
+  
+  const handleNextImage = () => {
+    if (!product || !product.images.length) return;
+    
+    setCurrentImageIndex(prevIndex => 
+      prevIndex === product.images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+  
   // Product image gallery
   const renderImageGallery = () => {
     if (!product || (!product.images || product.images.length === 0) && (!product.videos || product.videos.length === 0)) {
@@ -256,59 +288,63 @@ export default function ProductDetailPage() {
     
     return (
       <div>
-        <div className="aspect-square bg-gray-50 rounded-lg mb-2 overflow-hidden">
-          {selectedImage < product.images.length ? (
+        <div className="relative aspect-square overflow-hidden">
+          {currentImageIndex < product.images.length ? (
             <Image
-              src={product.images[selectedImage]?.url || '/placeholder-image.jpg'}
-              alt={`${product.name} - Image ${selectedImage + 1}`}
+              src={product.images[currentImageIndex]?.url || '/placeholder-image.jpg'}
+              alt={`${product.name} - Image ${currentImageIndex + 1}`}
               width={600}
               height={800}
               className="w-full h-full object-cover rounded-lg"
             />
           ) : (
             <video 
-              src={product.videos[selectedImage - product.images.length]?.url} 
+              src={product.videos[currentImageIndex - product.images.length]?.url} 
               controls
               className="w-full h-full object-cover rounded-lg"
             />
           )}
+          
+          {product.images.length > 1 && (
+            <>
+              <button 
+                onClick={handlePreviousImage}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-75 p-2 rounded-full"
+                aria-label="Previous image"
+              >
+                <FiChevronLeft size={20} />
+              </button>
+              <button 
+                onClick={handleNextImage}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-75 p-2 rounded-full"
+                aria-label="Next image"
+              >
+                <FiChevronRight size={20} />
+              </button>
+            </>
+          )}
         </div>
         
-        <div className="grid grid-cols-4 gap-2">
-          {/* Display image thumbnails */}
-          {product.images.map((image, index) => (
-            <button
-              key={`image-${index}`}
-              onClick={() => setSelectedImage(index)}
-              className={`relative aspect-square rounded-md overflow-hidden border-2 ${
-                selectedImage === index ? 'border-black' : 'border-transparent'
-              }`}
-            >
-              <Image
-                src={image.url}
-                alt={`${product.name} - Thumbnail ${index + 1}`}
-                width={100}
-                height={100}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
-          
-          {/* Display video thumbnails */}
-          {product.videos && product.videos.map((video, index) => (
-            <button
-              key={`video-${index}`}
-              onClick={() => setSelectedImage(product.images.length + index)}
-              className={`relative aspect-square rounded-md overflow-hidden border-2 ${
-                selectedImage === product.images.length + index ? 'border-black' : 'border-transparent'
-              }`}
-            >
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <FiVideo size={24} className="text-gray-600" />
-              </div>
-            </button>
-          ))}
-        </div>
+        {/* Thumbnail navigation */}
+        {product.images.length > 1 && (
+          <div className="flex space-x-2 mt-4 overflow-x-auto py-2">
+            {product.images.map((image, index) => (
+              <button 
+                key={index} 
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-16 h-16 flex-shrink-0 ${currentImageIndex === index ? 'ring-2 ring-black' : 'opacity-70'}`}
+              >
+                <Image
+                  src={image.url}
+                  alt={`Thumbnail ${index + 1}`}
+                  width={100}
+                  height={100}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -432,27 +468,23 @@ export default function ProductDetailPage() {
             
             {/* Actions */}
             <div className="flex flex-col space-y-3">
-              <button 
-                onClick={handleAddToCart}
-                disabled={product.stock <= 0}
+              <AddToCartButton
+                productId={product._id}
+                productName={product.name}
+                productPrice={product.discountedPrice > 0 ? product.discountedPrice : product.price}
+                productImage={product.images[0]?.url || ''}
+                quantity={quantity}
                 className="bg-black text-white py-3 px-6 hover:bg-gray-900 disabled:bg-gray-400"
-              >
-                <span className="flex items-center justify-center">
-                  <FiShoppingBag className="mr-2" />
-                  Add to Cart
-                </span>
-              </button>
+              />
               
-              <button 
-                onClick={handleToggleWishlist}
-                disabled={isAddingToWishlist}
+              <AddToWishlistButton
+                productId={product._id}
+                productName={product.name}
+                productPrice={product.discountedPrice > 0 ? product.discountedPrice : product.price}
+                productImage={product.images[0]?.url || ''}
                 className="border border-black py-3 px-6 hover:bg-gray-100"
-              >
-                <span className="flex items-center justify-center">
-                  <FiHeart className={`mr-2 ${isWishlisted ? 'text-red-500 fill-current' : ''}`} />
-                  {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                </span>
-              </button>
+                iconOnly={false}
+              />
             </div>
             
             {/* Description */}

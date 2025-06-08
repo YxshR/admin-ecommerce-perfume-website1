@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { CartService } from '@/app/services/CartService';
+import { WishlistService } from '@/app/services/WishlistService';
 
 interface User {
   userId: string;
@@ -67,6 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             secureLog('Auth check: User authenticated');
             setUser(userData);
+            
+            // Sync cart and wishlist with server
+            CartService.syncWithServer(true);
+            WishlistService.syncWithServer(true);
           } catch (parseError) {
             secureLog('Auth error: Failed to parse user data');
             console.error('Auth parse error details:', parseError);
@@ -149,6 +155,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Immediately update the user state after successful login
         setUser(data.user);
         
+        // Handle cart and wishlist for the logged-in user
+        await CartService.handleLogin();
+        await WishlistService.handleLogin();
+        
+        // Sync with server (send localStorage data to server)
+        await CartService.syncWithServer(true);
+        await WishlistService.syncWithServer(true);
+        
         // Trigger a storage event to ensure all tabs are updated
         window.localStorage.setItem('auth_timestamp', Date.now().toString());
         
@@ -192,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       secureLog('Login error occurred');
+      console.error('Login error details:', error);
       return { success: false, error: 'An unexpected error occurred' };
     } finally {
       setIsLoading(false);
@@ -201,29 +216,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = async () => {
     try {
-      setIsLoading(true);
       secureLog('Logout initiated');
+      setIsLoading(true);
       
-      // Use window.location to get the current URL base
-      const baseUrl = window.location.origin;
-      const timestamp = Date.now();
-      const apiUrl = `${baseUrl}/api/auth/logout?_=${timestamp}`;
-      
-      await fetch(apiUrl, {
+      // Call the logout API
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
-        headers: {
-          'Cache-Control': 'no-cache'
-        },
-        credentials: 'include', // Important for cookies
-        cache: 'no-store'
+        headers: { 'Cache-Control': 'no-cache' },
+        credentials: 'include'
       });
       
-      // Clear client-side cookies
-      document.cookie = 'isLoggedIn=; Path=/; Max-Age=0; SameSite=Lax';
-      document.cookie = 'userData=; Path=/; Max-Age=0; SameSite=Lax';
+      if (!response.ok) {
+        throw new Error('Logout API call failed');
+      }
       
+      // Clear user data
       setUser(null);
-      secureLog('Logout successful');
+      
+      // Handle cart and wishlist for logged-out user
+      CartService.handleLogout();
+      WishlistService.handleLogout();
       
       // Trigger a storage event to ensure all tabs are updated
       window.localStorage.setItem('auth_timestamp', Date.now().toString());
@@ -231,26 +243,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Dispatch custom event for cart refresh
       window.dispatchEvent(new Event('auth_change'));
       
+      // Redirect to home page
       router.push('/');
-      router.refresh();
+      
+      secureLog('Logout successful');
     } catch (error) {
       secureLog('Logout error occurred');
+      console.error('Logout error details:', error);
     } finally {
       setIsLoading(false);
     }
   };
   
-  const contextValue: AuthContextType = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    isAdmin: !!user && user.role === 'admin',
-    login,
-    logout
-  };
-  
+  // Provide auth context
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        isAdmin: user?.role === 'admin',
+        login,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
