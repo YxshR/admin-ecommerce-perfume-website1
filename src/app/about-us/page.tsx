@@ -6,10 +6,11 @@ import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import LeadershipTeam from '../components/LeadershipTeam';
 import { FiArrowRight } from 'react-icons/fi';
+import { AuthProvider } from '../components/AuthProvider';
 
 export default function AboutUsPage() {
   return (
-    <>
+    <AuthProvider>
       <Nav />
       
       {/* Hero Section */}
@@ -58,15 +59,17 @@ export default function AboutUsPage() {
               </div>
             </div>
             
+            {/* Our Journey Section */}
             <div className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-center">Our Journey</h2>
               <div className="relative">
                 {/* Timeline line */}
                 <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200"></div>
-                
-                
+              </div>
+            </div>
             
-            <div className="text-center">
+            {/* Collections Link */}
+            <div className="text-center mb-16">
               <Link 
                 href="/collection"
                 className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800"
@@ -110,6 +113,6 @@ export default function AboutUsPage() {
       </div>
       
       <Footer />
-    </>
+    </AuthProvider>
   );
 } 
