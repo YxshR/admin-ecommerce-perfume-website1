@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, FormEvent, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../components/AuthProvider';
 
 // Signal to React to refetch on client-side render for cache busting
 const fetchTimestamp = Date.now();
 
-export default function SignupPage() {
+function SignupContent() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Check if user is already logged in
@@ -251,7 +252,7 @@ export default function SignupPage() {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin mr-2"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Creating Account...
                 </div>
               ) : (
@@ -260,11 +261,11 @@ export default function SignupPage() {
             </button>
           </form>
           
-          <div className="mt-8 text-center">
+          <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
               <Link href="/login" className="text-black font-medium hover:underline">
-                Login
+                Log In
               </Link>
             </p>
           </div>
@@ -284,5 +285,19 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen bg-white text-black">
+        <div className="w-full flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+        </div>
+      </div>
+    }>
+      <SignupContent />
+    </Suspense>
   );
 } 

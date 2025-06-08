@@ -43,12 +43,16 @@ const nextConfig = {
     ADMIN_PHONE: '8126518755',
     CLOUDINARY_API_SECRET: 'cloudinary://992368173733427:kQuf9IxR7a503I0y-J_QVzx4RI8@dzzxpyqif' // Replace with your actual API secret
   },
+  // Use standalone output for better compatibility
   output: 'standalone',
   // Add experimental features to improve compatibility with Vercel deployments
   experimental: {
     optimizePackageImports: ['react-icons'],
     optimizeCss: true,
   },
+  // Explicitly disable CSR bailout warnings
+  reactStrictMode: false,
+  skipMiddlewareUrlNormalize: true,
   serverExternalPackages: [],
   // Handle Node.js modules in webpack
   webpack: (config, { isServer }) => {
