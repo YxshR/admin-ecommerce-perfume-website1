@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
@@ -23,7 +23,7 @@ interface ComboProduct {
   }[];
 }
 
-function CombosPageContent() {
+export default function CombosPage() {
   const [combos, setCombos] = useState<ComboProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -316,24 +316,5 @@ function CombosPageContent() {
       
       <Footer />
     </>
-  );
-}
-
-export default function CombosPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex flex-col min-h-screen">
-        <Nav />
-        <main className="flex-grow">
-          <div className="container mx-auto px-4 py-16 text-center">
-            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-xl">Loading combo packages...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    }>
-      <CombosPageContent />
-    </Suspense>
   );
 } 

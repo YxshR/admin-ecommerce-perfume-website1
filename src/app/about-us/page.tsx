@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import LeadershipTeam from '../components/LeadershipTeam';
 import { FiArrowRight } from 'react-icons/fi';
-import { AuthProvider } from '../components/AuthProvider';
 
-function AboutUsContent() {
+export default function AboutUsPage() {
   return (
-    <AuthProvider>
+    <>
       <Nav />
       
       {/* Hero Section */}
@@ -41,13 +40,13 @@ function AboutUsContent() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">How It All Began</h2>
                 <p className="text-gray-600 mb-4">
-                  Avito Scent was born in 1993 when our founder, Arvind Soni, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
+                  Avito Scent was born in 2015 when our founder, Rajan Sharma, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
                 </p>
                 <p className="text-gray-600 mb-4">
                   Driven by his passion for scents and with a background in chemistry, Rajan started experimenting with creating unique fragrances in his Mumbai apartment. What began as a personal project quickly gained attention among friends and family.
                 </p>
                 <p className="text-gray-600">
-                  By 1993, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
+                  By 2016, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
                 </p>
               </div>
               <div>
@@ -59,17 +58,7 @@ function AboutUsContent() {
               </div>
             </div>
             
-            {/* Our Journey Section */}
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold mb-6 text-center">Our Journey</h2>
-              <div className="relative">
-                {/* Timeline line */}
-                <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200"></div>
-              </div>
-            </div>
-            
-            {/* Collections Link */}
-            <div className="text-center mb-16">
+            <div className="text-center">
               <Link 
                 href="/collection"
                 className="inline-flex items-center px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800"
@@ -113,25 +102,6 @@ function AboutUsContent() {
       </div>
       
       <Footer />
-    </AuthProvider>
-  );
-}
-
-export default function AboutUsPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex flex-col min-h-screen">
-        <Nav />
-        <main className="flex-grow">
-          <div className="container mx-auto px-4 py-16 text-center">
-            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-xl">Loading about us page...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    }>
-      <AboutUsContent />
-    </Suspense>
+    </>
   );
 } 

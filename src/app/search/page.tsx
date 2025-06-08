@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiSearch, FiFilter, FiChevronDown, FiChevronUp, FiArrowLeft } from 'react-icons/fi';
@@ -21,7 +21,7 @@ interface Product {
   gender?: string;
 }
 
-function SearchPageContent() {
+export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
@@ -486,25 +486,5 @@ function SearchPageContent() {
       </main>
       <Footer />
     </div>
-  );
-}
-
-// Export a version wrapped in Suspense
-export default function SearchPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex flex-col min-h-screen">
-        <Nav />
-        <main className="flex-grow">
-          <div className="container mx-auto px-4 py-16 text-center">
-            <div className="w-12 h-12 border-4 border-[#b8860b] border-t-[#d4af37] rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-xl">Loading search results...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    }>
-      <SearchPageContent />
-    </Suspense>
   );
 } 

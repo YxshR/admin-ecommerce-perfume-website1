@@ -6,9 +6,6 @@ import { TOKEN_EXPIRY, isAuthenticated, getUser, logout } from './client-auth';
 // Re-export client-side auth helpers
 export { isAuthenticated, getUser, logout };
 
-// Re-export server-side auth helpers for API routes
-export { encrypt } from './server-auth';
-
 // Utility for protected routes
 export const requireAuth = (router: any) => {
   if (typeof window === 'undefined') return false;

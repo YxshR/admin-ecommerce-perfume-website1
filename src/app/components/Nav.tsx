@@ -50,7 +50,9 @@ export default function Nav() {
   
   const [componentSettings, setComponentSettings] = useState<Record<string, boolean>>({
     announcement: true,
-    search: true
+    search: true,
+    miniCart: true,
+    wishlist: true
   });
   
   // Load settings from localStorage
@@ -62,12 +64,7 @@ export default function Nav() {
         const parsedItems = JSON.parse(savedNavItems);
         const navMap: Record<string, boolean> = {};
         parsedItems.forEach((item: NavItem) => {
-          // Force disable specific navigation items
-          if (['discovery', 'bundle', 'gifting', 'combos'].includes(item.id)) {
-            navMap[item.id] = false;
-          } else {
-            navMap[item.id] = item.enabled;
-          }
+          navMap[item.id] = item.enabled;
         });
         setNavItems(navMap);
       }
@@ -481,58 +478,6 @@ export default function Nav() {
               </Link>
             )}
             
-            {navItems.discovery && (
-              <Link 
-                href="/discovery-set" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/discovery-set'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Discovery Set
-              </Link>
-            )}
-            
-            {navItems.bundle && (
-              <Link 
-                href="/bundle" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/bundle'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Make My Bundle
-              </Link>
-            )}
-            
-            {navItems.gifting && (
-              <Link 
-                href="/gifting" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/gifting'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Gifting
-              </Link>
-            )}
-            
-            {navItems.combos && (
-              <Link 
-                href="/combos" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/combos'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Combos
-              </Link>
-            )}
-            
             {navItems["new-arrivals"] && (
               <Link 
                 href="/new-arrivals" 
@@ -606,58 +551,6 @@ export default function Nav() {
                     Perfumes
                   </Link>
                 )}
-                {navItems.discovery && (
-                  <Link 
-                    href="/discovery-set" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/discovery-set'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Discovery Set
-                  </Link>
-                )}
-                {navItems.bundle && (
-                  <Link 
-                    href="/bundle" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/bundle'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Make My Bundle
-                  </Link>
-                )}
-                {navItems.gifting && (
-                  <Link 
-                    href="/gifting" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/gifting'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Gifting
-                  </Link>
-                )}
-                {navItems.combos && (
-                  <Link 
-                    href="/combos" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/combos'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Combos
-                  </Link>
-                )}
                 {navItems["new-arrivals"] && (
                   <Link 
                     href="/new-arrivals" 
@@ -684,8 +577,6 @@ export default function Nav() {
                     About Us
                   </Link>
                 )}
-                
-                {/* Only show Track My Order for logged-in users in mobile menu */}
                 {isAuthenticated && navItems.track && (
                   <Link 
                     href="/track-order" 
@@ -699,48 +590,49 @@ export default function Nav() {
                     Track My Order
                   </Link>
                 )}
-                
-                <Link 
-                  href={isAuthenticated ? "/account" : "/login"}
-                  className="text-sm font-medium uppercase py-2 text-gray-600"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  My Account
-                </Link>
-                
-                {/* Only show wishlist in mobile menu for logged-in users */}
                 {isAuthenticated && (
-                  <Link 
-                    href="/account/wishlist"
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/account/wishlist' 
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    My Wishlist
-                  </Link>
+                  <>
+                    <div className="border-t border-gray-200 pt-4 mt-2"></div>
+                    <Link 
+                      href="/account" 
+                      className="text-sm font-medium uppercase py-2 text-gray-600"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Account
+                    </Link>
+                    <Link 
+                      href="/account/orders" 
+                      className="text-sm font-medium uppercase py-2 text-gray-600"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Orders
+                    </Link>
+                    <Link 
+                      href="/account/wishlist" 
+                      className="text-sm font-medium uppercase py-2 text-gray-600"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Wishlist
+                    </Link>
+                    <button
+                      onClick={handleLogoutClick}
+                      className="text-sm font-medium uppercase py-2 text-red-600 text-left w-full"
+                    >
+                      Logout
+                    </button>
+                  </>
                 )}
-                
-                <Link
-                  href="/cart"
-                  className="text-sm font-medium uppercase py-2 text-gray-600"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  My Cart
-                </Link>
-                
-                {isAuthenticated && (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleLogoutClick();
-                    }}
-                    className="text-sm font-medium uppercase py-2 text-gray-600 text-left"
-                  >
-                    Logout
-                  </button>
+                {!isAuthenticated && (
+                  <>
+                    <div className="border-t border-gray-200 pt-4 mt-2"></div>
+                    <Link 
+                      href="/login" 
+                      className="text-sm font-medium uppercase py-2 text-gray-600"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Login / Register
+                    </Link>
+                  </>
                 )}
               </nav>
             </div>
