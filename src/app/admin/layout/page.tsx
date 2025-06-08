@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   FiImage,
@@ -39,7 +39,7 @@ interface Product {
   images: { url: string }[];
 }
 
-export default function AdminLayoutPage() {
+function AdminLayoutContent() {
   const router = useRouter();
   const { loading: authLoading } = useAdminAuth();
   const [loading, setLoading] = useState(true);
@@ -258,23 +258,19 @@ export default function AdminLayoutPage() {
 
   const moveSectionUp = (index: number) => {
     const currentPage = getCurrentPage();
-    if (!currentPage || index <= 0) return;
+    if (!currentPage || index === 0) return;
     
     // Create a copy of the sections array
-    const sections = [...currentPage.sections];
+    const updatedSections = [...currentPage.sections];
     
-    // Swap positions with the section above
-    const temp = sections[index];
-    sections[index] = sections[index - 1];
-    sections[index - 1] = temp;
-
-    // Update positions
-    const updatedSections = sections.map((section, idx) => ({
-      ...section,
-      position: idx
-    }));
+    // Swap the section at the given index with the one above it
+    [updatedSections[index], updatedSections[index - 1]] = [updatedSections[index - 1], updatedSections[index]];
     
-    // Update the pages state
+    // Update the position property of the swapped sections
+    updatedSections[index].position = index;
+    updatedSections[index - 1].position = index - 1;
+    
+    // Update the pages state with the new sections array
     setPages(prevPages => 
       prevPages.map(page => 
         page.id === currentPage.id 
@@ -286,23 +282,19 @@ export default function AdminLayoutPage() {
 
   const moveSectionDown = (index: number) => {
     const currentPage = getCurrentPage();
-    if (!currentPage || index >= currentPage.sections.length - 1) return;
-
+    if (!currentPage || index === currentPage.sections.length - 1) return;
+    
     // Create a copy of the sections array
-    const sections = [...currentPage.sections];
+    const updatedSections = [...currentPage.sections];
     
-    // Swap positions with the section below
-    const temp = sections[index];
-    sections[index] = sections[index + 1];
-    sections[index + 1] = temp;
-
-    // Update positions
-    const updatedSections = sections.map((section, idx) => ({
-      ...section,
-      position: idx
-    }));
+    // Swap the section at the given index with the one below it
+    [updatedSections[index], updatedSections[index + 1]] = [updatedSections[index + 1], updatedSections[index]];
     
-    // Update the pages state
+    // Update the position property of the swapped sections
+    updatedSections[index].position = index;
+    updatedSections[index + 1].position = index + 1;
+    
+    // Update the pages state with the new sections array
     setPages(prevPages => 
       prevPages.map(page => 
         page.id === currentPage.id 
@@ -316,34 +308,29 @@ export default function AdminLayoutPage() {
     const currentPage = getCurrentPage();
     if (!currentPage) return;
     
-    let updatedSections = [...currentPage.sections];
+    // Generate a unique ID for new sections
+    const sectionId = editingSection ? editingSection.id : `section-${Date.now()}`;
     
-    if (editingSection) {
-      // Update existing section
-      updatedSections = updatedSections.map(section => 
-        section.id === editingSection.id
-          ? { ...section, ...sectionData }
-          : section
-      );
-    } else {
-      // Add new section
-      const newSection: SectionItem = {
-        id: `section-${Date.now()}`, // Generate a unique ID
-        type: sectionType,
-        content: sectionData,
-        position: updatedSections.length // Place at the end
-      };
-      
-      updatedSections.push(newSection);
-    }
+    // Create or update the section object
+    const updatedSection: SectionItem = {
+      id: sectionId,
+      type: sectionType,
+      content: sectionData,
+      position: editingSection ? editingSection.position : currentPage.sections.length
+    };
     
     // Update the pages state
     setPages(prevPages => 
-      prevPages.map(page => 
-        page.id === currentPage.id 
-          ? { ...page, sections: updatedSections } 
-          : page
-      )
+      prevPages.map(page => {
+        if (page.id !== currentPage.id) return page;
+        
+        // If editing an existing section, replace it; otherwise, add the new section
+        const updatedSections = editingSection
+          ? page.sections.map(section => section.id === sectionId ? updatedSection : section)
+          : [...page.sections, updatedSection];
+        
+        return { ...page, sections: updatedSections };
+      })
     );
     
     // Close the modal
@@ -352,11 +339,15 @@ export default function AdminLayoutPage() {
   };
 
   const handleSaveLayout = async () => {
+    const currentPage = getCurrentPage();
+    if (!currentPage) return;
+    
     try {
-      // In a real application, you would send the layout data to an API endpoint
-      console.log('Saving layout data:', pages);
+      // In a real application, we would save the layout to an API
+      console.log('Saving layout for page:', currentPage.id);
+      console.log('Sections:', currentPage.sections);
       
-      // Mock successful save
+      // Show a success message
       alert('Layout saved successfully!');
     } catch (error) {
       console.error('Error saving layout:', error);
@@ -725,5 +716,20 @@ export default function AdminLayoutPage() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+export default function AdminLayoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-xl">Loading admin layout...</p>
+        </div>
+      </div>
+    }>
+      <AdminLayoutContent />
+    </Suspense>
   );
 } 

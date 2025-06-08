@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
@@ -8,7 +8,7 @@ import LeadershipTeam from '../components/LeadershipTeam';
 import { FiArrowRight } from 'react-icons/fi';
 import { AuthProvider } from '../components/AuthProvider';
 
-export default function AboutUsPage() {
+function AboutUsContent() {
   return (
     <AuthProvider>
       <Nav />
@@ -52,7 +52,7 @@ export default function AboutUsPage() {
               </div>
               <div>
                 <img 
-                  src="https://placehold.co/500x600/272420/FFFFFF?text=Founder" 
+                  src="/ARVIND SONI.jpeg.jpg" 
                   alt="Avito Scent Founder"
                   className="w-full h-auto rounded-lg shadow-md"
                 />
@@ -114,5 +114,24 @@ export default function AboutUsPage() {
       
       <Footer />
     </AuthProvider>
+  );
+}
+
+export default function AboutUsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen">
+        <Nav />
+        <main className="flex-grow">
+          <div className="container mx-auto px-4 py-16 text-center">
+            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-xl">Loading about us page...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <AboutUsContent />
+    </Suspense>
   );
 } 
