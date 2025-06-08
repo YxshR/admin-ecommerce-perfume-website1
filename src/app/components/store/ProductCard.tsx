@@ -5,13 +5,7 @@ import Link from 'next/link';
 import { FiShoppingBag, FiHeart, FiStar } from 'react-icons/fi';
 import { useAuth } from '@/app/components/AuthProvider';
 import Image from 'next/image';
-
-// Custom event for cart updates
-export const triggerMiniCartOpen = () => {
-  // Create and dispatch a custom event that Nav.tsx can listen for
-  const event = new CustomEvent('openMiniCart');
-  window.dispatchEvent(event);
-};
+import { triggerMiniCartOpen } from '@/app/components/AddToCartButton';
 
 interface Product {
   _id: string;
@@ -93,22 +87,16 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation();
     setIsAddingToCart(true);
     
-    // Using the improved AddToCartButton component's functionality directly
-    import('@/app/components/AddToCartButton').then(module => {
-      // Get the trigger function
-      const { triggerMiniCartOpen } = module;
-      
-      // Update localStorage cart
-      addToLocalStorageCart(false);
-      
-      // Show mini cart
-      triggerMiniCartOpen();
-      
-      // Reset loading state
-      setTimeout(() => {
-        setIsAddingToCart(false);
-      }, 800);
-    });
+    // Using the imported function directly
+    addToLocalStorageCart(false);
+    
+    // Show mini cart
+    triggerMiniCartOpen();
+    
+    // Reset loading state
+    setTimeout(() => {
+      setIsAddingToCart(false);
+    }, 800);
   };
   
   // Helper function to add item to localStorage cart

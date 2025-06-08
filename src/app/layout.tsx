@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "./components/AuthProvider";
-import { Suspense } from 'react';
-import ClientLayout from "./components/ClientLayout";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -26,21 +23,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${montserrat.variable} ${playfairDisplay.variable} antialiased font-sans`}
-      >
-        <Suspense fallback={<div>Loading...</div>}>
-          <AuthProvider>
-            <ClientLayout>
-              {children}
-            </ClientLayout>
-          </AuthProvider>
-        </Suspense>
+      <body className={`${montserrat.variable} ${playfairDisplay.variable} font-sans`}>
+        {children}
       </body>
     </html>
   );

@@ -39,10 +39,10 @@ export default function Nav() {
   const [navItems, setNavItems] = useState<Record<string, boolean>>({
     home: true,
     perfumes: true,
-    discovery: true,
-    bundle: true,
-    gifting: true,
-    combos: true,
+    discovery: false,
+    bundle: false,
+    gifting: false,
+    combos: false,
     "new-arrivals": true,
     about: true,
     track: true
@@ -62,7 +62,12 @@ export default function Nav() {
         const parsedItems = JSON.parse(savedNavItems);
         const navMap: Record<string, boolean> = {};
         parsedItems.forEach((item: NavItem) => {
-          navMap[item.id] = item.enabled;
+          // Force disable specific navigation items
+          if (['discovery', 'bundle', 'gifting', 'combos'].includes(item.id)) {
+            navMap[item.id] = false;
+          } else {
+            navMap[item.id] = item.enabled;
+          }
         });
         setNavItems(navMap);
       }

@@ -139,7 +139,7 @@ export default function Footer() {
                   className="text-gray-600 hover:text-black flex items-center"
                 >
                   <FaWhatsapp className="h-6 w-6 mr-2" />
-                  <span className="text-sm">WhatsApp: 9928200900</span>
+                  <span className="text-sm">WhatsApp</span>
                 </a>
               </div>
             </div>

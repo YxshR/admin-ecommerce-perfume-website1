@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getUser } from './lib/client-auth';
+import { AuthProvider } from './components/AuthProvider';
+import ClientLayout from './components/ClientLayout';
 
 export default function Home() {
   const router = useRouter();
@@ -27,8 +29,12 @@ export default function Home() {
   
   // Return a loading state while redirecting
   return (
-    <div className="flex items-center justify-center h-screen bg-[#272420]">
-      <p className="text-white text-lg">Redirecting...</p>
-    </div>
+    <AuthProvider>
+      <ClientLayout>
+        <div className="flex items-center justify-center h-screen bg-[#272420]">
+          <p className="text-white text-lg">Redirecting...</p>
+        </div>
+      </ClientLayout>
+    </AuthProvider>
   );
 }
