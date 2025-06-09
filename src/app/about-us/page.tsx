@@ -40,10 +40,10 @@ export default function AboutUsPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">How It All Began</h2>
                 <p className="text-gray-600 mb-4">
-                  Avito Scent was born in 2015 when our founder, Rajan Sharma, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
+                  Avito Scent was born in 1983 when our founder, Arvind Soni, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
                 </p>
                 <p className="text-gray-600 mb-4">
-                  Driven by his passion for scents and with a background in chemistry, Rajan started experimenting with creating unique fragrances in his Mumbai apartment. What began as a personal project quickly gained attention among friends and family.
+                  Driven by his passion for scents and with a background in chemistry, Arvind started experimenting with creating unique fragrances in his Mumbai apartment. What began as a personal project quickly gained attention among friends and family.
                 </p>
                 <p className="text-gray-600">
                   By 2016, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
