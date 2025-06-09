@@ -92,7 +92,7 @@ export default function AboutUsPage() {
             </div>
             <div>
               <img 
-                src="https://placehold.co/600x400/272420/FFFFFF?text=Join+Our+Team" 
+                src="/team.jpg" 
                 alt="Career Opportunities"
                 className="w-full h-auto rounded-lg shadow-md"
               />
