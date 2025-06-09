@@ -40,13 +40,13 @@ export default function AboutUsPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">How It All Began</h2>
                 <p className="text-gray-600 mb-4">
-                  Avito Scent was born in 1983 when our founder, Arvind Soni, realized that the Indian fragrance market lacked truly premium, locally-made perfumes that could compete with international brands.
+                  AVITO Perfume started with a simple belief: everyone deserves a fragrance that feels personal, powerful, and unforgettable. What began as a spark of inspiration quickly turned into a vision—crafting high-quality, long-lasting perfumes that resonate with the Indian lifestyle without the luxury price tag.
                 </p>
                 <p className="text-gray-600 mb-4">
-                  Driven by his passion for scents and with a background in chemistry, Arvind started experimenting with creating unique fragrances in his Mumbai apartment. What began as a personal project quickly gained attention among friends and family.
+                  At the heart of this journey is Mr. Arvind Soni, a fragrance enthusiast with years of hands-on experience and a deep appreciation for the art of scent-making. He set out to create a brand that blends global sophistication with local relevance—bringing together the richness of international perfume oils with scents designed for India's climate, culture, and diverse preferences.
                 </p>
                 <p className="text-gray-600">
-                  By 1983, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
+Today, AVITO stands as a reflection of that passion—a brand built on craftsmanship, creativity, and care. From bold masculine notes to delicate feminine aromas and versatile unisex blends, every AVITO fragrance is a statement of identity, elegance, and everyday luxury—made for India, inspired by the world.
                 </p>
               </div>
               <div>
