@@ -60,13 +60,9 @@ export function setApiCookies(response: NextResponse, user: any, token: string) 
     const userData = {
       userId: safeUserId,
       name: user.name,
-      role: user.role
+      role: user.role,
+      email: user.email // Include email for user interface display purposes
     };
-    
-    // Only include email in development mode
-    if (!isProduction) {
-      Object.assign(userData, { email: user.email });
-    }
     
     response.cookies.set('userData', JSON.stringify(userData), {
       httpOnly: false,

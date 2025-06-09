@@ -134,7 +134,14 @@ export async function PUT(request: Request) {
     });
     
     // Update the userData cookie to reflect the name change
-    setApiCookies(response, user, token);
+    // Prepare user object with current values for cookie update
+    const userForCookie = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    };
+    setApiCookies(response, userForCookie, token);
     
     return response;
   } catch (error) {
