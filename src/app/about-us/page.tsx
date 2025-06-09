@@ -46,7 +46,7 @@ export default function AboutUsPage() {
                   Driven by his passion for scents and with a background in chemistry, Arvind started experimenting with creating unique fragrances in his Mumbai apartment. What began as a personal project quickly gained attention among friends and family.
                 </p>
                 <p className="text-gray-600">
-                  By 2016, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
+                  By 1983, Avito Scent launched its first collection of three signature scents, which sold out within weeks. This remarkable response fueled our commitment to crafting exceptional fragrances that celebrate Indian heritage while appealing to global sensibilities.
                 </p>
               </div>
               <div>
