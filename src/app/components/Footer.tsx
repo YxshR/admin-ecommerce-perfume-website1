@@ -152,12 +152,7 @@ export default function Footer() {
               <p className="text-sm text-gray-500">
                 &copy; {new Date().getFullYear()} Avito Scent. All rights reserved.
               </p>
-              <address className="text-sm text-gray-500 mt-1 not-italic">
-                Address: Mandore Road, Jodhpur, India - 342007
-              </address>
-              <p className="text-sm text-gray-500">
-                Contact: 9001806653/9928500900 | Email: avitoscents@gmail.com
-              </p>
+              
             </div>
             <div className="flex space-x-6">
               <Link href="/privacy-policy" className="text-sm text-gray-500 hover:text-black">
