@@ -5,9 +5,134 @@ import Link from 'next/link';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import LeadershipTeam from '../components/LeadershipTeam';
+import FAQAccordion from '../components/FAQAccordion';
 import { FiArrowRight } from 'react-icons/fi';
 
 export default function AboutUsPage() {
+  // FAQ data
+  const faqCategories = [
+    {
+      title: "Orders & Shipping",
+      items: [
+        {
+          id: "order-process-time",
+          question: "How long does it take to process an order?",
+          answer: "Orders are typically processed within 24-48 business hours after confirmation."
+        },
+        {
+          id: "delivery-time",
+          question: "How long will delivery take?",
+          answer: "Delivery usually takes 3-8 business days depending on your location. You will receive tracking details once your order is shipped."
+        },
+        {
+          id: "free-shipping",
+          question: "Do you offer free shipping?",
+          answer: "Yes, we offer free shipping on all orders above ₹499. For orders below ₹499, a standard shipping charge applies."
+        },
+        {
+          id: "track-order",
+          question: "How can I track my order?",
+          answer: "Once your order is shipped, you'll receive a tracking link via email and SMS. You can also track it from the \"My Orders\" section on your account."
+        }
+      ]
+    },
+    {
+      title: "Returns & Refunds",
+      items: [
+        {
+          id: "return-policy",
+          question: "What is your return policy?",
+          answer: "We offer a 7-day return window from the date of delivery. Items must be unused and in original packaging."
+        },
+        {
+          id: "return-process",
+          question: "How do I return a product?",
+          answer: "Visit the \"My Orders\" section, select the item, and click on \"Return.\" Our team will arrange a pickup if eligible."
+        },
+        {
+          id: "refund-time",
+          question: "When will I receive my refund?",
+          answer: "Refunds are processed within 5-7 working days after the returned item is received and inspected."
+        },
+        {
+          id: "exchange-product",
+          question: "Can I exchange a product?",
+          answer: "Yes, you can request an exchange for size or color variants within the 7-day return window."
+        }
+      ]
+    },
+    {
+      title: "Payments",
+      items: [
+        {
+          id: "payment-methods",
+          question: "What payment methods do you accept?",
+          answer: "We accept UPI, Credit/Debit Cards, Net Banking, Wallets, and Cash on Delivery (COD)."
+        },
+        {
+          id: "cod-availability",
+          question: "Is Cash on Delivery available?",
+          answer: "Yes, COD is available on orders up to ₹3,000."
+        },
+        {
+          id: "payment-security",
+          question: "Is it safe to use my card on your site?",
+          answer: "Absolutely. Our payment gateways are 100% secure and encrypted."
+        }
+      ]
+    },
+    {
+      title: "Account & Support",
+      items: [
+        {
+          id: "account-required",
+          question: "Do I need to create an account to place an order?",
+          answer: "No, you can check out as a guest. However, creating an account allows you to track orders and access offers."
+        },
+        {
+          id: "forgot-password",
+          question: "I forgot my password. How do I reset it?",
+          answer: "Click on \"Forgot Password\" on the login page and follow the instructions to reset it via email."
+        },
+        {
+          id: "contact-support",
+          question: "How can I contact customer support?",
+          answer: "You can reach us at support@avitostore.com or via WhatsApp at +91 XXXXXXXXXX. We are available Mon-Sat, 10 AM to 6 PM."
+        }
+      ]
+    },
+    {
+      title: "Product & Order Issues",
+      items: [
+        {
+          id: "damaged-item",
+          question: "I received a damaged or wrong item. What should I do?",
+          answer: "We're sorry! Please raise a return request with images within 48 hours of delivery. We'll resolve it promptly."
+        },
+        {
+          id: "delayed-order",
+          question: "My order is delayed. What now?",
+          answer: "If your order hasn't arrived within the expected time, please contact our support team with your order ID."
+        }
+      ]
+    },
+    {
+      title: "Discounts & Promotions",
+      items: [
+        {
+          id: "apply-promo",
+          question: "How do I apply a promo code?",
+          answer: "You can enter the promo code on the checkout page before making the payment."
+        },
+        {
+          id: "promo-not-working",
+          question: "Why is my discount code not working?",
+          answer: "Make sure it hasn't expired and check if your cart meets the minimum order value."
+        }
+      ]
+    }
+  ];
+  
   return (
     <>
       <Nav />
@@ -46,7 +171,7 @@ export default function AboutUsPage() {
                 Led by founder Mr. Arvind Soni, with years of industry experience, AVITO blends global fragrance trends with Indian tastes and climate.
                 </p>
                 <p className="text-gray-600">
-                Today, AVITO offers a diverse range of perfumes for all genders—crafted with care, inspired by the world, and made for everyday elegance.
+                Today, AVITO offers a diverse range of perfumes for all genders—crafted with care, inspired by the world, and made for everyday elegance.
                 </p>
               </div>
               <div>
@@ -99,9 +224,14 @@ export default function AboutUsPage() {
             </div>
           </div>
         </div>
+        
+        {/* FAQ Section */}
+        <div className="max-w-4xl mx-auto">
+          <FAQAccordion categories={faqCategories} />
+        </div>
       </div>
       
       <Footer />
     </>
   );
-} 
+}
