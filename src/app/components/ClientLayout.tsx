@@ -7,6 +7,18 @@ import { IoClose } from 'react-icons/io5';
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Show the button after scrolling down
   useEffect(() => {
@@ -54,9 +66,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       
       {/* WhatsApp Button */}
       {showWhatsApp && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className={`fixed ${isMobile ? 'bottom-4 right-4' : 'bottom-6 right-6'} z-50`}>
           {showTooltip && (
-            <div className="absolute bottom-16 right-0 bg-white rounded-lg shadow-lg p-3 mb-2 w-64 animate-fade-in">
+            <div className={`absolute bottom-16 ${isMobile ? 'right-0 w-56' : 'right-0 w-64'} bg-white rounded-lg shadow-lg p-3 mb-2 animate-fade-in`}>
               <button 
                 onClick={() => setShowTooltip(false)}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -71,10 +83,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           
           <button
             onClick={handleWhatsAppClick}
-            className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+            className={`bg-green-500 hover:bg-green-600 text-white ${isMobile ? 'p-2.5' : 'p-3'} rounded-full shadow-lg transition-all duration-300 hover:scale-110`}
             aria-label="Contact via WhatsApp"
           >
-            <FaWhatsapp size={28} />
+            <FaWhatsapp size={isMobile ? 24 : 28} />
           </button>
         </div>
       )}

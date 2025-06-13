@@ -1,0 +1,142 @@
+/* Cross-browser compatibility fixes */
+
+/* Normalize box sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+/* Fix for iOS text size adjustment */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+/* Fix for IE11 flexbox issues */
+.flex-container {
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.flex-column {
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.flex-row {
+  -ms-flex-direction: row;
+  flex-direction: row;
+}
+
+/* Fix for Safari flexbox gap issue */
+@supports not (gap: 1rem) {
+  .flex-gap > * + * {
+    margin-left: 1rem;
+  }
+  
+  .flex-column.flex-gap > * + * {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+}
+
+/* Fix for Firefox input fields */
+input, textarea, select, button {
+  font-family: inherit;
+}
+
+/* Fix for Firefox button styling */
+button {
+  text-align: center;
+}
+
+/* Fix for Safari button styling */
+button::-moz-focus-inner {
+  border: 0;
+}
+
+/* Fix for IE11 SVG scaling */
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for IE11 image scaling */
+img {
+  max-width: 100%;
+  height: auto;
+  -ms-interpolation-mode: bicubic;
+}
+
+/* Fix for Safari overflow scrolling */
+.overflow-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+/* Fix for Chrome/Safari scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+/* Fix for Safari border-radius overflow */
+.overflow-hidden {
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+/* Fix for IE11 object-fit */
+.object-fit-cover {
+  object-fit: cover;
+  font-family: 'object-fit: cover';
+}
+
+.object-fit-contain {
+  object-fit: contain;
+  font-family: 'object-fit: contain';
+}
+
+/* Fix for iOS tap highlight */
+a, button {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* Fix for IE11 grid support */
+@supports not (display: grid) {
+  .grid-fallback {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .grid-fallback > * {
+    flex: 0 0 calc(33.333% - 20px);
+    margin: 10px;
+  }
+  
+  @media (max-width: 768px) {
+    .grid-fallback > * {
+      flex: 0 0 calc(50% - 20px);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .grid-fallback > * {
+      flex: 0 0 calc(100% - 20px);
+    }
+  }
+} 

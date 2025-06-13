@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import "./styles/cross-browser.css";
 import { AuthProvider } from "./components/AuthProvider";
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
@@ -29,6 +30,19 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/apple-icon.png',
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
+  themeColor: '#ffffff',
+  formatDetection: {
+    telephone: true,
+    date: false,
+    address: false,
+    email: true,
+    url: false,
+  },
 };
 
 export default function RootLayout({
@@ -41,6 +55,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
       </head>
       <body
         className={`${montserrat.variable} ${playfairDisplay.variable} antialiased font-sans`}
