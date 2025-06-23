@@ -136,6 +136,7 @@ export default function AboutUsPage() {
       items: [
         {
           id: "Refund policy",
+          question: "Refund?",
           answer: "We are committed to provide you the best of service and experience. Your satisfaction is our utmost priority and for that, we do accept returns in case of an unforeseen situation such as damaged products during transit or circumstances affecting the product which are beyond the control of the customer.  In an unlikely event of an item arriving in a damaged condition, we provide free returns in which we either exchange or refund the product if stock is not available to exchange within 10 days of your request to return. The returned items will undergo an inspection and a refund/exchange will be accepted, provided the returned products are in their original packaging, unopened, unused and sell-able condition. All the necessary parts of packaging accompanying the order should be intact in order to process a refund. Your refund will be processed in 2–4 days and should be credited in 3–5 working days depending on mode of payment. Acceptance of a return is subject to the condition in which we receive the order. We reserve the right to reject a return request if the condition of the product received is not up to the standards set by us."
         }
       ]
