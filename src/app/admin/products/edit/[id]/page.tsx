@@ -82,7 +82,7 @@ export default function EditProductPage() {
   const genderOptions = ['Him', 'Her', 'Unisex'];
   
   // Volume options
-  const volumeOptions = ['10ml', '30ml', '50ml', '100ml', '200ml'];
+  const volumeOptions = ['20ml', '80ml'];
   
   // Fetch product data when component mounts
   useEffect(() => {
