@@ -103,7 +103,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
               <FiShoppingBag className="mr-3" /> Orders
             </div>
           </Link>
-          <Link 
+          {/* <Link 
             href="/admin/layout" 
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/layout' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
@@ -112,7 +112,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             <div className="flex items-center">
               <FiLayout className="mr-3" /> Layout
             </div>
-          </Link>
+          </Link> */}
           <Link 
             href="/admin/users" 
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
@@ -133,7 +133,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
               <FiMail className="mr-3" /> Contacts
             </div>
           </Link>
-          <Link 
+          {/* <Link 
             href="/admin/settings" 
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/settings' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
@@ -152,7 +152,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             <div className="flex items-center">
               <FiSettings className="mr-3" /> System
             </div>
-          </Link>
+          </Link> */}
           <button 
             onClick={handleLogout}
             className="w-full text-left py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900"
