@@ -499,7 +499,7 @@ export default function ProductDetailPage() {
                 <h3 className="text-sm font-medium uppercase mb-2">Fragrance Notes</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <h4 className="text-xs text-gray-500">Top Notes</h4>
+                    <h4 className="text-xs text-gray-500">Gender</h4>
                     <ul className="mt-1 text-sm">
                       {product.fragrance_notes.top.map((note, index) => (
                         <li key={index}>{note}</li>
@@ -507,7 +507,7 @@ export default function ProductDetailPage() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500">Middle Notes</h4>
+                    <h4 className="text-xs text-gray-500">Volume</h4>
                     <ul className="mt-1 text-sm">
                       {product.fragrance_notes.middle.map((note, index) => (
                         <li key={index}>{note}</li>
@@ -515,7 +515,7 @@ export default function ProductDetailPage() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500">Base Notes</h4>
+                    <h4 className="text-xs text-gray-500">Fregments</h4>
                     <ul className="mt-1 text-sm">
                       {product.fragrance_notes.base.map((note, index) => (
                         <li key={index}>{note}</li>

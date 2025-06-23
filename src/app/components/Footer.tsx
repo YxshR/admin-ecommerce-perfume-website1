@@ -19,7 +19,7 @@ export default function Footer() {
                   Contact Us
                 </Link>
               </li>
-              {isAuthenticated && (
+              {/* {isAuthenticated && (
                 <li>
                   <Link href="/track-order" className="text-gray-600 hover:text-black text-sm">
                     Track Order
@@ -35,7 +35,7 @@ export default function Footer() {
                 <Link href="/returns" className="text-gray-600 hover:text-black text-sm">
                   Returns & Exchanges
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
           
@@ -47,21 +47,21 @@ export default function Footer() {
                   Our Story
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/sustainability" className="text-gray-600 hover:text-black text-sm">
                   Sustainability
                 </Link>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <Link href="/careers" className="text-gray-600 hover:text-black text-sm">
                   Careers
                 </Link>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <Link href="/store-locator" className="text-gray-600 hover:text-black text-sm">
                   Store Locator
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
           
@@ -88,11 +88,11 @@ export default function Footer() {
                   Discovery Sets
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/gifting" className="text-gray-600 hover:text-black text-sm">
                   Gift Cards
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
           
@@ -158,12 +158,12 @@ export default function Footer() {
               <Link href="/privacy-policy" className="text-sm text-gray-500 hover:text-black">
                 Privacy Policy
               </Link>
-              <Link href="/terms-of-service" className="text-sm text-gray-500 hover:text-black">
+              {/* <Link href="/terms-of-service" className="text-sm text-gray-500 hover:text-black">
                 Terms of Service
               </Link>
               <Link href="/cookie-policy" className="text-sm text-gray-500 hover:text-black">
                 Cookie Policy
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

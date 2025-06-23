@@ -72,7 +72,7 @@ export default function AddProductPage() {
   const genderOptions = ['Him', 'Her', 'Unisex'];
   
   // Volume options
-  const volumeOptions = ['10ml', '30ml', '50ml', '100ml', '200ml'];
+  const volumeOptions = ['20ml', '80ml'];
   
   useEffect(() => {
     // The useAdminAuth hook handles authentication check and redirects

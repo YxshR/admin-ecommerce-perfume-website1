@@ -504,7 +504,7 @@ export default function Nav() {
               </Link>
             )}
             
-            {/* Only show Track My Order for logged-in users */}
+            {/* Only show Track My Order for logged-in users
             {isAuthenticated && navItems.track && (
               <Link 
                 href="/track-order" 
@@ -516,7 +516,7 @@ export default function Nav() {
               >
                 Track My Order
               </Link>
-            )}
+            )} */}
           </nav>
         </div>
         
