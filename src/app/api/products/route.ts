@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     // Create product with all fields
     const productData = {
       name: productInfo.name,
-      slug: productInfo.slug || productInfo.name.toLowerCase().replace(/\s+/g, '-'),
+      slug: (productInfo.slug || productInfo.name.toLowerCase().replace(/\s+/g, '-')) + '-' + Date.now().toString().slice(-6),
       description: productInfo.description,
       price: parseFloat(productInfo.price.toString()),
       comparePrice: productInfo.comparePrice ? parseFloat(productInfo.comparePrice.toString()) : undefined,

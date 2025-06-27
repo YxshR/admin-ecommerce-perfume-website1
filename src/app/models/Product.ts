@@ -80,7 +80,6 @@ const ProductSchema = new Schema({
   slug: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
     trim: true
   },

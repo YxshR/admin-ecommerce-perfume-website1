@@ -65,14 +65,14 @@ export default function AddProductPage() {
     'Woody', 'Floral', 'Fruity', 'Fresh', 
     'Sweet', 'Spicy', 'Oriental', 'Citrus', 
     'Aquatic', 'Musky', 'Powdery', 'Green',
-    'Signature', 'Bestseller', 'New Arrival'
+    'Signature', 'Bestseller', 'New Arrival', 'Car Diffuser', 'Waxfume', "Room Spray", 'Attar'
   ];
   
   // Gender options
   const genderOptions = ['Him', 'Her', 'Unisex'];
   
   // Volume options
-  const volumeOptions = ['20ml', '80ml'];
+  const volumeOptions = ['20ml', '80ml', '100ml', '50ml', '200ml'];
   
   useEffect(() => {
     // The useAdminAuth hook handles authentication check and redirects

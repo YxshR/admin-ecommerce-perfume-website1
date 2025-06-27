@@ -75,14 +75,14 @@ export default function EditProductPage() {
     'Woody', 'Floral', 'Fruity', 'Fresh', 
     'Sweet', 'Spicy', 'Oriental', 'Citrus', 
     'Aquatic', 'Musky', 'Powdery', 'Green',
-    'Signature', 'Bestseller', 'New Arrival'
+    'Signature', 'Bestseller', 'New Arrival', 'Car Diffuser', 'Waxfume', "Room Spray", 'Attar'
   ];
   
   // Gender options
   const genderOptions = ['Him', 'Her', 'Unisex'];
   
   // Volume options
-  const volumeOptions = ['20ml', '80ml'];
+  const volumeOptions = ['20ml', '80ml', '100ml', '50ml', '200ml'];
   
   // Fetch product data when component mounts
   useEffect(() => {
@@ -91,59 +91,70 @@ export default function EditProductPage() {
     }
   }, [productId, authLoading, isAuthenticated]);
   
-  // Function to fetch product data
-  const fetchProductData = async () => {
+  // Function to fetch product data with retry mechanism
+  const fetchProductData = async (retryCount = 0) => {
     setLoading(true);
+    setSaveError('');
     try {
       const response = await fetch(`/api/products/${productId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
           setNotFound(true);
+          throw new Error('Product not found');
         }
-        throw new Error(`Failed to fetch product: ${response.status}`);
+        
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to fetch product: ${response.status}`);
       }
       
       const data = await response.json();
       
       if (data.success && data.product) {
-        const product = data.product;
-        
         // Format category as an array if it's a string
         let categoryArray = [];
-        if (typeof product.category === 'string') {
-          categoryArray = product.category.split(',').map((cat: string) => cat.trim());
-        } else if (Array.isArray(product.category)) {
-          categoryArray = product.category;
+        if (typeof data.product.category === 'string') {
+          categoryArray = data.product.category.split(',').map((cat: string) => cat.trim());
+        } else if (Array.isArray(data.product.category)) {
+          categoryArray = data.product.category;
         }
         
         // Transform the product data to match our form state
         setProductData({
-          name: product.name || '',
-          slug: product.slug || '',
+          name: data.product.name || '',
+          slug: data.product.slug || '',
           category: categoryArray,
-          gender: product.attributes?.gender || '',
-          volume: product.attributes?.volume || '',
-          price: product.price || 0,
-          comparePrice: product.comparePrice || 0,
-          description: product.description || '',
-          about: product.attributes?.about || '',
-          disclaimer: product.attributes?.disclaimer || '',
-          media: product.images ? product.images.map((url: string, index: number) => ({
+          gender: data.product.attributes?.gender || '',
+          volume: data.product.attributes?.volume || '',
+          price: data.product.price || 0,
+          comparePrice: data.product.comparePrice || 0,
+          description: data.product.description || '',
+          about: data.product.attributes?.about || '',
+          disclaimer: data.product.attributes?.disclaimer || '',
+          media: data.product.images ? data.product.images.map((url: string, index: number) => ({
             id: `existing-${index}`,
             type: 'image',
             url
           })) : [],
-          featured: product.featured || false,
-          inStock: product.quantity > 0,
-          quantity: product.quantity || 0,
-          sku: product.sku || '',
-          brand: product.brand || 'Avito Scent'
+          featured: data.product.featured || false,
+          inStock: data.product.quantity > 0,
+          quantity: data.product.quantity || 0,
+          sku: data.product.sku || '',
+          brand: data.product.brand || 'Avito Scent'
         });
       }
     } catch (error) {
       console.error('Error fetching product:', error);
       setSaveError('Failed to load product data');
+      
+      // Retry logic - attempt up to 3 retries
+      if (retryCount < 3) {
+        console.log(`Retrying fetch product data (${retryCount + 1}/3)...`);
+        setTimeout(() => {
+          fetchProductData(retryCount + 1);
+        }, 1000 * (retryCount + 1)); // Exponential backoff
+        return;
+      }
     } finally {
       setLoading(false);
     }

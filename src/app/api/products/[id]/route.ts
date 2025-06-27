@@ -94,7 +94,7 @@ export async function PUT(
     // Create product data with all fields - Fix category to be a string not an ObjectId
     const productData = {
       name: productInfo.name,
-      slug: productInfo.slug || productInfo.name.toLowerCase().replace(/\s+/g, '-'),
+      slug: (productInfo.slug || productInfo.name.toLowerCase().replace(/\s+/g, '-')) + '-' + Date.now().toString().slice(-6),
       description: productInfo.description,
       price: parseFloat(productInfo.price.toString()),
       comparePrice: productInfo.comparePrice ? parseFloat(productInfo.comparePrice.toString()) : 0,
@@ -131,10 +131,28 @@ export async function PUT(
     return NextResponse.json({ success: true, product }, { status: 200 });
   } catch (error) {
     console.error('Error updating product:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = 'Server error';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Handle MongoDB duplicate key errors
+      if (error instanceof mongoose.Error.ValidationError) {
+        errorMessage = 'Validation error: ' + Object.values(error.errors).map(e => e.message).join(', ');
+        statusCode = 400;
+      } else if (error.name === 'MongoServerError' && (error as any).code === 11000) {
+        errorMessage = 'A product with this SKU already exists';
+        statusCode = 409;
+      }
+    }
+    
     return NextResponse.json({ 
       success: false, 
-      error: error instanceof Error ? error.message : 'Server error' 
-    }, { status: 500 });
+      error: errorMessage
+    }, { status: statusCode });
   }
 }
 

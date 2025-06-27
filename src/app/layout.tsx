@@ -59,6 +59,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${montserrat.variable} ${playfairDisplay.variable} antialiased font-sans`}
+        suppressHydrationWarning
       >
         <Suspense fallback={<div>Loading...</div>}>
           <AuthProvider>
