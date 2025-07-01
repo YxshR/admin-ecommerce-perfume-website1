@@ -13,7 +13,7 @@ const getUserIdFromCookies = (cookie: string) => {
     const userData = JSON.parse(decodeURIComponent(userDataCookieMatch[1]));
     return userData.userId;
   } catch (err) {
-    console.error('Error parsing user data from cookie:', err);
+    // Silent error handling for security
     return null;
   }
 };
@@ -95,7 +95,7 @@ export async function GET(request: Request) {
       headers: createNoCacheHeaders()
     });
   } catch (error) {
-    console.error('Error fetching wishlist:', error);
+    // Silent error handling for security
     return NextResponse.json({ 
       success: false, 
       error: 'Server error' 
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
       message: 'Product added to wishlist'
     });
   } catch (error) {
-    console.error('Error adding to wishlist:', error);
+    // Silent error handling for security
     return NextResponse.json({ 
       success: false, 
       error: 'Server error' 

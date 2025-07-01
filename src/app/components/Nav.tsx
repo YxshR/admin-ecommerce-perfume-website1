@@ -478,7 +478,7 @@ export default function Nav() {
               </Link>
             )}
             
-            {navItems["new-arrivals"] && (
+            {/* {navItems["new-arrivals"] && (
               <Link 
                 href="/new-arrivals" 
                 className={`text-sm font-medium uppercase tracking-wider ${
@@ -489,7 +489,7 @@ export default function Nav() {
               >
                 New Arrivals
               </Link>
-            )}
+            )} */}
             
             {navItems.about && (
               <Link 
@@ -551,7 +551,7 @@ export default function Nav() {
                     Perfumes
                   </Link>
                 )}
-                {navItems["new-arrivals"] && (
+                {/* {navItems["new-arrivals"] && (
                   <Link 
                     href="/new-arrivals" 
                     className={`text-sm font-medium uppercase py-2 ${
@@ -563,7 +563,7 @@ export default function Nav() {
                   >
                     New Arrivals
                   </Link>
-                )}
+                )} */}
                 {navItems.about && (
                   <Link 
                     href="/about-us" 

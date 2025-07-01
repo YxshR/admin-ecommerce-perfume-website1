@@ -65,8 +65,32 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // For all other routes, just apply security headers
-  return applySecurityHeaders(NextResponse.next());
+  // Clone the request headers
+  const requestHeaders = new Headers(request.headers);
+  
+  // Get response for the request
+  const response = NextResponse.next({
+    request: {
+      // Apply new request headers
+      headers: requestHeaders,
+    }
+  });
+  
+  // Add security headers to prevent data leakage
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'geolocation=(), camera=()');
+  
+  // Add Content-Security-Policy to prevent console logging exploits
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self' data: blob: https://*.cloudinary.com; style-src 'self' 'unsafe-inline'; font-src 'self';"
+  );
+  
+  // Return response
+  return response;
 }
 
 // Helper function to get session from request
@@ -99,7 +123,7 @@ async function getSessionFromRequest(request: NextRequest) {
       role: payload.role
     };
   } catch (error) {
-    console.error('Error in getSessionFromRequest:', error);
+    // Silent error handling for security
     return null;
   }
 }
@@ -108,7 +132,7 @@ async function getSessionFromRequest(request: NextRequest) {
 function applySecurityHeaders(response: NextResponse) {
   // Add security headers
   const securityHeaders = {
-    // Content Security Policy to prevent XSS attacks
+    // Content Security Policy to prevent XSS attacks and console exploits
     'Content-Security-Policy':
       "default-src 'self'; " +
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://placehold.co https://storage.googleapis.com https://*.google-analytics.com; " +
@@ -118,7 +142,8 @@ function applySecurityHeaders(response: NextResponse) {
       "connect-src 'self' https://storage.googleapis.com https://*.google-analytics.com http://localhost:* https://localhost:* https://*.mongodb.net; " +
       "frame-src 'self'; " +
       "object-src 'none'; " +
-      "base-uri 'self';",
+      "base-uri 'self';" +
+      "report-uri /api/csp-report;",
     
     // Prevent clickjacking attacks
     'X-Frame-Options': 'DENY',

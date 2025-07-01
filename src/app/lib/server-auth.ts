@@ -9,7 +9,6 @@ const getSecret = () => {
   const secretKey = process.env.JWT_SECRET;
   
   if (!secretKey) {
-    console.error('JWT_SECRET is not defined in environment variables!');
     // Fallback for development only - DO NOT use in production
     return new TextEncoder().encode('your_jwt_secret_key_should_be_very_long_and_random');
   }
@@ -30,7 +29,6 @@ const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'admin-jwt-secret-key-c
  */
 export async function encrypt(payload: any) {
   try {
-    console.log('Generating JWT token for user:', payload.email);
     const secret = getSecret();
     
     const token = await new jose.SignJWT(payload)
@@ -39,10 +37,8 @@ export async function encrypt(payload: any) {
       .setExpirationTime(expTime)
       .sign(secret);
     
-    console.log('JWT token generated successfully');
     return token;
   } catch (error) {
-    console.error('Error encoding JWT:', error);
     throw new Error('Failed to generate token');
   }
 }
@@ -56,7 +52,6 @@ export async function decrypt(token: string) {
     const { payload } = await jose.jwtVerify(token, secret);
     return payload;
   } catch (error) {
-    console.error('Error decoding JWT:', error);
     return null;
   }
 }
@@ -119,7 +114,6 @@ export async function verifyToken(token: string) {
     
     return user;
   } catch (error) {
-    console.error('Token verification error:', error);
     return null;
   }
 }
@@ -140,7 +134,6 @@ export async function verifyAdminToken(token: string): Promise<boolean> {
     
     return true;
   } catch (error) {
-    console.error('Admin token verification error:', error);
     return false;
   }
 }

@@ -47,7 +47,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         const isInWishlist = wishlist.some((item: any) => item.productId === product._id);
         setIsWishlisted(isInWishlist);
       } catch (error) {
-        console.error('Error checking wishlist status:', error);
+        // Silent error handling
+        setIsWishlisted(false);
       }
     }
   }, [product._id, isAuthenticated]);
@@ -66,11 +67,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         }
       });
       
+      // Don't attempt to parse JSON for 401 responses
+      if (response.status === 401) {
+        return;
+      }
+      
       if (!response.ok) {
-        // Don't throw error for 401 (unauthorized) - this is expected for non-logged in users
-        if (response.status === 401) {
-          return;
-        }
         throw new Error('Failed to fetch wishlist');
       }
       
@@ -83,7 +85,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         setIsWishlisted(isInWishlist);
       }
     } catch (error) {
-      console.error('Error checking wishlist status:', error);
+      // Silent error handling
       // Don't show error to user, just silently fail
     }
   };
@@ -121,11 +123,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       try {
         cart = JSON.parse(savedCart);
         if (!Array.isArray(cart)) {
-          console.error('Cart is not an array, resetting');
+          // Reset cart if it's invalid
           cart = [];
         }
       } catch (parseError) {
-        console.error('Error parsing cart:', parseError);
+        // Reset cart on parse error
         cart = [];
       }
       

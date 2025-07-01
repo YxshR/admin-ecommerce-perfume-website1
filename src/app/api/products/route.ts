@@ -6,20 +6,48 @@ import connectMongoDB from '@/app/lib/mongodb';
 // GET all products
 export async function GET() {
   try {
-    console.log('GET /api/products - Starting connection to MongoDB');
     await connectMongoDB();
-    console.log('MongoDB connected successfully, fetching products');
     
     const products = await Product.find({}).sort({ createdAt: -1 });
-    console.log(`Found ${products.length} products`);
     
-    return NextResponse.json({ success: true, products }, { status: 200 });
+    // Transform products to include gender and ml values directly in the product object
+    const transformedProducts = products.map(product => {
+      // Use any type to allow adding custom properties
+      const productObj: any = product.toObject();
+      
+      // Extract gender and volume from attributes if they exist
+      if (productObj.attributes) {
+        // Convert Map to object if needed
+        const attrs = productObj.attributes instanceof Map 
+          ? Object.fromEntries(productObj.attributes) 
+          : productObj.attributes;
+          
+        // Add gender directly to product
+        if (attrs.gender) {
+          productObj.gender = attrs.gender.toLowerCase();
+        }
+        
+        // Add ml/volume directly to product
+        if (attrs.volume) {
+          // Try to extract numeric value if it's in format like "50 ML"
+          const volumeMatch = String(attrs.volume).match(/(\d+)\s*ml/i);
+          if (volumeMatch && volumeMatch[1]) {
+            productObj.ml = parseInt(volumeMatch[1], 10);
+          } else if (!isNaN(Number(attrs.volume))) {
+            // If it's just a number
+            productObj.ml = parseInt(attrs.volume, 10);
+          }
+        }
+      }
+      
+      return productObj;
+    });
+    
+    return NextResponse.json({ success: true, products: transformedProducts }, { status: 200 });
   } catch (err) {
-    console.error('Error in GET /api/products:', err);
     return NextResponse.json({ 
       success: false, 
-      error: err instanceof Error ? err.message : 'Server error',
-      details: err instanceof Error ? err.stack : 'No stack trace available'
+      error: err instanceof Error ? err.message : 'Server error'
     }, { status: 500 });
   }
 }

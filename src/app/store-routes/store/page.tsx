@@ -67,16 +67,10 @@ export default function HomePage() {
           images: [{ url: getProductImage(product) }]
         }));
         
-        console.log('Total products fetched:', products.length);
-        
         // Filter products correctly by their flags - ensure boolean comparison
         const featured = products.filter((p: any) => p.featured === true);
         const newArrival = products.filter((p: any) => p.new_arrival === true || p.category.includes('New Arrival'));
         const bestSeller = products.filter((p: any) => p.best_seller === true || p.category.includes('Bestseller'));
-        
-        console.log('Featured count:', featured.length);
-        console.log('New arrivals count:', newArrival.length);
-        console.log('Best sellers count:', bestSeller.length);
         
         // Set products for each section
         setFeaturedProducts(featured);
@@ -84,7 +78,7 @@ export default function HomePage() {
         setTopSelling(bestSeller);
         
       } catch (error) {
-        console.error('Failed to fetch products:', error);
+        // Don't expose error details
         setFeaturedProducts([]);
         setNewArrivals([]);
         setTopSelling([]);
@@ -110,9 +104,9 @@ export default function HomePage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {featuredProducts.length > 0 ? (
-              featuredProducts.slice(0, 8).map((product) => (
+              featuredProducts.slice(0, 4).map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))
             ) : (
@@ -137,7 +131,7 @@ export default function HomePage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {newArrivals.length > 0 ? (
               newArrivals.slice(0, 4).map((product) => (
                 <ProductCard key={product._id} product={product} />
@@ -164,7 +158,7 @@ export default function HomePage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {topSelling.length > 0 ? (
               topSelling.slice(0, 4).map((product) => (
                 <ProductCard key={product._id} product={product} />

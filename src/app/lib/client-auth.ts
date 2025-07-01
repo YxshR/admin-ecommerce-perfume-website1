@@ -31,7 +31,7 @@ export function isTokenValid(token: string): boolean {
     const currentTime = Math.floor(Date.now() / 1000);
     return payload.exp > currentTime;
   } catch (error) {
-    console.error('Error checking token validity:', error);
+    // Silent error handling for security
     return false;
   }
 }
@@ -56,7 +56,7 @@ export function getUserFromTokenClient(token: string) {
     
     return JSON.parse(jsonPayload);
   } catch (error) {
-    console.error('Error parsing token:', error);
+    // Silent error handling for security
     return null;
   }
 }
@@ -74,7 +74,7 @@ export const isAuthenticated = () => {
       
     return loginStatus === 'true';
   } catch (error) {
-    console.error('Error checking authentication status:', error);
+    // Silent error handling for security
     return false;
   }
 };
@@ -94,7 +94,7 @@ export const getUser = () => {
       
     return userDataCookie ? JSON.parse(decodeURIComponent(userDataCookie)) : null;
   } catch (error) {
-    console.error('Error parsing user data:', error);
+    // Silent error handling for security
     return null;
   }
 };
@@ -116,6 +116,7 @@ export const logout = async () => {
     // Force refresh to ensure all state is cleared
     window.location.href = '/';
   } catch (error) {
-    console.error('Logout error:', error);
+    // Silent error handling for security
+    window.location.href = '/';
   }
 }; 

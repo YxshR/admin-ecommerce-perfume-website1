@@ -134,12 +134,18 @@ export default function CollectionPage() {
   // Helper function to extract filter options
   const extractFilterOptions = (products: Product[]) => {
     const categories = [...new Set(products.map(p => p.category))];
-    const genders = [...new Set(products.map(p => p.gender).filter(Boolean))];
-    const mlValues = [...new Set(products.map(p => p.ml).filter(Boolean))];
+    
+    // Extract gender values, filtering out undefined/null
+    const genderValues = products.map(p => p.gender).filter(Boolean) as string[];
+    const genders = [...new Set(genderValues)];
+    
+    // Extract ml values, filtering out undefined/null
+    const mlValues = products.map(p => p.ml).filter(Boolean) as number[];
+    const mlSizes = [...new Set(mlValues)];
     
     setAvailableCategories(categories);
-    setAvailableGenders(genders as string[]);
-    setAvailableML(mlValues as number[]);
+    setAvailableGenders(genders);
+    setAvailableML(mlSizes);
     
     // Find min and max price
     if (products.length > 0) {
@@ -164,11 +170,11 @@ export default function CollectionPage() {
       const categoryMatch = selectedCategories.length === 0 || 
         selectedCategories.includes(product.category);
       
-      // Gender match
+      // Gender match - check if product has a gender property and if it's in the selectedGender array
       const genderMatch = selectedGender.length === 0 || 
         (product.gender && selectedGender.includes(product.gender));
       
-      // ML match
+      // ML match - check if product has an ml property and if it's in the selectedML array
       const mlMatch = selectedML.length === 0 || 
         (product.ml && selectedML.includes(product.ml));
       
@@ -342,6 +348,11 @@ export default function CollectionPage() {
                 
                 {isGenderOpen && (
                   <div className="mt-4 space-y-3">
+                    {/* Debug information to check available genders */}
+                    {availableGenders.length === 0 && (
+                      <p className="text-xs text-gray-500">No gender filters available</p>
+                    )}
+                    
                     {availableGenders.map((gender) => (
                       <div key={gender} className="flex items-center">
                         <input
@@ -372,6 +383,11 @@ export default function CollectionPage() {
                 
                 {isMLOpen && (
                   <div className="mt-4 space-y-3">
+                    {/* Debug information to check available sizes */}
+                    {availableML.length === 0 && (
+                      <p className="text-xs text-gray-500">No size filters available</p>
+                    )}
+                    
                     {availableML.map((ml) => (
                       <div key={ml} className="flex items-center">
                         <input
