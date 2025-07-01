@@ -7,9 +7,10 @@ interface AddressFormProps {
   isOpen: boolean;
   onClose: () => void;
   onAddAddress: (address: any) => void;
+  stopPropagation?: boolean;
 }
 
-export default function AddressFormModal({ isOpen, onClose, onAddAddress }: AddressFormProps) {
+export default function AddressFormModal({ isOpen, onClose, onAddAddress, stopPropagation = false }: AddressFormProps) {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [pincode, setPincode] = useState('');
@@ -40,6 +41,7 @@ export default function AddressFormModal({ isOpen, onClose, onAddAddress }: Addr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with values:', { fullName, phone, pincode, city, state, addressLine1, addressLine2 });
     
     if (validateForm()) {
       const newAddress = {
@@ -50,12 +52,16 @@ export default function AddressFormModal({ isOpen, onClose, onAddAddress }: Addr
         state,
         addressLine1,
         addressLine2,
+        country: 'India',
         isDefault: true
       };
       
+      console.log('Sending address data:', newAddress);
       onAddAddress(newAddress);
       resetForm();
       onClose();
+    } else {
+      console.log('Form validation failed:', errors);
     }
   };
 
@@ -73,8 +79,15 @@ export default function AddressFormModal({ isOpen, onClose, onAddAddress }: Addr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+      onClick={(e) => stopPropagation && e.stopPropagation()}
+    >
+      <div 
+        id="address-form-modal"
+        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-medium">Add delivery address</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -156,6 +169,18 @@ export default function AddressFormModal({ isOpen, onClose, onAddAddress }: Addr
                   className={`w-full p-3 border rounded-md ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`}
                 />
                 {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+              </div>
+              
+              <div className="md:col-span-2">
+                <input
+                  type="text"
+                  placeholder="Phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  maxLength={10}
+                  className={`w-full p-3 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                />
+                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
               </div>
               
               <div className="md:col-span-2">

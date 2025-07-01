@@ -8,19 +8,24 @@ interface PhoneNumberModalProps {
   onClose: () => void;
   onConfirm: (phoneNumber: string) => void;
   initialPhoneNumber?: string;
+  stopPropagation?: boolean;
 }
 
 export default function PhoneNumberModal({
   isOpen,
   onClose,
   onConfirm,
-  initialPhoneNumber = ''
+  initialPhoneNumber = '',
+  stopPropagation = false
 }: PhoneNumberModalProps) {
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [error, setError] = useState('');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (stopPropagation) {
+      e.stopPropagation();
+    }
     
     // Basic validation
     if (!phoneNumber.trim()) {
@@ -42,8 +47,15 @@ export default function PhoneNumberModal({
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+      onClick={(e) => stopPropagation && e.stopPropagation()}
+    >
+      <div 
+        id="phone-number-modal"
+        className="bg-white rounded-lg max-w-md w-full p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-medium">Phone Verification</h2>
           <button 
@@ -75,6 +87,7 @@ export default function PhoneNumberModal({
                     setError('');
                   }
                 }}
+                onClick={(e) => e.stopPropagation()}
                 placeholder="10-digit phone number"
                 className={`flex-1 p-3 border rounded-r-md ${
                   error ? 'border-red-500' : 'border-gray-300'

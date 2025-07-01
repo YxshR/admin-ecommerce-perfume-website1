@@ -53,7 +53,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log('Order API: Fetching order with ID:', params.id);
+    const { id } = params;
+    console.log('Order API: Fetching order with ID:', id);
     
     // Get user ID from cookies
     const userId = await getUserIdFromCookies(request);
@@ -72,18 +73,18 @@ export async function GET(
     let query = {};
     if (userId === 'admin-bypass-user-id') {
       // Admin can view any order
-      if (mongoose.Types.ObjectId.isValid(params.id)) {
-        query = { _id: new mongoose.Types.ObjectId(params.id) };
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        query = { _id: new mongoose.Types.ObjectId(id) };
       } else {
-        query = { orderId: params.id };
+        query = { orderId: id };
       }
       console.log('Admin is viewing order:', query);
     } else {
       // Regular users can only view their own orders
-      if (mongoose.Types.ObjectId.isValid(params.id)) {
-        query = { _id: new mongoose.Types.ObjectId(params.id), user: userId };
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        query = { _id: new mongoose.Types.ObjectId(id), user: userId };
       } else {
-        query = { orderId: params.id, user: userId };
+        query = { orderId: id, user: userId };
       }
       console.log('User is viewing their order:', query);
     }
@@ -92,7 +93,7 @@ export async function GET(
     const order = await Order.findOne(query).populate('user', 'name email');
     
     if (!order) {
-      console.error('Order API: Order not found with ID:', params.id);
+      console.error('Order API: Order not found with ID:', id);
       return NextResponse.json({ 
         success: false, 
         error: 'Order not found' 
@@ -108,7 +109,8 @@ export async function GET(
       orderId: order.orderId,
       orderNumber: order.orderId || `ORD-${order._id.toString().slice(-8)}`,
       user: order.user,
-      orderItems: order.orderItems || [],
+      orderItems: order.items || order.orderItems || [],
+      items: order.items || order.orderItems || [],
       shippingAddress: order.shippingAddress,
       paymentMethod: order.paymentMethod,
       paymentResult: order.paymentResult || {},
@@ -129,7 +131,7 @@ export async function GET(
         email: order.user?.email || 'No Email',
         phone: order.shippingAddress?.phone || 'No Phone'
       },
-      items: (order.orderItems || []).map((item: any) => ({
+      items: (order.items || order.orderItems || []).map((item: any) => ({
         id: item.product?.toString() || 'unknown',
         name: item.name || 'Unknown Product',
         quantity: item.quantity || 1,

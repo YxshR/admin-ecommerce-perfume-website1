@@ -41,7 +41,9 @@ const nextConfig = {
     JWT_SECRET: 'Avito Scent_admin_secret_key_2025',
     ADMIN_EMAIL: 'admin@example.com',
     ADMIN_PHONE: '8126518755',
-    CLOUDINARY_API_SECRET: 'cloudinary://992368173733427:kQuf9IxR7a503I0y-J_QVzx4RI8@dzzxpyqif' // Replace with your actual API secret
+    CLOUDINARY_API_SECRET: 'cloudinary://992368173733427:kQuf9IxR7a503I0y-J_QVzx4RI8@dzzxpyqif', // Replace with your actual API secret
+    RAZORPAY_KEY_ID: 'rzp_live_ZhhzXPVJwyHfxu',
+    RAZORPAY_KEY_SECRET: 'OQmkoO5AB107WZw0oLt3dyrO'
   },
   output: 'standalone',
   // Add experimental features to improve compatibility with Vercel deployments

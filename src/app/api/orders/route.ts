@@ -46,7 +46,7 @@ export async function GET(request: Request) {
             email: order.user?.email || 'No Email',
             phone: order.shippingAddress?.phone || 'No Phone'
           },
-          items: (order.orderItems || []).map((item: any) => ({
+          items: (order.items || order.orderItems || []).map((item: any) => ({
             id: item.product?.toString() || 'unknown',
             name: item.name || 'Unknown Product',
             quantity: item.quantity || 1,
@@ -60,6 +60,34 @@ export async function GET(request: Request) {
       // Regular user should only see their own orders
       orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
       console.log(`Found ${orders.length} orders for user ${userId}`);
+      
+      // Format orders to include all necessary information
+      orders = orders.map(order => {
+        const orderItems = order.items || order.orderItems || [];
+        let totalPrice = order.totalPrice || 0;
+        
+        // Calculate total price if it's missing or zero
+        if (totalPrice === 0 && orderItems.length > 0) {
+          totalPrice = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + (order.shippingPrice || 0);
+        }
+        
+        return {
+          _id: order._id.toString(),
+          id: order._id.toString(),
+          orderId: order.orderId,
+          date: order.createdAt,
+          status: order.status || 'Pending',
+          total: totalPrice,
+          itemsCount: orderItems.length,
+          items: orderItems.map(item => ({
+            id: item.product?.toString() || 'unknown',
+            name: item.name || 'Unknown Product',
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+            image: item.image || '/images/placeholder-product.jpg'
+          }))
+        };
+      });
     }
     
     return NextResponse.json({ 
@@ -200,8 +228,8 @@ export async function POST(request: Request) {
     
     let userId;
     try {
-      const userData = JSON.parse(decodeURIComponent(userDataCookieMatch[1]));
-      userId = userData.userId;
+      const parsedData = JSON.parse(decodeURIComponent(userDataCookieMatch[1]));
+      userId = parsedData.userId;
       console.log('Order API: User ID from cookie:', userId);
     } catch (err) {
       console.error('Order API: Error parsing user data from cookie:', err);
@@ -224,10 +252,13 @@ export async function POST(request: Request) {
     const { 
       shippingAddress, 
       paymentMethod, 
-      saveAddress = false
+      saveAddress = false,
+      discountCode = '',
+      discountAmount = 0,
+      shippingPrice: customShippingPrice
     } = data;
     
-    console.log('Order API: Received order data:', { shippingAddress, paymentMethod, saveAddress });
+    console.log('Order API: Received order data:', { shippingAddress, paymentMethod, saveAddress, discountCode, discountAmount });
     
     if (!shippingAddress || !paymentMethod) {
       console.error('Order API: Missing required fields');
@@ -280,8 +311,18 @@ export async function POST(request: Request) {
     
     // Calculate order totals
     const subtotal = cart.items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
-    const shippingPrice = subtotal > 500 ? 0 : 50; // Free shipping over 500
-    const total = subtotal + shippingPrice;
+    
+    // Use custom shipping price if provided, otherwise calculate based on subtotal
+    const shippingPrice = typeof customShippingPrice === 'number' ? 
+      customShippingPrice : 
+      (subtotal > 500 ? 0 : 50); // Free shipping over 500
+    
+    // Apply discount if provided
+    const discount = discountAmount || 0;
+    
+    // Calculate total with a minimum of 1 rupee
+    let total = subtotal + shippingPrice - discount;
+    total = Math.max(total, 1); // Ensure minimum amount is 1 rupee
     
     // Generate unique order ID
     const orderId = generateOrderId();
@@ -291,7 +332,7 @@ export async function POST(request: Request) {
     const order = new Order({
       user: userId,
       orderId,
-      orderItems: cart.items.map((item: any) => ({
+      items: cart.items.map((item: any) => ({
         product: item.product,
         name: item.name,
         quantity: item.quantity,
@@ -309,6 +350,8 @@ export async function POST(request: Request) {
       },
       itemsPrice: subtotal,
       shippingPrice,
+      discountPrice: discount,
+      couponCode: discountCode || undefined,
       totalPrice: total,
       isPaid: false,
       paidAt: paymentMethod === 'COD' ? null : new Date(),

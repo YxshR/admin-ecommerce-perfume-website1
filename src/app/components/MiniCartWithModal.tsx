@@ -174,22 +174,6 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartProps) {
         
         {/* Footer with checkout button */}
         <div className="absolute bottom-0 left-0 right-0 border-t px-4 py-4 bg-white">
-          {/* Discount code input */}
-          <div className="flex mb-4">
-            <input
-              type="text"
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
-              placeholder="Discount code"
-              className="flex-1 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-black"
-            />
-            <button
-              onClick={applyDiscount}
-              className="ml-2 px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
-            >
-              Apply
-            </button>
-          </div>
           
           {/* Subtotal and checkout */}
           <div>

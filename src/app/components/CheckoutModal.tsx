@@ -4,12 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { FiX, FiChevronRight } from 'react-icons/fi';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useAuth } from './AuthProvider';
 import CheckoutProgress from '../checkout/CheckoutProgress';
 import OrderSummary from '../checkout/OrderSummary';
 import AddressFormModal from '../checkout/AddressFormModal';
 import PhoneNumberModal from '../checkout/PhoneNumberModal';
 import AddressCard from '../checkout/AddressCard';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface CartItem {
   id: string;
@@ -64,61 +71,58 @@ export default function CheckoutModal({
   const [contactPhone, setContactPhone] = useState('');
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [discountApplied, setDiscountApplied] = useState(false);
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  // Handle Razorpay script load
+  const handleScriptLoad = () => {
+    console.log("Razorpay script loaded successfully");
+    setScriptLoaded(true);
+  };
 
   useEffect(() => {
-    // Handle click outside to close
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'hidden'; // Prevent scrolling
+    // Load Razorpay script manually if needed
+    if (typeof window !== 'undefined' && !window.Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        console.log("Razorpay script loaded manually");
+        setScriptLoaded(true);
+      };
+      script.onerror = () => {
+        console.error("Failed to load Razorpay script manually");
+      };
+      document.body.appendChild(script);
+    } else if (typeof window !== 'undefined' && window.Razorpay) {
+      setScriptLoaded(true);
     }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = ''; // Restore scrolling
-    };
-  }, [isOpen, onClose]);
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      // If not authenticated, set step to contact
-      if (!isAuthenticated) {
-        setCurrentStep('contact');
-      } else if (user?.phone) {
-        setContactPhone(user.phone);
-        setCurrentStep('address');
-      } else {
-        setShowPhoneModal(true);
-      }
-
-      // Use provided cart items or fetch from API/localStorage
-      if (propCartItems && propCartItems.length > 0) {
-        setCartItems(propCartItems);
-        const subtotalAmount = propSubtotal || 
-          propCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        setSubtotal(subtotalAmount);
-        
-        // Set shipping price (free shipping for orders over 500)
-        const shippingAmount = subtotalAmount > 500 ? 0 : 50;
-        setShippingPrice(shippingAmount);
-        setLoading(false);
-      } else {
-        // Fetch cart and addresses if not provided
-        fetchCart();
-      }
-      
-      // Fetch addresses if authenticated
-      if (isAuthenticated) {
-        fetchUserAddresses();
-      }
+    // Update cart items from props or fetch from API
+    if (propCartItems && propCartItems.length > 0) {
+      setCartItems(propCartItems);
+      setSubtotal(propSubtotal || 0);
+      setShippingPrice(propSubtotal && propSubtotal > 500 ? 0 : 50);
+    } else {
+      fetchCart();
     }
-  }, [isOpen, isAuthenticated, user, propCartItems, propSubtotal]);
+    
+    // Set initial contact phone from user data
+    if (user?.phone) {
+      setContactPhone(user.phone);
+    }
+    
+    // Fetch user addresses
+    fetchUserAddresses();
+    
+    // Handle click outside modal
+    // Removed the click outside to close functionality as requested
+  }, [isOpen, user]);
 
   // Function to fetch the cart from API or localStorage
   const fetchCart = async () => {
@@ -230,6 +234,7 @@ export default function CheckoutModal({
   const handleAddAddress = async (newAddress: any) => {
     try {
       setLoading(true);
+      console.log('Adding new address:', newAddress);
       
       const response = await fetch('/api/user/addresses', {
         method: 'POST',
@@ -249,14 +254,25 @@ export default function CheckoutModal({
         credentials: 'include'
       });
 
+      console.log('Address API response status:', response.status);
+      const data = await response.json();
+      console.log('Address API response data:', data);
+      
       if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.address) {
+        if (data.success) {
+          console.log('Address added successfully:', data.address);
           await fetchUserAddresses();
-          setSelectedAddressId(data.address.addressId);
+          if (data.address && data.address.addressId) {
+            setSelectedAddressId(data.address.addressId);
+          }
+          setIsAddingAddress(false);
+        } else {
+          console.error('API returned success: false', data.error);
+          setErrorMessage(data.error || 'Failed to add address. Please try again.');
         }
       } else {
-        setErrorMessage('Failed to add address. Please try again.');
+        console.error('Failed to add address:', response.status, data.error);
+        setErrorMessage(data.error || 'Failed to add address. Please try again.');
       }
     } catch (error) {
       console.error('Error adding address:', error);
@@ -289,6 +305,12 @@ export default function CheckoutModal({
     setCurrentStep('address');
   };
 
+  // Calculate final total with minimum of 1 rupee
+  const calculateTotal = () => {
+    const rawTotal = subtotal + shippingPrice - appliedDiscount;
+    return Math.max(rawTotal, 1);
+  };
+
   // Process final payment
   const processPayment = async () => {
     if (!selectedAddressId) {
@@ -306,6 +328,9 @@ export default function CheckoutModal({
         throw new Error('Selected address not found');
       }
       
+      // Calculate final total with minimum of 1 rupee
+      const finalTotal = calculateTotal();
+      
       const orderData = {
         shippingAddress: {
           fullName: selectedAddress.fullName,
@@ -316,8 +341,12 @@ export default function CheckoutModal({
           country: 'India',
           phone: selectedAddress.phone
         },
-        paymentMethod,
-        cartItems
+        paymentMethod: paymentMethod === 'COD' ? 'COD' : 'Razorpay',
+        cartItems,
+        discountCode: discountApplied ? discountCode : '',
+        discountAmount: appliedDiscount,
+        shippingPrice: shippingPrice,
+        totalPrice: finalTotal
       };
       
       // Create the order
@@ -346,28 +375,133 @@ export default function CheckoutModal({
       const data = await response.json();
 
       if (data.success && data.order) {
-        // Clear cart
-        localStorage.setItem('cart', '[]');
-        localStorage.setItem('cart_updated', Date.now().toString());
-        
-        // Dispatch storage event to update cart UI across components
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: 'cart',
-          newValue: '[]',
-          storageArea: localStorage
-        }));
-        
         const orderId = data.order.orderId || data.order._id;
-
-        // Close modal and redirect to appropriate page
-        onClose();
         
         // If using COD, redirect to order confirmation
         if (paymentMethod === 'COD') {
-          window.location.href = `/order-confirmation?id=${orderId}`;
+          // Clear cart
+          localStorage.setItem('cart', '[]');
+          localStorage.setItem('cart_updated', Date.now().toString());
+          
+          // Dispatch storage event to update cart UI across components
+          window.dispatchEvent(new StorageEvent('storage', {
+            key: 'cart',
+            newValue: '[]',
+            storageArea: localStorage
+          }));
+          
+          // Close modal and redirect
+          onClose();
+          window.location.href = `/account/orders/${orderId}`;
         } else {
-          // For online payment
-          window.location.href = `/payment?orderId=${orderId}`;
+          // For online payment, initialize Razorpay
+          try {
+            // Fetch Razorpay order details
+            const razorResponse = await fetch('/api/payment/razorpay/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ orderId }),
+            });
+            
+            if (!razorResponse.ok) {
+              const errorText = await razorResponse.text();
+              console.error("Razorpay initialization failed:", razorResponse.status, errorText);
+              throw new Error(`Failed to initialize payment: ${razorResponse.status}`);
+            }
+            
+            const razorData = await razorResponse.json();
+            
+            if (!razorData.success) {
+              throw new Error(razorData.error || 'Failed to initialize payment');
+            }
+            
+            // Check if Razorpay is loaded
+            if (!window.Razorpay) {
+              throw new Error('Payment gateway is not loaded. Please refresh the page.');
+            }
+            
+            // Create Razorpay options
+            const options = {
+              key: razorData.key_id,
+              amount: razorData.order.totalAmount,
+              currency: razorData.order.currency,
+              name: 'Avito Scent',
+              description: 'Premium Fragrances',
+              order_id: razorData.order.id,
+              handler: async function(response: any) {
+                try {
+                  // Verify payment with server
+                  const verifyResponse = await fetch('/api/payment/razorpay/verify', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_signature: response.razorpay_signature,
+                      orderId,
+                    }),
+                  });
+
+                  if (!verifyResponse.ok) {
+                    throw new Error('Payment verification failed');
+                  }
+
+                  const verifyData = await verifyResponse.json();
+                  
+                  if (!verifyData.success) {
+                    throw new Error(verifyData.error || 'Payment verification failed');
+                  }
+
+                  // Clear cart
+                  localStorage.setItem('cart', '[]');
+                  localStorage.setItem('cart_updated', Date.now().toString());
+                  
+                  // Dispatch event to update cart UI
+                  window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'cart',
+                    newValue: '[]',
+                    storageArea: localStorage
+                  }));
+                  
+                  // Close modal and redirect to order confirmation
+                  onClose();
+                  window.location.href = `/account/orders/${orderId}`;
+                } catch (error) {
+                  console.error('Payment verification error:', error);
+                  alert('Payment verification failed. Please contact customer support.');
+                }
+              },
+              prefill: {
+                name: razorData.user.name || '',
+                email: razorData.user.email || '',
+                contact: razorData.user.contact || '',
+              },
+              notes: {
+                orderId: orderId,
+              },
+              theme: {
+                color: '#000000',
+              },
+              modal: {
+                ondismiss: function() {
+                  setProcessingOrder(false);
+                }
+              }
+            };
+            
+            // Create and open Razorpay
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+            
+          } catch (paymentError) {
+            console.error('Payment error:', paymentError);
+            setErrorMessage(paymentError instanceof Error ? paymentError.message : 'Failed to process payment');
+            setProcessingOrder(false);
+          }
         }
       } else {
         throw new Error(data.error || 'Failed to create order');
@@ -375,23 +509,70 @@ export default function CheckoutModal({
     } catch (error) {
       console.error('Error creating order:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Failed to create order');
-    } finally {
       setProcessingOrder(false);
     }
   };
 
   // Apply discount code
-  const applyDiscount = () => {
-    // This would typically connect to an API to validate the code
-    console.log('Applying discount code:', discountCode);
-    // For now, just clear the input
-    setDiscountCode('');
+  const applyDiscount = async () => {
+    if (!discountCode) {
+      setShowDiscountInput(true);
+      return;
+    }
+    
+    try {
+      // Call the API to validate the coupon
+      const response = await fetch('/api/coupons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: discountCode }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.coupon) {
+        // Apply discount from the API response
+        setAppliedDiscount(data.coupon.discount || 0);
+        
+        // Remove shipping charge if free shipping is included
+        if (data.coupon.freeShipping) {
+          setShippingPrice(0);
+        }
+        
+        setDiscountApplied(true);
+        setShowDiscountInput(false);
+        
+        // Show success message
+        alert(`Discount code applied successfully! ${data.coupon.description}`);
+      } else {
+        // Invalid code
+        alert(data.error || 'Invalid discount code. Please try again.');
+        setDiscountCode('');
+      }
+    } catch (error) {
+      console.error('Error applying discount:', error);
+      alert('Failed to apply discount code. Please try again.');
+      setDiscountCode('');
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-y-auto">
+      {/* Load Razorpay script */}
+      <Script
+        id="razorpay-checkout"
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        onLoad={handleScriptLoad}
+        onError={() => {
+          console.error("Failed to load Razorpay script via Next.js Script");
+        }}
+        strategy="beforeInteractive"
+      />
+      
       <div 
         ref={modalRef} 
         className="bg-white w-full max-w-3xl rounded-lg shadow-lg my-8 relative"
@@ -522,51 +703,39 @@ export default function CheckoutModal({
                   
                   <div className="space-y-3">
                     {/* UPI Option */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">UPI</div>
-                        <div className="flex space-x-2">
-                          <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-                          <div className="w-6 h-6 bg-green-500 rounded-full"></div>
-                          <div className="w-6 h-6 bg-indigo-500 rounded-full"></div>
-                        </div>
+                    <div 
+                      className={`border rounded-lg p-4 cursor-pointer ${
+                        paymentMethod === 'Online' ? 'border-blue-500' : ''
+                      }`}
+                      onClick={() => setPaymentMethod('Online')}
+                    >
+                      <div className="flex items-center mb-2">
+                        <input 
+                          type="radio" 
+                          id="payment-online"
+                          checked={paymentMethod === 'Online'} 
+                          onChange={() => setPaymentMethod('Online')}
+                          className="mr-3" 
+                        />
+                        <div className="font-medium">Pay Online (UPI/Card/NetBanking)</div>
                       </div>
-                    </div>
-                    
-                    {/* Cards Option */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">Cards</div>
-                        <div className="flex space-x-2">
-                          <div className="w-6 h-6 bg-blue-500 rounded-full"></div>
-                          <div className="w-6 h-6 bg-red-500 rounded-full"></div>
-                          <div className="w-6 h-6 bg-orange-500 rounded-full"></div>
+                      
+                      {paymentMethod === 'Online' && (
+                        <div className="mt-2 grid grid-cols-4 gap-2">
+                          <div className="border rounded p-2 flex items-center justify-center">
+                            <img src="/payment-icons/visa.png" alt="Visa" className="h-6 w-auto object-contain" />
+                          </div>
+                          <div className="border rounded p-2 flex items-center justify-center">
+                            <img src="/payment-icons/mastercard.png" alt="Mastercard" className="h-6 w-auto object-contain" />
+                          </div>
+                          <div className="border rounded p-2 flex items-center justify-center">
+                            <img src="/payment-icons/gpay.png" alt="Google Pay" className="h-6 w-auto object-contain" />
+                          </div>
+                          <div className="border rounded p-2 flex items-center justify-center">
+                            <img src="/payment-icons/phonepe.png" alt="PhonePe" className="h-6 w-auto object-contain" />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    
-                    {/* EMI Option */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">EMI</div>
-                        <div className="flex space-x-2">
-                          <div className="w-6 h-6 bg-blue-700 rounded-full"></div>
-                          <div className="w-6 h-6 bg-orange-600 rounded-full"></div>
-                          <div className="w-6 h-6 bg-purple-500 rounded-full"></div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Netbanking Option */}
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">Netbanking</div>
-                        <div className="flex space-x-2">
-                          <div className="w-6 h-6 bg-green-600 rounded-full"></div>
-                          <div className="w-6 h-6 bg-blue-700 rounded-full"></div>
-                          <div className="w-6 h-6 bg-orange-600 rounded-full"></div>
-                        </div>
-                      </div>
+                      )}
                     </div>
                     
                     {/* COD Option */}
@@ -589,22 +758,43 @@ export default function CheckoutModal({
                   </div>
                 </div>
                 
-                {/* QR Code Section */}
-                <div className="w-1/2 pl-6 border-l">
-                  <h2 className="text-lg font-medium mb-4">UPI QR</h2>
-                  <div className="flex flex-col items-center">
-                    <div className="border p-4 mb-3 w-48 h-48 mx-auto">
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500">QR Code</span>
+                <div className="w-1/2 pl-6">
+                  <h2 className="text-lg font-medium mb-4">Apply Discount</h2>
+                  
+                  {/* Discount Coupon Section */}
+                  <div className="border rounded-lg p-4">
+                    {showDiscountInput ? (
+                      <div className="flex w-full items-center">
+                        <input
+                          type="text"
+                          value={discountCode}
+                          onChange={(e) => setDiscountCode(e.target.value)}
+                          placeholder="Enter coupon code"
+                          className="flex-grow border rounded-l px-3 py-2 text-sm"
+                        />
+                        <button
+                          onClick={applyDiscount}
+                          className="bg-black text-white px-4 py-2 rounded-r text-sm"
+                        >
+                          Apply
+                        </button>
                       </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">Scan the QR using any UPI App</p>
-                    <div className="flex space-x-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full"></div>
-                      <div className="w-8 h-8 bg-indigo-500 rounded-full"></div>
-                      <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
-                      <div className="w-8 h-8 bg-gray-500 rounded-full"></div>
-                    </div>
+                    ) : (
+                      <button 
+                        className="w-full text-blue-600 text-sm font-medium flex items-center justify-center py-2"
+                        onClick={() => discountApplied ? alert('Discount already applied!') : setShowDiscountInput(true)}
+                      >
+                        {discountApplied ? `Discount applied: ${discountCode}` : 'Add a coupon code'}
+                        {!discountApplied && <FiChevronRight className="ml-1" />}
+                      </button>
+                    )}
+                    
+                    {discountApplied && (
+                      <div className="mt-2 text-green-600 text-sm">
+                        ✓ Saved ₹{appliedDiscount.toFixed(2)} with this coupon
+                        {shippingPrice === 0 && ' + Free Shipping'}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -631,9 +821,8 @@ export default function CheckoutModal({
               </div>
             </div>
           )}
-        </div>
 
-        {/* Order Summary - Shown on all steps */}
+          {/* Order Summary - Shown on all steps */}
         <div className="border-t p-4">
           <div className="flex justify-between items-center cursor-pointer mb-2">
             <h3 className="font-medium">Order summary</h3>
@@ -663,23 +852,33 @@ export default function CheckoutModal({
                 </div>
               ))}
               
-              <div className="flex items-center border-t border-b py-3 my-2">
-                <button 
-                  className="text-blue-600 text-sm font-medium flex items-center"
-                  onClick={() => applyDiscount()}
-                >
-                  Add a coupon code
-                  <FiChevronRight className="ml-1" />
-                </button>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm">Subtotal</span>
+                  <span className="text-sm">₹{subtotal.toFixed(2)}</span>
+                </div>
+                {appliedDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="text-sm">Discount</span>
+                    <span className="text-sm">-₹{appliedDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-sm">Shipping charge</span>
+                  <span className="text-sm">{shippingPrice > 0 ? `₹${shippingPrice.toFixed(2)}` : 'Free'}</span>
+                </div>
               </div>
               
-              <div className="flex justify-between font-medium mt-2">
+              <div className="flex justify-between font-medium mt-2 pt-2 border-t">
                 <span>Total</span>
-                <span>₹{(subtotal + shippingPrice).toFixed(2)}</span>
+                <span>₹{calculateTotal().toFixed(2)}</span>
               </div>
             </div>
           )}
         </div>
+        </div>
+
+        
       </div>
       
       {/* Phone Number Modal */}
@@ -688,6 +887,7 @@ export default function CheckoutModal({
         onClose={() => setShowPhoneModal(false)}
         onConfirm={handleConfirmPhone}
         initialPhoneNumber={contactPhone}
+        stopPropagation={true}
       />
       
       {/* Address Form Modal */}
@@ -699,6 +899,7 @@ export default function CheckoutModal({
             setEditingAddress(null);
           }}
           onAddAddress={handleAddAddress}
+          stopPropagation={true}
         />
       )}
     </div>

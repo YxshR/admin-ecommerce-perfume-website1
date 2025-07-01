@@ -24,8 +24,9 @@ export async function GET(
   context: RouteParams
 ) {
   try {
+    const { id } = context.params;
     await connectMongo();
-    const coupon = await Coupon.findById(context.params.id);
+    const coupon = await Coupon.findById(id);
 
     if (!coupon) {
       return NextResponse.json({ success: false, error: 'Coupon not found' }, { status: 404 });
@@ -43,11 +44,12 @@ export async function PUT(
   context: RouteParams
 ) {
   try {
+    const { id } = context.params;
     await connectMongo();
     const body = await request.json();
     
     const coupon = await Coupon.findByIdAndUpdate(
-      context.params.id,
+      id,
       body,
       { new: true, runValidators: true }
     );
@@ -68,8 +70,9 @@ export async function DELETE(
   context: RouteParams
 ) {
   try {
+    const { id } = context.params;
     await connectMongo();
-    const coupon = await Coupon.findByIdAndDelete(context.params.id);
+    const coupon = await Coupon.findByIdAndDelete(id);
 
     if (!coupon) {
       return NextResponse.json({ success: false, error: 'Coupon not found' }, { status: 404 });

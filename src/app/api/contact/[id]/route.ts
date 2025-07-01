@@ -11,11 +11,12 @@ interface Params {
 // GET request handler to fetch a single contact by ID
 export async function GET(request: NextRequest, { params }: Params) {
   try {
+    const { id } = params;
     // Connect to the database
     await connectMongoDB();
     
     // Get contact by ID
-    const contact = await Contact.findById(params.id);
+    const contact = await Contact.findById(id);
     
     if (!contact) {
       return NextResponse.json(
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH request handler to update a contact's status
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
+    const { id } = params;
     // Connect to the database
     await connectMongoDB();
     
@@ -67,7 +69,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     
     // Find and update the contact
     const updatedContact = await Contact.findByIdAndUpdate(
-      params.id,
+      id,
       { status },
       { new: true, runValidators: true }
     );
@@ -107,11 +109,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE request handler to delete a contact
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
+    const { id } = params;
     // Connect to the database
     await connectMongoDB();
     
     // Find and delete the contact
-    const deletedContact = await Contact.findByIdAndDelete(params.id);
+    const deletedContact = await Contact.findByIdAndDelete(id);
     
     if (!deletedContact) {
       return NextResponse.json(

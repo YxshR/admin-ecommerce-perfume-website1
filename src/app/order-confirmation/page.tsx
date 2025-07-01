@@ -103,12 +103,23 @@ export default function OrderConfirmationPage() {
         console.log("Order API response:", data);
         
         if (data.success && data.order) {
-          // Check if the order has items property or orderItems property
-          if (data.order.orderItems && !data.order.items) {
-            data.order.items = data.order.orderItems;
+          // Ensure we have the order items properly set
+          const orderData = data.order;
+          
+          // Normalize items field - use items, orderItems, or an empty array
+          orderData.items = orderData.items || orderData.orderItems || [];
+          
+          // Make sure totalPrice is set correctly
+          if (!orderData.totalPrice || orderData.totalPrice === 0) {
+            const calculatedTotal = orderData.items.reduce(
+              (sum: number, item: any) => sum + (item.price * item.quantity),
+              0
+            );
+            orderData.totalPrice = calculatedTotal + (orderData.shippingPrice || 0);
+            console.log("Recalculated total price:", orderData.totalPrice);
           }
           
-          setOrder(data.order);
+          setOrder(orderData);
           return;
         }
       } else {

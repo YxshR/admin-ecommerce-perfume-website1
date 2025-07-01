@@ -169,10 +169,10 @@ export async function POST(request: Request) {
       await connectMongoDB();
       
       // Parse request body
-      const { fullName, phone, addressLine1, addressLine2, city, state, pincode, country, isDefault } = await request.json();
+      const { fullName, phone, addressLine1, addressLine2, city, state, pincode, country = 'India', isDefault } = await request.json();
       
       // Validate required fields
-      if (!fullName || !phone || !addressLine1 || !city || !state || !pincode || !country) {
+      if (!fullName || !phone || !addressLine1 || !city || !state || !pincode) {
         return NextResponse.json({ 
           success: false, 
           error: 'Missing required address fields' 

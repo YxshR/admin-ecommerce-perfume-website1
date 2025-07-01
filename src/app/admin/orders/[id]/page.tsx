@@ -155,7 +155,17 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     const customerPhone = orderData.shippingAddress?.phone || 'No phone provided';
     
     // Format items consistently
-    const items = orderData.orderItems || orderData.items || [];
+    const items = orderData.items || orderData.orderItems || [];
+    
+    // Calculate total price if missing
+    let totalPrice = orderData.totalPrice || orderData.total || 0;
+    if (totalPrice === 0 && items.length > 0) {
+      const itemsTotal = items.reduce((sum: number, item: any) => {
+        return sum + ((item.price || 0) * (item.quantity || 1));
+      }, 0);
+      const shippingPrice = orderData.shippingPrice || 0;
+      totalPrice = itemsTotal + shippingPrice;
+    }
     
     return {
       id: orderData._id || orderData.id,
@@ -169,7 +179,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       },
       date: orderData.createdAt || orderData.date || new Date().toISOString(),
       status: orderData.status || 'Processing',
-      total: orderData.totalPrice || orderData.total || 0,
+      total: totalPrice,
       items: items.map((item: any) => ({
         id: item._id || item.id || item.product,
         name: item.name || 'Unknown Product',
