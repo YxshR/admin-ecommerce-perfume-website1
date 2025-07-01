@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
     if (!key_id || !key_secret) {
       console.log("Environment variables not found, loading from file");
       const envVars = loadRazorpayEnvVars();
-      key_id = envVars.key_id || 'rzp_live_ZhhzXPVJwyHfxu';
-      key_secret = envVars.key_secret || 'OQmkoO5AB107WZw0oLt3dyrO';
+      key_id = envVars.key_id 
+      key_secret = envVars.key_secret 
     }
     
     console.log("Razorpay credentials:", {
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
     });
     
     // Use hardcoded values if still not available
-    key_id = key_id || 'rzp_live_ZhhzXPVJwyHfxu';
-    key_secret = key_secret || 'OQmkoO5AB107WZw0oLt3dyrO';
+    key_id = key_id 
+    key_secret = key_secret 
     
     if (!key_id || !key_secret) {
       console.error("Razorpay keys missing");

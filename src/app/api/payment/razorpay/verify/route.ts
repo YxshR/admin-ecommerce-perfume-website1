@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Verify the payment signature
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'OQmkoO5AB107WZw0oLt3dyrO';
+    const secret = process.env.RAZORPAY_KEY_SECRET 
     
     console.log("Using key secret for verification:", {
       from_env: !!process.env.RAZORPAY_KEY_SECRET,
