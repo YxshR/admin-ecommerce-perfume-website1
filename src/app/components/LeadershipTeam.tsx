@@ -85,19 +85,20 @@ export default function LeadershipTeam() {
 
   return (
     <div className="mt-20 mb-16">
-      <h2 className="text-2xl font-bold mb-8 text-center">Our Leadership Team</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {leaders.map((leader) => (
-          <LeadershipCard
-            key={leader._id}
-            name={leader.name}
-            title={leader.title}
-            image={leader.image}
-            bio={leader.bio}
-          />
-        ))}
-      </div>
-    </div>
+  <h2 className="text-2xl font-bold mb-8 text-center">Our Leadership Team</h2>
+  
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+    {leaders.map((leader) => (
+      <LeadershipCard
+        key={leader._id}
+        name={leader.name}
+        title={leader.title}
+        image={leader.image}
+        bio={leader.bio}
+      />
+    ))}
+  </div>
+</div>
+
   );
 }
