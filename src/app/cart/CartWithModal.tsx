@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiTrash2, FiShoppingBag, FiPlus, FiMinus } from 'react-icons/fi';
-import { useAuth } from '../components/AuthProvider';
-import CheckoutModal from '../components/CheckoutModal';
+import GuestCheckoutModal from '../components/GuestCheckoutModal';
 
 interface CartItem {
   id: string;
@@ -19,40 +18,14 @@ export default function CartWithModal() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [subtotal, setSubtotal] = useState(0);
-  const { isAuthenticated } = useAuth();
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
-  // Fetch cart items from API
+  // Fetch cart items from localStorage
   const fetchCart = async () => {
     try {
       setLoading(true);
       
-      // For authenticated users, prioritize server cart
-      if (isAuthenticated) {
-        try {
-          const response = await fetch('/api/cart', {
-            credentials: 'include',
-            headers: {
-              'Cache-Control': 'no-cache'
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            
-            if (data.success && data.cart && Array.isArray(data.cart.items) && data.cart.items.length > 0) {
-              setCartItems(data.cart.items);
-              setSubtotal(data.cart.subtotal || 0);
-              setLoading(false);
-              return;
-            }
-          }
-        } catch (serverError) {
-          console.error('Error fetching server cart:', serverError);
-        }
-      }
-      
-      // For non-authenticated users or if server cart is empty/fails
+      // Get cart from localStorage
       const savedCart = localStorage.getItem('cart') || '[]';
       let parsedCart = [];
       
@@ -116,45 +89,16 @@ export default function CartWithModal() {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(checkCartUpdates);
     };
-  }, [isAuthenticated]);
+  }, []);
 
   const updateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     
     try {
-      if (isAuthenticated) {
-        // Update cart in database for authenticated users
-        const response = await fetch('/api/cart', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
-          },
-          body: JSON.stringify({ productId: id, quantity: newQuantity }),
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.success) {
-            setCartItems(data.cart.items);
-            setSubtotal(data.cart.subtotal);
-            
-            // Also update localStorage for UI consistency
-            updateLocalStorageCart(id, newQuantity);
-            return;
-          }
-        }
-      }
-      
-      // For non-authenticated users or if server update failed
+      // Update localStorage cart
       updateLocalStorageCart(id, newQuantity);
-      
     } catch (error) {
       console.error('Error updating cart:', error);
-      // Try localStorage as fallback
-      updateLocalStorageCart(id, newQuantity);
     }
   };
   
@@ -199,36 +143,10 @@ export default function CartWithModal() {
 
   const removeItem = async (id: string) => {
     try {
-      if (isAuthenticated) {
-        // Remove item from database cart for authenticated users
-        const response = await fetch(`/api/cart?productId=${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Cache-Control': 'no-cache'
-          },
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.success) {
-            setCartItems(data.cart.items);
-            setSubtotal(data.cart.subtotal);
-            
-            // Also update localStorage for UI consistency
-            removeLocalStorageItem(id);
-            return;
-          }
-        }
-      }
-      
-      // For non-authenticated users or if server update failed
+      // Remove item from localStorage
       removeLocalStorageItem(id);
-      
     } catch (error) {
       console.error('Error removing item from cart:', error);
-      removeLocalStorageItem(id);
     }
   };
   
@@ -258,6 +176,9 @@ export default function CartWithModal() {
       // Save to localStorage
       localStorage.setItem('cart', JSON.stringify(updatedItems));
       
+      // Update timestamp to trigger events in other components
+      localStorage.setItem('cart_updated', Date.now().toString());
+      
       // Trigger storage event
       window.dispatchEvent(new StorageEvent('storage', {
         key: 'cart',
@@ -268,181 +189,145 @@ export default function CartWithModal() {
       console.error('Error removing item from localStorage cart:', error);
     }
   };
-
+  
   const openCheckoutModal = () => {
-    if (!isAuthenticated) {
-      // Redirect to login with return URL for non-logged-in users
-      window.location.href = '/login?redirect=/cart';
-    } else {
-      setIsCheckoutModalOpen(true);
-    }
+    setIsCheckoutModalOpen(true);
+  };
+  
+  const closeCheckoutModal = () => {
+    setIsCheckoutModalOpen(false);
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex justify-center items-center h-96">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1 className="text-3xl font-medium text-center mb-8">Your Shopping Cart</h1>
-      
-      {cartItems.length > 0 ? (
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8">
-          {/* Cart items */}
-          <div className="lg:col-span-8">
-            <div className="bg-white shadow-sm border rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="py-4 px-6 text-left text-sm font-medium">Product</th>
-                      <th className="py-4 px-6 text-left text-sm font-medium">Price</th>
-                      <th className="py-4 px-6 text-left text-sm font-medium">Quantity</th>
-                      <th className="py-4 px-6 text-left text-sm font-medium">Total</th>
-                      <th className="py-4 px-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {cartItems.map((item) => (
-                      <tr key={item.id}>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center">
-                            <div className="w-16 h-16 flex-shrink-0 overflow-hidden border relative">
-                              <Image 
-                                src={item.image || '/images/placeholder-product.jpg'} 
-                                alt={item.name} 
-                                width={64}
-                                height={64}
-                                className="object-cover"
-                                onError={(e) => {
-                                  // @ts-ignore - fallback to placeholder on error
-                                  e.target.src = '/images/placeholder-product.jpg';
-                                }}
-                              />
-                            </div>
-                            <div className="ml-4">
-                              <Link 
-                                href={`/product/${item.id}`}
-                                className="text-sm font-medium hover:underline"
-                              >
-                                {item.name}
-                              </Link>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 text-sm">₹{item.price.toFixed(2)}</td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center border border-gray-300 w-24">
-                            <button 
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="px-2 py-1 text-gray-600 hover:text-black"
-                              disabled={item.quantity <= 1}
-                            >
-                              <FiMinus size={14} />
-                            </button>
-                            <span className="flex-1 text-center text-sm">{item.quantity}</span>
-                            <button 
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="px-2 py-1 text-gray-600 hover:text-black"
-                            >
-                              <FiPlus size={14} />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 font-medium">₹{(item.price * item.quantity).toFixed(2)}</td>
-                        <td className="py-4 px-2">
-                          <button 
-                            onClick={() => removeItem(item.id)}
-                            className="text-gray-500 hover:text-red-600"
-                            title="Remove item"
-                          >
-                            <FiTrash2 size={18} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            <div className="mt-6 flex justify-between">
-              <Link 
-                href="/collection"
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-              >
-                <FiShoppingBag className="mr-2" /> Continue Shopping
+    <div className="bg-white min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl font-bold mb-8 text-center">Shopping Cart</h1>
+        
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+          </div>
+        ) : cartItems.length === 0 ? (
+          <div className="text-center py-12">
+            <FiShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
+            <h2 className="mt-4 text-lg font-medium text-gray-900">Your cart is empty</h2>
+            <p className="mt-2 text-gray-500">
+              Looks like you haven't added any perfumes to your cart yet.
+            </p>
+            <div className="mt-6">
+              <Link href="/store" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800">
+                Continue Shopping
               </Link>
             </div>
           </div>
-          
-          {/* Order summary */}
-          <div className="lg:col-span-4 mt-8 lg:mt-0">
-            <div className="bg-white shadow-sm border rounded-lg p-6">
-              <h2 className="text-lg font-medium mb-4">Order Summary</h2>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between border-b pb-4">
-                  <span>Subtotal</span>
-                  <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+        ) : (
+          <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+            <div className="lg:col-span-8">
+              <div className="border-t border-b border-gray-200 divide-y divide-gray-200">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="py-6 flex">
+                    <div className="flex-shrink-0 w-24 h-24 relative">
+                      <Image
+                        src={item.image || '/perfume-placeholder.jpg'}
+                        alt={item.name}
+                        fill
+                        className="object-cover rounded"
+                      />
+                    </div>
+                    
+                    <div className="ml-6 flex-1 flex flex-col">
+                      <div className="flex justify-between">
+                        <h3 className="text-lg font-medium">
+                          <Link href={`/product/${item.id}`} className="text-black hover:text-gray-800">
+                            {item.name}
+                          </Link>
+                        </h3>
+                        <p className="text-lg font-medium">₹{item.price.toFixed(2)}</p>
+                      </div>
+                      
+                      <div className="mt-auto flex justify-between items-center">
+                        <div className="flex items-center border border-gray-300 rounded-md">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                            className={`p-2 ${
+                              item.quantity <= 1 ? 'text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            <FiMinus size={16} />
+                          </button>
+                          <span className="px-4">{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-2 text-gray-600 hover:text-gray-800"
+                          >
+                            <FiPlus size={16} />
+                          </button>
+                        </div>
+                        
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="text-red-500 hover:text-red-700 flex items-center"
+                        >
+                          <FiTrash2 size={18} className="mr-1" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="mt-8 lg:mt-0 lg:col-span-4">
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <p className="text-gray-600">Subtotal</p>
+                    <p className="font-medium">₹{subtotal.toFixed(2)}</p>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <p className="text-gray-600">Shipping</p>
+                    <p className="font-medium">{subtotal >= 500 ? 'Free' : '₹70.00'}</p>
+                  </div>
+                  
+                  <div className="border-t border-gray-200 pt-4 flex justify-between">
+                    <p className="text-lg font-medium">Total</p>
+                    <p className="text-lg font-medium">₹{(subtotal + (subtotal >= 500 ? 0 : 70)).toFixed(2)}</p>
+                  </div>
                 </div>
                 
-                <div className="flex justify-between border-b pb-4">
-                  <span>Shipping</span>
-                  <span>{subtotal > 500 ? 'Free' : '₹50.00'}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-lg font-medium">Total</span>
-                  <span className="text-lg font-medium">
-                    ₹{(subtotal > 500 ? subtotal : subtotal + 50).toFixed(2)}
-                  </span>
-                </div>
-                
-                <button 
+                <button
+                  type="button"
                   onClick={openCheckoutModal}
-                  className="w-full py-3 bg-black text-white hover:bg-gray-900"
+                  className="mt-6 w-full bg-black text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors"
                 >
-                  Proceed to Checkout
+                  Checkout
                 </button>
                 
-                {!isAuthenticated && (
-                  <p className="text-sm text-gray-500 mt-2 text-center">
-                    You'll need to sign in to complete your purchase
-                  </p>
-                )}
+                <div className="mt-4">
+                  <Link href="/store" className="text-black hover:underline flex items-center justify-center">
+                    Continue Shopping
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="text-center py-16 border rounded-lg bg-gray-50">
-          <div className="flex justify-center mb-4">
-            <FiShoppingBag className="h-16 w-16 text-gray-400" />
-          </div>
-          <h2 className="text-2xl font-medium text-gray-700 mb-2">Your cart is empty</h2>
-          <p className="text-gray-500 mb-6">
-            Looks like you haven't added any items to your cart yet
-          </p>
-          <Link 
-            href="/collection" 
-            className="px-6 py-3 bg-black text-white inline-block hover:bg-gray-900"
-          >
-            Start Shopping
-          </Link>
-        </div>
-      )}
-
-      {/* Checkout Modal */}
-      <CheckoutModal 
-        isOpen={isCheckoutModalOpen} 
-        onClose={() => setIsCheckoutModalOpen(false)} 
+        )}
+      </div>
+      
+      {/* Guest Checkout Modal */}
+      <GuestCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={closeCheckoutModal}
+        cartItems={cartItems}
+        subtotal={subtotal}
       />
     </div>
   );

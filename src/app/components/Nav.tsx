@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { FiUser, FiShoppingBag, FiHeart, FiSearch, FiLogOut, FiX, FiMenu, FiChevronDown } from 'react-icons/fi';
-import { useAuth } from './AuthProvider';
+import { FiShoppingBag, FiHeart, FiSearch, FiX, FiMenu, FiChevronDown } from 'react-icons/fi';
 import MiniCartWithModal from './MiniCartWithModal';
 
 // Define types for nav item settings
@@ -22,27 +21,41 @@ interface StoreComponent {
   description: string;
 }
 
+interface DropdownItem {
+  name: string;
+  path: string;
+}
+
+interface NavigationItem {
+  id: string;
+  name: string;
+  path: string;
+  hasDropdown: boolean;
+  dropdownItems?: DropdownItem[];
+}
+
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuth();
   const [cartItemsCount, setCartItemsCount] = useState(0);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
-  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [miniCartOpen, setMiniCartOpen] = useState(false);
-  const accountDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Dropdown states
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  
+  // Dropdown refs
+  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   // State for admin-configured settings
   const [navItems, setNavItems] = useState<Record<string, boolean>>({
     home: true,
     perfumes: true,
-    discovery: false,
-    bundle: false,
-    gifting: false,
-    combos: false,
+    "aesthetic-attars": true,
+    "air-fresheners": true,
+    "waxfume": true,
     "new-arrivals": true,
     about: true,
     track: true
@@ -94,49 +107,7 @@ export default function Nav() {
   useEffect(() => {
     const getCartCount = () => {
       try {
-        if (isAuthenticated) {
-          console.log("Getting cart count for authenticated user");
-          // For authenticated users, fetch from server
-          fetch('/api/cart', {
-            credentials: 'include',
-            headers: {
-              'Cache-Control': 'no-cache'
-            }
-          })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Failed to fetch cart: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (data.success && data.cart && Array.isArray(data.cart.items)) {
-              const serverCount = data.cart.items.reduce((total: number, item: any) => total + item.quantity, 0);
-              console.log("Server cart count:", serverCount);
-              setCartItemsCount(serverCount);
-            } else {
-              // If server returns empty cart, check localStorage as fallback
-              checkLocalStorageCart();
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching cart count:', error);
-            // Use localStorage count as fallback
-            checkLocalStorageCart();
-          });
-        } else {
-          // For non-authenticated users, use localStorage
-          checkLocalStorageCart();
-        }
-      } catch (error) {
-        console.error('Error in getCartCount:', error);
-        setCartItemsCount(0);
-      }
-    };
-    
-    // Helper function to check localStorage cart
-    const checkLocalStorageCart = () => {
-      try {
+        // Get cart from localStorage
         const cart = localStorage.getItem('cart');
         if (cart) {
           const parsedCart = JSON.parse(cart);
@@ -175,13 +146,15 @@ export default function Nav() {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(intervalId);
     };
-  }, [isAuthenticated]);
+  }, []);
 
-  // Handle clicks outside the dropdown
+  // Handle clicks outside the dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
-        setAccountDropdownOpen(false);
+      if (activeDropdown && 
+          dropdownRefs.current[activeDropdown] && 
+          !dropdownRefs.current[activeDropdown]?.contains(event.target as Node)) {
+        setActiveDropdown(null);
       }
     };
 
@@ -189,7 +162,7 @@ export default function Nav() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [activeDropdown]);
   
   // Listen for custom event to open mini cart
   useEffect(() => {
@@ -224,445 +197,318 @@ export default function Nav() {
       window.removeEventListener('storage', checkForCheckoutFlag);
     };
   }, []);
-  
-  const handleLogoutClick = () => {
-    // Show the custom logout confirmation modal
-    setShowLogoutModal(true);
-    // Close the account dropdown
-    setAccountDropdownOpen(false);
-  };
-  
-  const handleLogout = () => {
-    // Close the modal
-    setShowLogoutModal(false);
-    
-    // Use the logout function from auth context
-    logout();
-  };
-  
-  const cancelLogout = () => {
-    // Close the modal without logging out
-    setShowLogoutModal(false);
-  };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
-  
+
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
   };
 
-  const toggleAccountDropdown = () => {
-    setAccountDropdownOpen(!accountDropdownOpen);
+  const handleDropdownHover = (id: string) => {
+    setActiveDropdown(id);
+  };
+
+  const handleDropdownLeave = () => {
+    setActiveDropdown(null);
   };
   
+  const toggleDropdown = (id: string) => {
+    setActiveDropdown(activeDropdown === id ? null : id);
+  };
+
   const toggleMiniCart = () => {
     setMiniCartOpen(!miniCartOpen);
   };
   
+  // Navigation items with dropdowns
+  const navigationItems: NavigationItem[] = [
+    {
+      id: 'home',
+      name: 'Home',
+      path: '/',
+      hasDropdown: true,
+      dropdownItems: [
+        { name: 'Best Selling', path: '/best-selling' },
+        { name: 'New Arrivals', path: '/new-arrivals' },
+        { name: 'Best Buy', path: '/best-buy' }
+      ]
+    },
+    {
+      id: 'perfumes',
+      name: 'Perfumes',
+      path: '/collection',
+      hasDropdown: true,
+      dropdownItems: [
+        { name: 'Value for Money', path: '/perfumes/value-for-money' },
+        { name: 'Premium Perfumes', path: '/perfumes/premium' },
+        { name: 'Luxury Perfumes', path: '/perfumes/luxury' },
+        { name: 'Combo Sets', path: '/perfumes/combo' }
+      ]
+    },
+    {
+      id: 'aesthetic-attars',
+      name: 'Aesthetic Attars',
+      path: '/aesthetic-attars',
+      hasDropdown: true,
+      dropdownItems: [
+        { name: 'Premium Attars', path: '/aesthetic-attars/premium' },
+        { name: 'Luxury Attars', path: '/aesthetic-attars/luxury' },
+        { name: 'Combo Sets', path: '/aesthetic-attars/combo' }
+      ]
+    },
+    {
+      id: 'air-fresheners',
+      name: 'Air Fresheners',
+      path: '/air-fresheners',
+      hasDropdown: true,
+      dropdownItems: [
+        { name: 'Room Air Fresheners', path: '/air-fresheners/room' },
+        { name: 'Luxury Car Diffusers', path: '/air-fresheners/car' }
+      ]
+    },
+    {
+      id: 'waxfume',
+      name: 'Waxfume (Solid)',
+      path: '/waxfume',
+      hasDropdown: false
+    }
+  ];
+  
   return (
     <>
-      {/* Mini Cart Component */}
-      <MiniCartWithModal isOpen={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
-      
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg w-80 p-6 shadow-xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Confirm Logout</h3>
-              <button 
-                onClick={cancelLogout}
-                className="text-gray-400 hover:text-black"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-            <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={cancelLogout}
-                className="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-black text-white hover:bg-gray-800"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
+      {/* Announcement Bar */}
+      {showAnnouncement && (
+        <div className="bg-black text-white text-center py-2 text-sm">
+          Free shipping on orders above ₹500
         </div>
       )}
       
-      {/* Announcement Bar - Only show if enabled in admin settings */}
-      {showAnnouncement && componentSettings.announcement && (
-        <div className="bg-black text-white py-2 overflow-hidden">
-          <div className="relative flex overflow-x-hidden">
-            <div className="animate-marquee whitespace-nowrap py-1 text-xs font-medium">
-              <span className="mx-4">USE CODE SMELLGOOD5 FOR EXTRA 5% OFF ON ALL PREPAID ORDERS</span>
-              <span className="mx-4">•</span>
-              <span className="mx-4">USE CODE SMELLGOOD5 FOR EXTRA 5% OFF ON ALL PREPAID ORDERS</span>
-              <span className="mx-4">•</span>
-              <span className="mx-4">USE CODE SMELLGOOD5 FOR EXTRA 5% OFF ON ALL PREPAID ORDERS</span>
-            </div>
-            <div className="absolute top-0 animate-marquee whitespace-nowrap py-1 text-xs font-medium" style={{ animationDelay: '1.s' }}>
-              <span className="mx-4">USE CODE SMELLGOOD5 FOR EXTRA 5% OFF ON ALL PREPAID ORDERS</span>
-              <span className="mx-4">•</span>
-              <span className="mx-4">USE CODE SMELLGOOD5 FOR EXTRA 5% OFF ON ALL PREPAID ORDERS</span>
-              <span className="mx-4">•</span>
-              <span className="mx-4">USE CODE SMELLGOOD5 FOR EXTRA 5% OFF ON ALL PREPAID ORDERS</span>
-            </div>
-          </div>
-          <button 
-            onClick={() => setShowAnnouncement(false)}
-            className="absolute right-4 top-2 text-white z-10"
-            aria-label="Close announcement"
-          >
-            <FiX size={18} />
-          </button>
-        </div>
-      )}
-      
-      {/* Navigation */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white shadow-sm sticky top-0 z-30">
         <div className="container mx-auto px-4">
-          {/* Top Navigation Bar */}
-          <div className="flex justify-between items-center py-4">
-            {/* Search Icon */}
-            <div className="w-1/3 flex items-center">
-              <button 
-                onClick={toggleSearch}
-                className="text-black p-2"
-                aria-label="Search"
-              >
-                <FiSearch size={20} />
-              </button>
-            </div>
-            
+          <div className="flex items-center justify-between py-4">
             {/* Logo */}
-            <div className="w-1/3 flex justify-center">
-              <Link href="/" className="text-2xl font-bold tracking-tight">
-                Avito Scent
-              </Link>
-            </div>
+            <Link href="/" className="flex-shrink-0">
+              <img
+                src="/logo.png"
+                alt="Avito Scent"
+                className="h-10 w-auto"
+              />
+            </Link>
             
-            {/* User Icons */}
-            <div className="w-1/3 flex items-center justify-end space-x-4">
-              {/* Account dropdown for logged-in users */}
-              {isAuthenticated ? (
-                <div className="relative" ref={accountDropdownRef}>
-                  <button 
-                    onClick={toggleAccountDropdown}
-                    className="flex items-center p-2 text-gray-600 hover:text-black"
-                    aria-label="Account"
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-6">
+              {navigationItems.map((item) => 
+                navItems[item.id] ? (
+                  <div 
+                    key={item.id}
+                    className="relative group"
+                    ref={(el) => {
+                      dropdownRefs.current[item.id] = el;
+                    }}
+                    onMouseEnter={() => item.hasDropdown && handleDropdownHover(item.id)}
+                    onMouseLeave={handleDropdownLeave}
                   >
-                    <FiUser size={20} />
-                    <FiChevronDown size={16} className={`ml-1 transition-transform ${accountDropdownOpen ? 'transform rotate-180' : ''}`} />
-                  </button>
-                  
-                  {accountDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                      <div className="p-3 border-b border-gray-100">
-                        <p className="font-medium text-sm">{user?.name || 'User'}</p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email || 'user@example.com'}</p>
-                      </div>
-                      <div className="py-1">
-                        <Link 
-                          href="/account" 
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setAccountDropdownOpen(false)}
-                        >
-                          My Profile
-                        </Link>
-                        <Link 
-                          href="/account/orders" 
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setAccountDropdownOpen(false)}
-                        >
-                          My Orders
-                        </Link>
-                        <Link 
-                          href="/account/wishlist" 
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setAccountDropdownOpen(false)}
-                        >
-                          My Wishlist
-                        </Link>
-                        <button
-                          onClick={handleLogoutClick}
-                          className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                        >
-                          <FiLogOut size={16} className="mr-2" />
-                          Logout
-                        </button>
-                      </div>
+                    <div 
+                      className={`flex items-center font-medium cursor-pointer relative 
+                        ${pathname === item.path || pathname?.startsWith(item.path + '/') 
+                          ? 'text-black' 
+                          : 'text-gray-700 hover:text-black'}
+                        ${pathname === item.path || pathname?.startsWith(item.path + '/') 
+                          ? 'after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-black' 
+                          : 'after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-black after:transition-all after:duration-300 hover:after:w-full'
+                        }`}
+                      onClick={() => {
+                        if (item.hasDropdown) {
+                          toggleDropdown(item.id);
+                          router.push(item.path);
+                        } else {
+                          router.push(item.path);
+                        }
+                      }}
+                    >
+                      {item.name}
+                      {item.hasDropdown && <FiChevronDown className="ml-1 transition-transform duration-300 group-hover:rotate-180" size={16} />}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <Link 
-                  href="/login" 
-                  className={`p-2 ${pathname === '/login' ? 'text-black' : 'text-gray-600'}`}
-                  aria-label="Login"
+                    
+                    {item.hasDropdown && activeDropdown === item.id && (
+                      <div className="absolute top-full left-0 mt-1 w-56 bg-white shadow-lg rounded-md overflow-hidden z-20 transition-all duration-300 ease-in-out transform origin-top-left animate-fadeIn">
+                        <div className="py-2">
+                          {item.dropdownItems?.map((dropdownItem) => (
+                            <Link
+                              key={dropdownItem.path}
+                              href={dropdownItem.path}
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 hover:pl-6 border-l-0 hover:border-l-4 hover:border-black flex items-center"
+                              onClick={() => setActiveDropdown(null)}
+                            >
+                              <span className="w-2 h-2 rounded-full bg-black mr-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"></span>
+                              {dropdownItem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null
+              )}
+            </nav>
+            
+            {/* Actions */}
+            <div className="flex items-center space-x-4">
+              {/* Search */}
+              {componentSettings.search && (
+                <button
+                  onClick={toggleSearch}
+                  className="text-gray-700 hover:text-black relative p-2 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-110"
+                  aria-label="Search"
                 >
-                  <FiUser size={20} />
-                </Link>
+                  <FiSearch size={20} />
+                </button>
               )}
               
-              {/* Only show wishlist button for logged-in users */}
-              {isAuthenticated && (
-                <Link 
-                  href="/account/wishlist"
-                  className={`p-2 ${pathname === '/account/wishlist' ? 'text-black' : 'text-gray-600'}`}
+              {/* Cart */}
+              {componentSettings.miniCart && (
+                <button
+                  onClick={toggleMiniCart}
+                  className="text-gray-700 hover:text-black relative p-2 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-110"
+                  aria-label="Cart"
+                >
+                  <FiShoppingBag size={20} />
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transition-transform duration-300 animate-pulse">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              
+              {/* Wishlist */}
+              {componentSettings.wishlist && (
+                <Link
+                  href="/wishlist"
+                  className="text-gray-700 hover:text-black hidden md:block p-2 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-110"
                   aria-label="Wishlist"
                 >
                   <FiHeart size={20} />
                 </Link>
               )}
               
-              {/* Cart Button */}
-              <div className="relative">
-                <button
-                  onClick={toggleMiniCart}
-                  className="p-2 text-gray-700 hover:text-black relative"
-                  aria-label="Shopping cart"
-                >
-                  <FiShoppingBag size={24} />
-                  {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                      {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                    </span>
-                  )}
-                </button>
-              </div>
-              
-              <button 
-                className="md:hidden p-2 text-black"
+              {/* Mobile menu button */}
+              <button
                 onClick={toggleMobileMenu}
+                className="md:hidden text-gray-700 hover:text-black p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
                 aria-label="Menu"
               >
-                <FiMenu size={24} />
+                {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
               </button>
             </div>
           </div>
-          
-          {/* Main Navigation Menu - Only show items enabled in admin settings */}
-          <nav className="hidden md:flex justify-center items-center space-x-8 py-4 border-t border-gray-200">
-            {navItems.home && (
-              <Link 
-                href="/" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/' || pathname === '/store' || pathname === '/store-routes'
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Home Page
-              </Link>
-            )}
-            
-            {navItems.perfumes && (
-              <Link 
-                href="/collection" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/collection' || (pathname && pathname.startsWith('/product')) 
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Perfumes
-              </Link>
-            )}
-            
-            {/* {navItems["new-arrivals"] && (
-              <Link 
-                href="/new-arrivals" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/new-arrivals'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                New Arrivals
-              </Link>
-            )} */}
-            
-            {navItems.about && (
-              <Link 
-                href="/about-us" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/about-us'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                About Us
-              </Link>
-            )}
-            
-            {/* Only show Track My Order for logged-in users
-            {isAuthenticated && navItems.track && (
-              <Link 
-                href="/track-order" 
-                className={`text-sm font-medium uppercase tracking-wider ${
-                  pathname === '/track-order'  
-                    ? 'text-black' 
-                    : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Track My Order
-              </Link>
-            )} */}
-          </nav>
         </div>
         
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
-            <div className="container mx-auto px-4 py-4">
-              <nav className="flex flex-col space-y-4">
-                {navItems.home && (
-                  <Link 
-                    href="/" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/' || (pathname && pathname.startsWith('/store-routes')) 
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Home Page
-                  </Link>
-                )}
-                {navItems.perfumes && (
-                  <Link 
-                    href="/collection" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/collection' || (pathname && pathname.startsWith('/product')) 
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Perfumes
-                  </Link>
-                )}
-                {/* {navItems["new-arrivals"] && (
-                  <Link 
-                    href="/new-arrivals" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/new-arrivals'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    New Arrivals
-                  </Link>
-                )} */}
+        {/* Search Bar */}
+        {searchOpen && (
+          <div className="border-t border-gray-200 py-4 px-4">
+            <div className="container mx-auto">
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search for products..."
+                  className="flex-1 border-gray-300 border rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-black"
+                />
+                <button className="bg-black text-white py-2 px-6 rounded-r-md hover:bg-gray-800">
+                  Search
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+      
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 fixed inset-x-0 top-[60px] z-20 overflow-y-auto max-h-[calc(100vh-60px)]">
+          <div className="container mx-auto px-4 py-4">
+            <nav className="space-y-4">
+              {navigationItems.map((item) => 
+                navItems[item.id] ? (
+                  <div key={item.id}>
+                    {item.hasDropdown ? (
+                      <>
+                        <Link
+                          href={item.path}
+                          className="flex items-center justify-between w-full py-2 font-medium text-gray-700 hover:text-black transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <span>{item.name}</span>
+                          <FiChevronDown className="ml-1" size={16} />
+                        </Link>
+                        
+                        <div className="pl-4 mt-2 space-y-2 border-l border-gray-200">
+                          {item.dropdownItems?.map((dropdownItem) => (
+                            <Link
+                              key={dropdownItem.path}
+                              href={dropdownItem.path}
+                              className="block py-2 text-gray-600 hover:text-black transition-colors hover:pl-2"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              {dropdownItem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <Link
+                        href={item.path}
+                        className="block py-2 font-medium text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    )}
+                  </div>
+                ) : null
+              )}
+              
+              {/* Additional mobile menu items */}
+              <div className="border-t border-gray-200 pt-4 mt-4">
                 {navItems.about && (
-                  <Link 
-                    href="/about-us" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/about-us'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
+                  <Link
+                    href="/about-us"
+                    className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     About Us
                   </Link>
                 )}
-                {isAuthenticated && navItems.track && (
-                  <Link 
-                    href="/track-order" 
-                    className={`text-sm font-medium uppercase py-2 ${
-                      pathname === '/track-order'  
-                        ? 'text-black' 
-                        : 'text-gray-600'
-                    }`}
+                
+                {navItems.track && (
+                  <Link
+                    href="/track-order"
+                    className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Track My Order
+                    Track Order
                   </Link>
                 )}
-                {isAuthenticated && (
-                  <>
-                    <div className="border-t border-gray-200 pt-4 mt-2"></div>
-                    <Link 
-                      href="/account" 
-                      className="text-sm font-medium uppercase py-2 text-gray-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Account
-                    </Link>
-                    <Link 
-                      href="/account/orders" 
-                      className="text-sm font-medium uppercase py-2 text-gray-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Orders
-                    </Link>
-                    <Link 
-                      href="/account/wishlist" 
-                      className="text-sm font-medium uppercase py-2 text-gray-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Wishlist
-                    </Link>
-                    <button
-                      onClick={handleLogoutClick}
-                      className="text-sm font-medium uppercase py-2 text-red-600 text-left w-full"
-                    >
-                      Logout
-                    </button>
-                  </>
+                
+                {componentSettings.wishlist && (
+                  <Link
+                    href="/wishlist"
+                    className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Wishlist
+                  </Link>
                 )}
-                {!isAuthenticated && (
-                  <>
-                    <div className="border-t border-gray-200 pt-4 mt-2"></div>
-                    <Link 
-                      href="/login" 
-                      className="text-sm font-medium uppercase py-2 text-gray-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Login / Register
-                    </Link>
-                  </>
-                )}
-              </nav>
-            </div>
+              </div>
+            </nav>
           </div>
-        )}
-        
-        {/* Search overlay */}
-        {searchOpen && (
-          <div className="absolute inset-x-0 top-[100px] bg-white border-t border-gray-200 p-4 shadow-md z-10">
-            <div className="container mx-auto relative">
-              <form className="flex items-center">
-                <input 
-                  type="text" 
-                  placeholder="Search our store" 
-                  className="w-full p-2 border border-gray-300 focus:outline-none focus:border-black"
-                />
-                <button type="submit" className="ml-2 p-2 bg-black text-white">
-                  <FiSearch size={20} />
-                </button>
-              </form>
-              <button 
-                onClick={() => setSearchOpen(false)}
-                className="absolute right-2 top-2 text-gray-500 hover:text-black"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
+        </div>
+      )}
+      
+      {/* Mini Cart */}
+      <MiniCartWithModal isOpen={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
     </>
   );
 } 

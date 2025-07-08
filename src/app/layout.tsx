@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Montserrat, Playfair_Display } from "next/font/google";
+import { Montserrat, Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import "./styles/cross-browser.css";
 import { AuthProvider } from "./components/AuthProvider";
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
-// Import WhatsAppButton dynamically with client-side only rendering
+// Import components dynamically with client-side only rendering
 const ClientLayout = dynamic(() => import('./components/ClientLayout'), { ssr: true });
+const WhatsAppPopupWrapper = dynamic(() => import('./components/WhatsAppPopupWrapper'));
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -21,6 +22,11 @@ const playfairDisplay = Playfair_Display({
   display: "swap",
   variable: "--font-playfair",
   weight: ["400", "500", "600", "700"],
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -66,6 +72,7 @@ export default function RootLayout({
             <ClientLayout>
               {children}
             </ClientLayout>
+            <WhatsAppPopupWrapper phoneNumber="919999999999" />
           </AuthProvider>
         </Suspense>
       </body>

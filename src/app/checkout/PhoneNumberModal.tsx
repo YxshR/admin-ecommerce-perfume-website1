@@ -8,24 +8,20 @@ interface PhoneNumberModalProps {
   onClose: () => void;
   onConfirm: (phoneNumber: string) => void;
   initialPhoneNumber?: string;
-  stopPropagation?: boolean;
 }
 
 export default function PhoneNumberModal({
   isOpen,
   onClose,
   onConfirm,
-  initialPhoneNumber = '',
-  stopPropagation = false
+  initialPhoneNumber = ''
 }: PhoneNumberModalProps) {
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [error, setError] = useState('');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (stopPropagation) {
-      e.stopPropagation();
-    }
+    e.stopPropagation();
     
     // Basic validation
     if (!phoneNumber.trim()) {
@@ -46,27 +42,32 @@ export default function PhoneNumberModal({
   
   if (!isOpen) return null;
   
+  // Prevent event bubbling
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+  
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-      onClick={(e) => stopPropagation && e.stopPropagation()}
+      onClick={onClose} // Close when clicking the backdrop
     >
       <div 
         id="phone-number-modal"
         className="bg-white rounded-lg max-w-md w-full p-6"
-        onClick={(e) => e.stopPropagation()}
+        onClick={stopPropagation} // Stop propagation to prevent closing when clicking the modal
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-medium">Phone Verification</h2>
           <button 
-            onClick={onClose}
+            onClick={stopPropagation}
             className="text-gray-500 hover:text-gray-700"
           >
-            <FiX size={24} />
+            <FiX size={24} onClick={onClose} />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} onClick={stopPropagation}>
           <div className="mb-6">
             <label htmlFor="phone" className="block text-sm text-gray-700 mb-2">
               Enter your phone number
@@ -87,7 +88,7 @@ export default function PhoneNumberModal({
                     setError('');
                   }
                 }}
-                onClick={(e) => e.stopPropagation()}
+                onClick={stopPropagation}
                 placeholder="10-digit phone number"
                 className={`flex-1 p-3 border rounded-r-md ${
                   error ? 'border-red-500' : 'border-gray-300'
@@ -104,7 +105,10 @@ export default function PhoneNumberModal({
           <div className="flex justify-end">
             <button
               type="button"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md mr-2"
             >
               Cancel
@@ -112,6 +116,7 @@ export default function PhoneNumberModal({
             <button
               type="submit"
               className="px-4 py-2 bg-black text-white rounded-md"
+              onClick={stopPropagation}
             >
               Verify
             </button>

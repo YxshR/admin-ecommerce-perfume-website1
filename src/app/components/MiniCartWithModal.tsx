@@ -1,206 +1,376 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { FiX, FiTrash2, FiMinus, FiPlus, FiShoppingBag } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FiX, FiPlus, FiMinus } from 'react-icons/fi';
-import { useAuth } from './AuthProvider';
-import { useCart, CartService } from '@/app/services/CartService';
-import CheckoutModal from './CheckoutModal';
+import { useRouter } from 'next/navigation';
+import OTPVerificationModal from './OTPVerificationModal';
+import PhoneNumberModal from '../checkout/PhoneNumberModal';
+import GuestCheckoutModal from './GuestCheckoutModal';
 
-interface MiniCartProps {
+interface CartItem {
+  _id: string;
+  name: string;
+  price: number;
+  discountedPrice?: number;
+  quantity: number;
+  image: string;
+}
+
+interface MiniCartWithModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function MiniCartWithModal({ isOpen, onClose }: MiniCartProps) {
-  const { items: cartItems, total: subtotal, loading, updateQuantity, removeItem } = useCart();
-  const [discountCode, setDiscountCode] = useState('');
-  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModalProps) {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showGuestCheckoutModal, setShowGuestCheckoutModal] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
   const cartRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated } = useAuth();
-
-  // Handle click outside of cart panel to close it
+  const router = useRouter();
+  
+  // Fetch cart items from localStorage
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        setLoading(true);
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          const parsedCart = JSON.parse(storedCart);
+          setCartItems(parsedCart);
+          
+          // Calculate subtotal
+          const total = parsedCart.reduce((sum: number, item: CartItem) => {
+            const itemPrice = item.discountedPrice || item.price;
+            return sum + (itemPrice * item.quantity);
+          }, 0);
+          
+          setSubtotal(total);
+        } else {
+          setCartItems([]);
+          setSubtotal(0);
+        }
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        setCartItems([]);
+        setSubtotal(0);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [isOpen]);
+  
+  // Handle clicks outside the cart
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cartRef.current && !cartRef.current.contains(event.target as Node)) {
         onClose();
       }
     };
-
+    
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
-
-  // Sync cart with server when cart is opened for authenticated users
-  useEffect(() => {
-    if (isOpen && isAuthenticated) {
-      CartService.syncWithServer(true);
-    }
-  }, [isOpen, isAuthenticated]);
-
-  // Apply discount code
-  const applyDiscount = () => {
-    // This would typically connect to an API to validate the code
-    console.log('Applying discount code:', discountCode);
-    // For now, just clear the input
-    setDiscountCode('');
+  
+  const updateQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    
+    const updatedCart = cartItems.map(item => 
+      item._id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+    
+    setCartItems(updatedCart);
+    
+    // Update localStorage
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
+    // Recalculate subtotal
+    const newSubtotal = updatedCart.reduce((sum, item) => {
+      const itemPrice = item.discountedPrice || item.price;
+      return sum + (itemPrice * item.quantity);
+    }, 0);
+    
+    setSubtotal(newSubtotal);
+    
+    // Dispatch storage event for other components to detect the change
+    window.dispatchEvent(new Event('storage'));
   };
-
-  // Handle checkout button click
-  const handleCheckout = () => {
-    if (!isAuthenticated) {
-      // Redirect to login for non-authenticated users
-      window.location.href = '/login?redirect=/checkout';
-    } else {
-      // Close mini cart and open checkout modal
-      onClose();
-      setIsCheckoutModalOpen(true);
+  
+  const removeItem = (itemId: string) => {
+    const updatedCart = cartItems.filter(item => item._id !== itemId);
+    setCartItems(updatedCart);
+    
+    // Update localStorage
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
+    // Recalculate subtotal
+    const newSubtotal = updatedCart.reduce((sum, item) => {
+      const itemPrice = item.discountedPrice || item.price;
+      return sum + (itemPrice * item.quantity);
+    }, 0);
+    
+    setSubtotal(newSubtotal);
+    
+    // Dispatch storage event for other components to detect the change
+    window.dispatchEvent(new Event('storage'));
+  };
+  
+  const handlePhoneSubmit = (phone: string) => {
+    setPhoneNumber(phone);
+    setShowPhoneModal(false);
+    setShowOtpModal(true);
+    
+    // Generate OTP
+    fetch('/api/otp/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ phone })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (!data.success) {
+        console.error('Failed to generate OTP:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error generating OTP:', error);
+    });
+  };
+  
+  const handleOtpVerified = () => {
+    setShowOtpModal(false);
+    setShowGuestCheckoutModal(true);
+  };
+  
+  const handleGuestCheckoutSubmit = (address: any) => {
+    // Store guest info in localStorage
+    localStorage.setItem('guest_checkout_info', JSON.stringify({
+      ...address,
+      phone: phoneNumber
+    }));
+    
+    localStorage.setItem('guest_order_in_progress', 'true');
+    
+    // Redirect to checkout page
+    router.push('/checkout');
+  };
+  
+  const handleCheckout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      // If we have a guest order in progress, continue with that
+      const guestOrderInProgress = localStorage.getItem('guest_order_in_progress');
+      
+      if (guestOrderInProgress) {
+        // Redirect to checkout page
+        router.push('/checkout');
+        return;
+      }
+      
+      // Check if user is logged in
+      const response = await fetch('/api/auth/check-session');
+      const data = await response.json();
+      
+      if (data.authenticated) {
+        // User is logged in, redirect to checkout
+        router.push('/checkout');
+      } else {
+        // User is not logged in, show phone verification modal
+        setShowPhoneModal(true);
+      }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      // Show phone verification modal as fallback
+      setShowPhoneModal(true);
     }
   };
-
+  
+  if (!isOpen) return null;
+  
   return (
     <>
-      {/* Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
-      )}
-      
-      {/* Cart panel */}
       <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+      ></div>
+      
+      <div
         ref={cartRef}
-        className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center px-4 py-4 border-b">
-          <h2 className="text-xl font-medium">Your Cart</h2>
-          <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-black"
-            aria-label="Close cart"
+        <div className="flex justify-between items-center p-4 border-b">
+          <h2 className="text-xl font-medium flex items-center">
+            <FiShoppingBag className="mr-2" />
+            Your Cart
+          </h2>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="text-gray-500 hover:text-gray-700"
+            aria-label="Close"
           >
             <FiX size={24} />
           </button>
         </div>
         
-        {/* Cart content */}
-        <div className="h-[calc(100%-190px)] overflow-y-auto px-4 py-4">
+        <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
             </div>
           ) : cartItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 text-center">
-              <p className="text-gray-500 mb-4">Your cart is empty</p>
-              <Link
-                href="/store"
-                className="px-4 py-2 bg-black text-white hover:bg-gray-800"
-                onClick={onClose}
-              >
-                Continue Shopping
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <FiShoppingBag size={64} className="text-gray-300 mb-4" />
+              <p className="text-xl text-gray-500 mb-2">Your cart is empty</p>
+              <p className="text-gray-400 mb-6">Add items to get started</p>
+              <Link href="/collection" passHref>
+                <span 
+                  className="inline-block bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800"
+                  onClick={onClose}
+                >
+                  Browse Products
+                </span>
               </Link>
             </div>
           ) : (
-            <ul className="divide-y">
+            <div className="space-y-4">
               {cartItems.map((item) => (
-                <li key={item.id} className="py-4">
-                  <div className="flex items-start">
-                    {/* Product image */}
-                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                      {item.image ? (
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          width={80}
-                          height={80}
-                          className="h-full w-full object-cover object-center"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-500 text-xs">No image</span>
-                        </div>
-                      )}
+                <div key={item._id} className="flex border-b pb-4">
+                  <div className="w-20 h-20 relative flex-shrink-0">
+                    <Image
+                      src={item.image || '/placeholder-image.jpg'}
+                      alt={item.name}
+                      fill
+                      sizes="80px"
+                      style={{ objectFit: 'cover' }}
+                      className="rounded"
+                    />
+                  </div>
+                  
+                  <div className="ml-4 flex-grow">
+                    <div className="flex justify-between">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeItem(item._id);
+                        }}
+                        className="text-gray-400 hover:text-red-500"
+                        aria-label="Remove item"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
                     </div>
                     
-                    {/* Product details */}
-                    <div className="ml-4 flex-1">
-                      <div className="flex justify-between">
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
-                          <p className="mt-1 text-sm text-gray-500">₹{item.price.toFixed(2)}</p>
-                        </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="flex items-center border rounded-md">
                         <button
-                          onClick={() => removeItem(item.id)}
-                          className="text-gray-400 hover:text-red-500"
-                          aria-label={`Remove ${item.name} from cart`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateQuantity(item._id, item.quantity - 1);
+                          }}
+                          className="px-2 py-1 text-gray-600 hover:text-black"
+                          aria-label="Decrease quantity"
+                          disabled={item.quantity <= 1}
                         >
-                          <FiX size={18} />
+                          <FiMinus size={16} />
+                        </button>
+                        <span className="px-2">{item.quantity}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateQuantity(item._id, item.quantity + 1);
+                          }}
+                          className="px-2 py-1 text-gray-600 hover:text-black"
+                          aria-label="Increase quantity"
+                        >
+                          <FiPlus size={16} />
                         </button>
                       </div>
                       
-                      {/* Quantity controls */}
-                      <div className="mt-2 flex items-center">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
-                          className="text-gray-500 p-1 border border-gray-300 rounded-md disabled:opacity-50"
-                          aria-label="Decrease quantity"
-                        >
-                          <FiMinus size={14} />
-                        </button>
-                        <span className="mx-2 text-gray-700 w-8 text-center">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="text-gray-500 p-1 border border-gray-300 rounded-md"
-                          aria-label="Increase quantity"
-                        >
-                          <FiPlus size={14} />
-                        </button>
+                      <div className="font-medium">
+                        {item.discountedPrice ? (
+                          <div>
+                            <span className="text-gray-500 line-through mr-2">
+                              ₹{item.price.toFixed(2)}
+                            </span>
+                            <span>₹{item.discountedPrice.toFixed(2)}</span>
+                          </div>
+                        ) : (
+                          <span>₹{item.price.toFixed(2)}</span>
+                        )}
                       </div>
                     </div>
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
         
-        {/* Footer with checkout button */}
-        <div className="absolute bottom-0 left-0 right-0 border-t px-4 py-4 bg-white">
-          
-          {/* Subtotal and checkout */}
-          <div>
-            <div className="flex justify-between mb-3">
-              <span className="text-gray-600">Subtotal</span>
+        {cartItems.length > 0 && (
+          <div className="border-t p-4 bg-gray-50">
+            <div className="flex justify-between mb-4">
+              <span>Subtotal</span>
               <span className="font-medium">₹{subtotal.toFixed(2)}</span>
             </div>
+            
+            <div className="text-sm text-gray-500 mb-4">
+              Shipping and taxes calculated at checkout
+            </div>
+            
             <button
+              type="button"
               onClick={handleCheckout}
-              disabled={cartItems.length === 0}
-              className="w-full py-3 px-4 bg-black text-white font-medium hover:bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-black text-white rounded-md hover:bg-gray-800"
             >
               Checkout
             </button>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Shipping & taxes calculated at checkout
-            </p>
           </div>
-        </div>
+        )}
       </div>
       
-      {/* Checkout Modal */}
-      <CheckoutModal 
-        isOpen={isCheckoutModalOpen} 
-        onClose={() => setIsCheckoutModalOpen(false)} 
-        cartItems={cartItems}
-        subtotal={subtotal}
+      {/* Phone Number Modal */}
+      <PhoneNumberModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onConfirm={handlePhoneSubmit}
+      />
+      
+      {/* OTP Verification Modal */}
+      <OTPVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        phone={phoneNumber}
+        onVerified={handleOtpVerified}
+      />
+      
+      {/* Guest Checkout Modal */}
+      <GuestCheckoutModal
+        isOpen={showGuestCheckoutModal}
+        onClose={() => setShowGuestCheckoutModal(false)}
+        phone={phoneNumber}
+        onSubmit={handleGuestCheckoutSubmit}
       />
     </>
   );

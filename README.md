@@ -1,85 +1,63 @@
-# Avito Scent Perfume E-commerce Website
+# Avito Scent E-commerce Website
 
-This is a full-stack e-commerce website for selling perfumes. It includes both an admin dashboard and a customer-facing store.
+## Overview
+This is an e-commerce website for Avito Scent, a premium perfume brand. The website allows users to browse products, add them to cart, and complete purchases without requiring login or signup.
 
 ## Features
+- Product browsing and searching
+- Cart functionality (add, remove, update quantity)
+- OTP-based checkout flow using Twilio
+- Responsive design for all devices
+- Admin panel for order management
 
-- **Admin Panel**: Manage products, orders, users, and website content
-- **E-commerce Store**: Browse products, add to cart, checkout
-- **User Authentication**: Login, signup, and profile management
-- **Order Management**: Track orders, view history
-- **Wishlist**: Save favorite products
-- **MongoDB Integration**: All data stored in MongoDB database
+## Tech Stack
+- Next.js
+- React
+- MongoDB
+- Tailwind CSS
+- Twilio for SMS OTP
+- Razorpay for payments
+
+## Checkout Flow
+The website implements a guest checkout flow with the following steps:
+1. User adds products to cart
+2. User clicks "Checkout" button
+3. Phone number verification with Twilio OTP
+4. User enters shipping details (name, email, address)
+5. Payment processing with Razorpay
+6. Order confirmation
 
 ## Setup Instructions
 
 ### Prerequisites
+- Node.js 14.x or higher
+- MongoDB database
+- Twilio account for SMS OTP
+- Razorpay account for payments
 
-- Node.js (v16 or higher)
-- MongoDB database (Atlas or local)
-- Cloudinary account (for image uploads)
-
-### Quick Setup (Recommended)
-
-The simplest way to get started is using our setup script:
-
-```
-npm run setup
-```
-
-This script will:
-1. Create an `.env.local` file template if it doesn't exist
-2. Prompt you to edit it with your actual credentials
-3. Install dependencies if needed
-4. Ask if you want to seed the database
-5. Start the development server
-
-### Manual Installation
-
-If you prefer to set up manually:
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/perfume-ecommerce.git
-   cd perfume-ecommerce
-   ```
-
+### Installation
+1. Clone the repository
 2. Install dependencies:
    ```
    npm install
    ```
-
-3. Create environment variables:
-   ```
-   node create-env-local.js
-   ```
-
-4. Edit the `.env.local` file with your actual credentials:
-   - Add your MongoDB connection string
-   - Set JWT secrets
-   - Add Cloudinary credentials
-
-5. Seed the database with initial data:
-   ```
-   npm run seed
-   ```
-
-6. Run the development server:
+3. Create a `.env.local` file with the required environment variables (see `.env.local.example`)
+4. Set up Twilio credentials (see TWILIO-ENV-SETUP.md)
+5. Run the development server:
    ```
    npm run dev
    ```
 
-7. Open [http://localhost:3000](http://localhost:3000) in your browser
+### Environment Variables
+See `.env.local.example` for the required environment variables.
 
-### Default Admin Login
+## Admin Panel
+The admin panel allows you to:
+- View and manage orders
+- Manage products
+- View customer information
 
-- Email: admin@example.com
-- Password: admin123
-
-### Default User Login
-
-- Email: user@example.com
-- Password: user123
+Access the admin panel at `/admin/login`.
 
 ## Project Structure
 
