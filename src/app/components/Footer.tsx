@@ -113,7 +113,7 @@ export default function Footer() {
             </div>
             <div className="flex flex-col space-y-3 mt-4">
               <div className="flex items-center">
-                <a href="https://www.instagram.com/a_v_i_t_o?igsh=M2E0bG5yNnNhNm11" 
+                <a href="https://www.instagram.com/avitoscents?igsh=M2E0bG5yNnNhNm11" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-gray-600 hover:text-black flex items-center"

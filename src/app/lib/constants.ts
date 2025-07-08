@@ -1,6 +1,6 @@
 // Social Media Links
 export const SOCIAL_LINKS = {
-  instagram: "https://www.instagram.com/a_v_i_t_o?igsh=M2E0bG5yNnNhNm11",
+  instagram: "https://www.instagram.com/avitoscents?igsh=M2E0bG5yNnNhNm11",
   facebook: "https://www.facebook.com/profile.php?id=61576015962692&mibextid=ZbWKwL",
   whatsapp: "https://wa.me/919928200900",
 };
