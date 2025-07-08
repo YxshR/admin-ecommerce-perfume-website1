@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import { usePathname } from 'next/navigation';
 
 interface WhatsAppPopupProps {
   phoneNumber: string;
@@ -11,8 +12,21 @@ interface WhatsAppPopupProps {
 
 export default function WhatsAppPopup({ phoneNumber, message = 'Hello, I have a question about your products.' }: WhatsAppPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
+  
+  // Don't show on checkout, cart, payment or order confirmation pages
+  const isCheckoutOrCartPage = pathname?.includes('/checkout') || 
+                              pathname?.includes('/cart') ||
+                              pathname?.includes('/payment') ||
+                              pathname?.includes('/order-confirmation');
   
   useEffect(() => {
+    // Don't show on checkout/cart pages
+    if (isCheckoutOrCartPage) {
+      setIsVisible(false);
+      return;
+    }
+    
     // Check if the popup has been closed in this session
     const popupClosed = sessionStorage.getItem('whatsapp_popup_closed');
     
@@ -24,7 +38,7 @@ export default function WhatsAppPopup({ phoneNumber, message = 'Hello, I have a 
       
       return () => clearTimeout(timer);
     }
-  }, []); // Only run once on component mount
+  }, [isCheckoutOrCartPage]); // Re-run if pathname changes
   
   const closePopup = () => {
     setIsVisible(false);
@@ -38,7 +52,7 @@ export default function WhatsAppPopup({ phoneNumber, message = 'Hello, I have a 
     closePopup();
   };
   
-  if (!isVisible) return null;
+  if (!isVisible || isCheckoutOrCartPage) return null;
   
   return (
     <div 

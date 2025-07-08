@@ -3,11 +3,19 @@
 import { useState, useEffect } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import { usePathname } from 'next/navigation';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const pathname = usePathname();
+  
+  // Check if current page is checkout or cart related
+  const isCheckoutOrCartPage = pathname?.includes('/checkout') || 
+                              pathname?.includes('/cart') ||
+                              pathname?.includes('/payment') ||
+                              pathname?.includes('/order-confirmation');
   
   // Check if device is mobile
   useEffect(() => {
@@ -23,7 +31,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // Show the button after scrolling down
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
+      if (window.scrollY > 300 && !isCheckoutOrCartPage) {
         setShowWhatsApp(true);
       } else {
         setShowWhatsApp(false);
@@ -33,7 +41,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isCheckoutOrCartPage]);
   
   // Auto-hide tooltip after some time
   useEffect(() => {
@@ -64,8 +72,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <>
       {children}
       
-      {/* WhatsApp Button */}
-      {showWhatsApp && (
+      {/* WhatsApp Button - Only show on non-checkout/cart pages */}
+      {showWhatsApp && !isCheckoutOrCartPage && (
         <div className={`fixed ${isMobile ? 'bottom-4 right-4' : 'bottom-6 right-6'} z-50`}>
           {showTooltip && (
             <div className={`absolute bottom-16 ${isMobile ? 'right-0 w-56' : 'right-0 w-64'} bg-white rounded-lg shadow-lg p-3 mb-2 animate-fade-in`}>

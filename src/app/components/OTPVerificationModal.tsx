@@ -151,8 +151,13 @@ export default function OTPVerificationModal({
   
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center"
+      onClick={(e) => {
+        // Only close when explicitly clicking the backdrop
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div 
         className="bg-white rounded-lg max-w-md w-full p-6"
@@ -197,6 +202,7 @@ export default function OTPVerificationModal({
                   error ? 'border-red-500' : 'border-gray-300'
                 }`}
                 maxLength={6}
+                autoFocus
               />
               {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
             </div>
@@ -248,12 +254,18 @@ export default function OTPVerificationModal({
               disabled={loading || otp.length !== 6}
               className={`px-4 py-2 rounded-md flex items-center ${
                 loading || otp.length !== 6
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-black text-white hover:bg-gray-800'
               }`}
             >
-              {loading && <FiLoader className="animate-spin mr-2" />}
-              {loading ? 'Verifying...' : 'Verify'}
+              {loading ? (
+                <>
+                  <FiLoader className="animate-spin mr-2" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify'
+              )}
             </button>
           </div>
         </form>

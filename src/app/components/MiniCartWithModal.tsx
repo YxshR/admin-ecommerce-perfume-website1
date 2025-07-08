@@ -355,6 +355,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
         isOpen={showPhoneModal}
         onClose={() => setShowPhoneModal(false)}
         onConfirm={handlePhoneSubmit}
+        stopPropagation={true}
       />
       
       {/* OTP Verification Modal */}
