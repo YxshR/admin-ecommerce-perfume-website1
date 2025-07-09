@@ -15,6 +15,7 @@ interface ProductMedia {
   file?: File;
   preview?: string;
 }
+// Define product type
 
 interface ProductData {
   name: string;

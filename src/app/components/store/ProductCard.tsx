@@ -136,17 +136,17 @@ export default function ProductCard({ product }: ProductCardProps) {
     // Full stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <FiStar key={`star-${i}`} className="w-4 h-4 text-black fill-current" />
+        <FiStar key={`star-${i}`} className="w-3 h-3 text-amber-800 fill-current" />
       );
     }
     
     // Half star
     if (hasHalfStar) {
       stars.push(
-        <div key="half-star" className="relative w-4 h-4">
-          <FiStar className="w-4 h-4 text-black absolute" />
+        <div key="half-star" className="relative w-3 h-3">
+          <FiStar className="w-3 h-3 text-amber-800 absolute" />
           <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden">
-            <FiStar className="w-4 h-4 text-black fill-current" />
+            <FiStar className="w-3 h-3 text-amber-800 fill-current" />
           </div>
         </div>
       );
@@ -156,7 +156,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <FiStar key={`empty-star-${i}`} className="w-4 h-4 text-black" />
+        <FiStar key={`empty-star-${i}`} className="w-3 h-3 text-amber-800" />
       );
     }
     
@@ -187,77 +187,88 @@ export default function ProductCard({ product }: ProductCardProps) {
     return '/perfume-placeholder.jpg';
   };
   
+  // Format price with commas for thousands
+  const formatPrice = (price: number) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+  
+  const volume = product.attributes?.volume || '';
+  
   return (
     <Link href={`/product/${product._id}`}>
       <div 
-        className="group relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+        className="group relative bg-white border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-lg"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Product Image */}
-        <div className="aspect-square overflow-hidden relative">
+        {/* Product Image with elegant border */}
+        <div className="aspect-[3/4] overflow-hidden relative bg-gray-50">
           <img
             src={getImageUrl()}
             alt={product.name}
-            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105 p-4"
             onError={() => setImageError(true)}
           />
           
-          {/* Discount Badge */}
+          {/* Discount Badge - Elegant style */}
           {discount > 0 && (
-            <div className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 rounded">
+            <div className="absolute top-3 right-3 bg-amber-800 text-white text-xs px-2 py-1 font-light tracking-wider">
               {discount}% OFF
             </div>
           )}
-          
-          {/* Quick Actions */}
-          <div 
-            className={`absolute bottom-0 left-0 right-0 bg-black bg-opacity-80 p-3 flex justify-center items-center space-x-4 transition-transform duration-300 ${
-              isHovered ? 'translate-y-0' : 'translate-y-full'
-            }`}
-          >
-            <button
-              onClick={handleAddToCart}
-              className="text-white hover:text-gray-200 transition-colors flex items-center"
-              disabled={isAddingToCart}
-            >
-              <FiShoppingBag className="mr-1" />
-              {isAddingToCart ? 'Adding...' : 'Add to Cart'}
-            </button>
-          </div>
         </div>
         
-        {/* Product Info */}
-        <div className="p-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{product.name}</h3>
-          
-          <div className="flex items-center mb-1">
-            {product.rating ? (
-              <div className="flex items-center">
-                {renderRatingStars()}
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500">No ratings yet</div>
-            )}
+        {/* Product Info - Premium styling */}
+        <div className="p-4 border-t border-gray-100 bg-white">
+          {/* Category in small caps */}
+          <div className="mb-1">
+            <span className="text-[10px] uppercase tracking-wider text-gray-500 font-light">
+              {product.category} {volume && `• ${volume}`}
+            </span>
           </div>
           
+          {/* Product Name - Elegant typography */}
+          <h3 className="font-medium text-gray-900 mb-2 tracking-wide uppercase text-sm">
+            {product.name}
+          </h3>
+          
+          {/* Price with elegant styling */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               {discount > 0 && product.discountedPrice ? (
                 <>
-                  <span className="text-sm font-medium text-gray-900">₹{product.discountedPrice}</span>
-                  <span className="ml-2 text-xs text-gray-500 line-through">₹{product.price}</span>
+                  <span className="text-sm font-medium text-gray-900">₹{formatPrice(product.discountedPrice)}</span>
+                  <span className="ml-2 text-xs text-gray-400 line-through">₹{formatPrice(product.price)}</span>
                 </>
               ) : (
-                <span className="text-sm font-medium text-gray-900">₹{product.price}</span>
+                <span className="text-sm font-medium text-gray-900">₹{formatPrice(product.price)}</span>
               )}
             </div>
             
-            {/* Category Badge */}
-            <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-              {product.category}
-            </span>
+            {/* Rating stars with minimal styling */}
+            <div className="flex items-center">
+              {product.rating ? (
+                <div className="flex items-center space-x-0.5">
+                  {renderRatingStars()}
+                </div>
+              ) : null}
+            </div>
           </div>
+        </div>
+        
+        {/* Add to Cart Button - Luxury style */}
+        <div 
+          className={`absolute bottom-0 left-0 right-0 bg-white bg-opacity-95 transition-all duration-300 transform ${
+            isHovered ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          <button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
+            className="w-full py-3 bg-amber-800 text-white uppercase text-sm tracking-wider font-light hover:bg-amber-900 transition-colors"
+          >
+            {isAddingToCart ? 'Adding...' : 'Add To Cart'}
+          </button>
         </div>
       </div>
     </Link>
