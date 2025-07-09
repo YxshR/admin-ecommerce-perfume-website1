@@ -1,71 +1,67 @@
 'use client';
 
 import { useState } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiLoader } from 'react-icons/fi';
 
 interface PhoneNumberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (phoneNumber: string) => void;
-  initialPhoneNumber?: string;
-  stopPropagation?: boolean;
+  onSubmit: (phone: string) => void;
 }
 
 export default function PhoneNumberModal({
   isOpen,
   onClose,
-  onConfirm,
-  initialPhoneNumber = '',
-  stopPropagation: propStopPropagation
+  onSubmit
 }: PhoneNumberModalProps) {
-  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Basic validation
-    if (!phoneNumber.trim()) {
-      setError('Phone number is required');
-      return;
+    try {
+      // Reset error
+      setError('');
+      
+      // Validate phone number (basic validation)
+      if (!phone || phone.length !== 10 || !/^\d+$/.test(phone)) {
+        setError('Please enter a valid 10-digit phone number');
+        return;
+      }
+      
+      // Set loading state
+      setLoading(true);
+      
+      // Call onSubmit callback with the phone number
+      onSubmit(phone);
+      
+    } catch (error) {
+      console.error('Error submitting phone number:', error);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    // Check if it's a valid 10-digit phone number
-    if (!/^\d{10}$/.test(phoneNumber)) {
-      setError('Please enter a valid 10-digit phone number');
-      return;
-    }
-    
-    // Clear error and confirm
-    setError('');
-    onConfirm(phoneNumber);
   };
   
   if (!isOpen) return null;
-  
-  // Prevent event bubbling
-  const handleStopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
   
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center"
       onClick={(e) => {
-        // Only close when explicitly clicking the backdrop
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
+        // Do not close modal when clicking backdrop
+        e.stopPropagation();
       }}
     >
       <div 
-        id="phone-number-modal"
         className="bg-white rounded-lg max-w-md w-full p-6"
-        onClick={handleStopPropagation}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-medium">Phone Verification</h2>
+          <h2 className="text-xl font-medium">Enter Phone Number</h2>
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -77,40 +73,41 @@ export default function PhoneNumberModal({
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} onClick={handleStopPropagation}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label htmlFor="phone" className="block text-sm text-gray-700 mb-2">
-              Enter your phone number
-            </label>
-            <div className="flex">
-              <div className="flex items-center bg-gray-100 px-3 rounded-l-md border border-r-0 border-gray-300">
-                <span className="text-gray-500">+91</span>
-              </div>
-              <input
-                type="text"
-                id="phone"
-                value={phoneNumber}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Only allow numbers
-                  if (/^\d*$/.test(value)) {
-                    setPhoneNumber(value);
-                    setError('');
-                  }
-                }}
-                onClick={handleStopPropagation}
-                placeholder="10-digit phone number"
-                className={`flex-1 p-3 border rounded-r-md ${
-                  error ? 'border-red-500' : 'border-gray-300'
-                }`}
-                maxLength={10}
-                autoFocus
-              />
-            </div>
-            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
-            <p className="text-xs text-gray-500 mt-2">
-              We'll send you order updates and delivery information on this number
+            <p className="text-gray-700 mb-4">
+              Please enter your phone number to continue with checkout
             </p>
+            
+            <div className="mb-4">
+              <label htmlFor="phone" className="block text-sm text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <div className="flex">
+                <div className="bg-gray-100 p-3 border border-r-0 rounded-l-md border-gray-300">
+                  +91
+                </div>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => {
+                    // Only allow numbers and max 10 digits
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setPhone(value);
+                    setError('');
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Enter 10-digit number"
+                  className={`w-full p-3 border rounded-r-md ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  maxLength={10}
+                  autoFocus
+                />
+              </div>
+              {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+            </div>
           </div>
           
           <div className="flex justify-end">
@@ -126,9 +123,17 @@ export default function PhoneNumberModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-black text-white rounded-md"
+              className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+              disabled={loading}
             >
-              Verify
+              {loading ? (
+                <span className="flex items-center">
+                  <FiLoader className="animate-spin mr-2" />
+                  Processing...
+                </span>
+              ) : (
+                'Continue'
+              )}
             </button>
           </div>
         </form>

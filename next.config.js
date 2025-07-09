@@ -43,7 +43,12 @@ const nextConfig = {
     ADMIN_PHONE: '8126518755',
     CLOUDINARY_API_SECRET: 'cloudinary://992368173733427:kQuf9IxR7a503I0y-J_QVzx4RI8@dzzxpyqif', // Replace with your actual API secret
     RAZORPAY_KEY_ID: 'rzp_live_ZhhzXPVJwyHfxu',
-    RAZORPAY_KEY_SECRET: 'OQmkoO5AB107WZw0oLt3dyrO'
+    RAZORPAY_KEY_SECRET: 'OQmkoO5AB107WZw0oLt3dyrO',
+    // Twilio configuration
+    TWILIO_ACCOUNT_SID: 'AC5ce650562b68c5e32e3864e1f1fa5e97',
+    TWILIO_AUTH_TOKEN: '8d7cf3fb4202832be671f6ff6db65202',
+    TWILIO_PHONE_NUMBER: '+918126518755',
+    TWILIO_VERIFY_SERVICE_SID: 'VA6d30f761fb32414863edfb815f56ed05'
   },
   output: 'standalone',
   // Add experimental features to improve compatibility with Vercel deployments

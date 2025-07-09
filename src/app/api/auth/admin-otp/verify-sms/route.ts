@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { encrypt } from '@/app/lib/auth-utils';
+import { encrypt } from '@/app/lib/server-auth';
 import connectMongoDB from '@/app/lib/mongodb';
 import User from '@/app/models/User';
 import { Types } from 'mongoose';

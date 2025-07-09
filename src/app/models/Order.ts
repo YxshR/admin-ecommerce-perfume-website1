@@ -26,6 +26,11 @@ const OrderItemSchema = new Schema({
 });
 
 const OrderSchema = new Schema({
+  trackingId: {
+    type: String,
+    required: true,
+    unique: true
+  },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -49,14 +54,22 @@ const OrderSchema = new Schema({
       type: String,
       required: true
     },
+    state: {
+      type: String,
+      required: true
+    },
     country: {
       type: String,
       required: true
     },
     phone: {
       type: String,
-      required: false
+      required: true
     }
+  },
+  alternatePhone: {
+    type: String,
+    required: false
   },
   paymentMethod: {
     type: String,
@@ -67,7 +80,10 @@ const OrderSchema = new Schema({
     id: String,
     status: String,
     update_time: String,
-    email_address: String
+    email_address: String,
+    razorpayOrderId: String,
+    razorpay_payment_id: String,
+    razorpay_signature: String
   },
   itemsPrice: {
     type: Number,
@@ -117,14 +133,11 @@ const OrderSchema = new Schema({
     required: true,
     enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
     default: 'Pending'
-  },
-  trackingNumber: {
-    type: String
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
-}, { timestamps: true });
+}, {
+  timestamps: true
+});
 
-export default models.Order || mongoose.model('Order', OrderSchema); 
+const Order = models.Order || mongoose.model('Order', OrderSchema);
+
+export default Order; 

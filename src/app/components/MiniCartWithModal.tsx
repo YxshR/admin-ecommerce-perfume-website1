@@ -171,32 +171,9 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
     e.preventDefault();
     e.stopPropagation();
     
-    try {
-      // If we have a guest order in progress, continue with that
-      const guestOrderInProgress = localStorage.getItem('guest_order_in_progress');
-      
-      if (guestOrderInProgress) {
-        // Redirect to checkout page
-        router.push('/checkout');
-        return;
-      }
-      
-      // Check if user is logged in
-      const response = await fetch('/api/auth/check-session');
-      const data = await response.json();
-      
-      if (data.authenticated) {
-        // User is logged in, redirect to checkout
-        router.push('/checkout');
-      } else {
-        // User is not logged in, show phone verification modal
-        setShowPhoneModal(true);
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      // Show phone verification modal as fallback
-      setShowPhoneModal(true);
-    }
+    // Redirect to checkout page
+    router.push('/checkout');
+    onClose();
   };
   
   if (!isOpen) return null;
@@ -352,14 +329,15 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
       
       {/* Phone Number Modal */}
       <PhoneNumberModal
+        key="phone-modal"
         isOpen={showPhoneModal}
         onClose={() => setShowPhoneModal(false)}
-        onConfirm={handlePhoneSubmit}
-        stopPropagation={true}
+        onSubmit={handlePhoneSubmit}
       />
       
-      {/* OTP Verification Modal */}
+                      {/* OTP Verification Modal */}
       <OTPVerificationModal
+        key="otp-modal"
         isOpen={showOtpModal}
         onClose={() => setShowOtpModal(false)}
         phone={phoneNumber}
@@ -368,9 +346,9 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
       
       {/* Guest Checkout Modal */}
       <GuestCheckoutModal
+        key="guest-checkout-modal"
         isOpen={showGuestCheckoutModal}
         onClose={() => setShowGuestCheckoutModal(false)}
-        phone={phoneNumber}
         onSubmit={handleGuestCheckoutSubmit}
       />
     </>

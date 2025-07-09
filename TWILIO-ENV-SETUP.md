@@ -15,9 +15,9 @@ Add the following variables to your `.env.local` file:
 
 ```
 # Twilio
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_phone_number
+TWILIO_ACCOUNT_SID=AC5ce650562b68c5e32e3864e1f1fa5e97
+TWILIO_AUTH_TOKEN=8d7cf3fb4202832be671f6ff6db65202
+TWILIO_PHONE_NUMBER=+18126518755  # Include the country code (e.g., +1 for US)
 ```
 
 Replace the placeholder values with your actual Twilio credentials.

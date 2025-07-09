@@ -1,4 +1,8 @@
+'use client';
+
 import React from 'react';
+import { FaShoppingBag } from 'react-icons/fa';
+import Link from 'next/link';
 
 export default function CheckoutLayout({
   children,
@@ -7,7 +11,33 @@ export default function CheckoutLayout({
 }) {
   return (
     <div className="min-h-screen bg-gray-50">
-      {children}
+      <header className="bg-white shadow-sm py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center">
+             {/* Logo */}
+             <Link href="/" className="flex-shrink-0 flex gap-2 items-center">
+              <img
+                src="/logoog.jpg"
+                alt="Avito Scent"
+                className="h-10 w-auto"
+              />
+              
+              <p>Avito Scent</p>
+            </Link>
+            <Link href="/cart" className="text-sm text-gray-600 hover:text-black">
+              Return to cart
+            </Link>
+          </div>
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-8">
+        {children}
+      </main>
+      <footer className="bg-white border-t py-6">
+        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
+          &copy; {new Date().getFullYear()} Avito Scent. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 } 

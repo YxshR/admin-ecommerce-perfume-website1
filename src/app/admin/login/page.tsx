@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiAlertCircle, FiShield, FiKey, FiCheckCircle, FiPhone, FiMessageSquare } from 'react-icons/fi';
+import { saveAdminAuth } from '@/app/lib/admin-auth';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -205,10 +206,7 @@ export default function AdminLoginPage() {
         const data = await res.json();
         
         if (data.success && data.token) {
-        // Import and use the new admin auth utility
-        const { saveAdminAuth } = await import('@/app/lib/admin-auth');
-        
-        // Save admin auth data
+        // Use the imported saveAdminAuth function
         saveAdminAuth(data.token, data.user);
           
           // Redirect to admin dashboard
@@ -250,27 +248,22 @@ export default function AdminLoginPage() {
         cache: 'no-store'
       });
       
-      if (!res.ok) {
-        throw new Error('Admin bypass login failed');
-      }
-      
       const data = await res.json();
       
       if (data.success && data.token) {
-        // Import and use the new admin auth utility
-        const { saveAdminAuth } = await import('@/app/lib/admin-auth');
-        
-        // Save admin auth data
+        // Use the imported saveAdminAuth function
         saveAdminAuth(data.token, data.user);
         
         // Redirect to admin dashboard
         router.push('/admin/dashboard');
       } else {
-        setError(data.error || 'Admin bypass login failed. Please try again.');
+        setError(data.error || 'Bypass login failed. Please try again.');
       }
     } catch (err: any) {
-      console.error('Admin bypass login error:', err);
-      setError(err.message || 'Admin bypass login failed. Please try again.');
+      console.error('Bypass login error:', err);
+      setError(err.message || 'Bypass login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
   

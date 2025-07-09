@@ -270,8 +270,14 @@ export default function Nav() {
     },
     {
       id: 'waxfume',
-      name: 'Waxfume (Solid)',
+      name: 'Waxfume',
       path: '/waxfume',
+      hasDropdown: false
+    },
+    {
+      id: 'About',
+      name: 'About Us',
+      path: '/about-us',
       hasDropdown: false
     }
   ];
@@ -289,12 +295,14 @@ export default function Nav() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
+            <Link href="/" className="flex-shrink-0 flex gap-2 items-center">
               <img
-                src="/logo.png"
+                src="/logoog.jpg"
                 alt="Avito Scent"
                 className="h-10 w-auto"
               />
+              
+              <p>Avito Scent</p>
             </Link>
             
             {/* Desktop Navigation */}
@@ -384,7 +392,7 @@ export default function Nav() {
               )}
               
               {/* Wishlist */}
-              {componentSettings.wishlist && (
+              {/* {componentSettings.wishlist && (
                 <Link
                   href="/wishlist"
                   className="text-gray-700 hover:text-black hidden md:block p-2 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-110"
@@ -392,7 +400,7 @@ export default function Nav() {
                 >
                   <FiHeart size={20} />
                 </Link>
-              )}
+              )} */}
               
               {/* Mobile menu button */}
               <button
@@ -492,7 +500,7 @@ export default function Nav() {
                   </Link>
                 )}
                 
-                {componentSettings.wishlist && (
+                {/* {componentSettings.wishlist && (
                   <Link
                     href="/wishlist"
                     className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
@@ -500,7 +508,7 @@ export default function Nav() {
                   >
                     Wishlist
                   </Link>
-                )}
+                )} */}
               </div>
             </nav>
           </div>

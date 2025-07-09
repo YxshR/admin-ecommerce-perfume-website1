@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       key_secret,
     });
     
-    // Calculate amount in paise (Razorpay expects amount in smallest currency unit)
+    // Calculate amount in paise
     const amountInPaise = Math.round(order.totalPrice * 100);
     
     // Create Razorpay order
@@ -74,14 +74,13 @@ export async function POST(request: NextRequest) {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       razorpayOrderId: razorpayOrder.id,
-      orderId: order._id.toString(),
       customerName: order.shippingAddress.fullName,
       customerEmail: order.user?.email || '',
       customerPhone: order.shippingAddress.phone
     });
     
   } catch (error) {
-    console.error('Error initializing Razorpay payment:', error);
+    console.error('Error initializing payment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to initialize payment' },
       { status: 500 }
