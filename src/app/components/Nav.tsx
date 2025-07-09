@@ -57,7 +57,7 @@ export default function Nav() {
     "air-fresheners": true,
     "waxfume": true,
     "new-arrivals": true,
-    about: true,
+    "about-us": true,
     track: true
   });
   
@@ -275,7 +275,7 @@ export default function Nav() {
       hasDropdown: false
     },
     {
-      id: 'About',
+      id: 'about-us',
       name: 'About Us',
       path: '/about-us',
       hasDropdown: false
@@ -480,7 +480,7 @@ export default function Nav() {
               
               {/* Additional mobile menu items */}
               <div className="border-t border-gray-200 pt-4 mt-4">
-                {navItems.about && (
+                {navItems["about-us"] && (
                   <Link
                     href="/about-us"
                     className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"

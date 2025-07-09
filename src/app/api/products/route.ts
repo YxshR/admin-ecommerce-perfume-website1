@@ -101,12 +101,17 @@ export async function POST(request: Request) {
       images: images,
       videos: videos, // Store videos separately
       mainImage: mainImage,
-      category: productInfo.category.join(', '), // Convert array to string with commas
+      productType: productInfo.productType,
+      category: productInfo.category,
+      subCategories: productInfo.subCategories || [],
       brand: productInfo.brand || 'Avito Scent',
       sku: productInfo.sku,
       quantity: parseInt(productInfo.quantity.toString() || '0'),
       featured: productInfo.featured || false,
-      isNewProduct: productInfo.new_arrival || false,
+      bestSelling: productInfo.bestSelling || false,
+      newArrivals: productInfo.newArrivals || false,
+      bestBuy: productInfo.bestBuy || false,
+      isNewProduct: productInfo.newArrivals || false,
       onSale: productInfo.comparePrice && productInfo.comparePrice > productInfo.price,
       attributes: {
         gender: productInfo.gender,

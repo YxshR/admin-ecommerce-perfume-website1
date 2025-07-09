@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiShoppingBag, FiHeart, FiStar } from 'react-icons/fi';
+import { FiShoppingBag, FiStar } from 'react-icons/fi';
 import { useAuth } from '@/app/components/AuthProvider';
 import Image from 'next/image';
 
@@ -18,11 +18,16 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  discountedPrice: number;
+  discountedPrice?: number;
   category: string;
-  images: { url: string }[];
+  productType?: string;
+  subCategories?: string[];
+  images: { url: string }[] | string[];
   rating?: number;
   mainImage?: string;
+  attributes?: {
+    volume?: string;
+  };
 }
 
 interface ProductCardProps {
@@ -31,64 +36,9 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { isAuthenticated, user } = useAuth();
-  
-  // Check if product is in wishlist when component loads
-  useEffect(() => {
-    if (isAuthenticated) {
-      checkWishlistStatus();
-    } else {
-      // For non-authenticated users, use localStorage
-      try {
-        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-        const isInWishlist = wishlist.some((item: any) => item.productId === product._id);
-        setIsWishlisted(isInWishlist);
-      } catch (error) {
-        // Silent error handling
-        setIsWishlisted(false);
-      }
-    }
-  }, [product._id, isAuthenticated]);
-  
-  const checkWishlistStatus = async () => {
-    try {
-      // Only attempt to fetch wishlist if user is authenticated
-      if (!isAuthenticated) {
-        return;
-      }
-      
-      const response = await fetch('/api/wishlist', {
-        credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      
-      // Don't attempt to parse JSON for 401 responses
-      if (response.status === 401) {
-        return;
-      }
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch wishlist');
-      }
-      
-      const data = await response.json();
-      
-      if (data.success && data.wishlist && Array.isArray(data.wishlist.items)) {
-        const isInWishlist = data.wishlist.items.some(
-          (item: any) => item.productId === product._id
-        );
-        setIsWishlisted(isInWishlist);
-      }
-    } catch (error) {
-      // Silent error handling
-      // Don't show error to user, just silently fail
-    }
-  };
   
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -172,60 +122,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
   
-  const handleToggleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Check if user is logged in
-    if (!isAuthenticated) {
-      // Redirect to login if not authenticated
-      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-      return;
-    }
-    
-    try {
-      if (isWishlisted) {
-        // Remove from wishlist
-        const response = await fetch(`/api/wishlist?productId=${product._id}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to remove from wishlist');
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          setIsWishlisted(false);
-        }
-      } else {
-        // Add to wishlist
-        const response = await fetch('/api/wishlist', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ productId: product._id }),
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to add to wishlist');
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          setIsWishlisted(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-    }
-  };
-  
   const discount = (product.discountedPrice > 0 && product.price > 0)
     ? Math.round(((product.price - product.discountedPrice) / product.price) * 100) 
     : 0;
@@ -248,8 +144,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (hasHalfStar) {
       stars.push(
         <div key="half-star" className="relative w-4 h-4">
-          <FiStar className="absolute w-4 h-4 text-black fill-current" style={{ clipPath: 'inset(0 50% 0 0)' }} />
-          <FiStar className="absolute w-4 h-4 text-gray-300" />
+          <FiStar className="w-4 h-4 text-black absolute" />
+          <div className="absolute top-0 left-0 w-1/2 h-full overflow-hidden">
+            <FiStar className="w-4 h-4 text-black fill-current" />
+          </div>
         </div>
       );
     }
@@ -258,122 +156,110 @@ export default function ProductCard({ product }: ProductCardProps) {
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <FiStar key={`empty-star-${i}`} className="w-4 h-4 text-gray-300" />
+        <FiStar key={`empty-star-${i}`} className="w-4 h-4 text-black" />
       );
     }
     
     return stars;
   };
-
-  // Fallback image URL - use a local image instead of external service
-  const fallbackImageUrl = '/images/placeholder-product.jpg';
   
-  // Determine the image URL to use
   const getImageUrl = () => {
-    // First check if there's an image error
     if (imageError) {
-      return fallbackImageUrl;
+      return '/perfume-placeholder.jpg';
     }
     
-    // Check if product has images array with valid URL
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      // Handle both object format { url: string } and direct string format
-      if (typeof product.images[0] === 'string') {
-        return product.images[0];
-      } else if (product.images[0]?.url) {
-        return product.images[0].url;
-      }
-    }
-    
-    // Check if product has mainImage as fallback
+    // Check if product has a mainImage
     if (product.mainImage) {
       return product.mainImage;
     }
     
-    // Default fallback
-    return fallbackImageUrl;
+    // Check if images is an array of objects with url property
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0];
+      if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
+        return firstImage.url;
+      } else if (typeof firstImage === 'string') {
+        return firstImage;
+      }
+    }
+    
+    // Fallback to placeholder
+    return '/perfume-placeholder.jpg';
   };
   
-  const imageUrl = getImageUrl();
-    
   return (
-    <div
-      className="h-full flex flex-col premium-card overflow-hidden relative group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* On Sale Tag */}
-      {discount > 0 && (
-        <div className="absolute top-3 left-3 sale-tag z-10">
-          On Sale
-        </div>
-      )}
-      
-      {/* Wishlist button */}
-      <button
-        onClick={handleToggleWishlist}
-        className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow-md transition-all hover:scale-110"
-        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+    <Link href={`/product/${product._id}`}>
+      <div 
+        className="group relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <FiHeart 
-          className={`w-5 h-5 ${isWishlisted ? 'text-red-500 fill-current' : 'text-gray-600'}`} 
-        />
-      </button>
-      
-      {/* Product Image - Link wrapper */}
-      <Link href={`/product/${product._id}`} className="block relative h-64 md:h-80 overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={product.name}
-          width={400}
-          height={500}
-          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-          onError={() => setImageError(true)}
-        />
-      </Link>
-      
-      {/* Product Info */}
-      <div className="p-4 flex-grow flex flex-col">
-        {/* Category */}
-        <div className="text-xs text-gray-500 uppercase mb-1">
-          {product.category}
-        </div>
-        
-        {/* Title - Link wrapper */}
-        <Link href={`/product/${product._id}`} className="block">
-          <h3 className="text-sm font-medium mb-2 line-clamp-1">
-            {product.name}
-          </h3>
-        </Link>
-        
-        {/* Product Type */}
-        <p className="text-xs text-gray-500 mb-2 line-clamp-1">
-          {product.category} | Perfume
-        </p>
-        
-        {/* Price */}
-        <div className="flex items-center justify-center mt-auto mb-3">
-          {product.discountedPrice > 0 ? (
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-black">₹{product.discountedPrice.toFixed(2)}</span>
-                <span className="text-xs text-gray-500 line-through">MRP ₹{product.price.toFixed(2)}</span>
-              </div>
+        {/* Product Image */}
+        <div className="aspect-square overflow-hidden relative">
+          <img
+            src={getImageUrl()}
+            alt={product.name}
+            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            onError={() => setImageError(true)}
+          />
+          
+          {/* Discount Badge */}
+          {discount > 0 && (
+            <div className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 rounded">
+              {discount}% OFF
             </div>
-          ) : (
-            <span className="text-sm font-medium text-black">₹{product.price.toFixed(2)}</span>
           )}
+          
+          {/* Quick Actions */}
+          <div 
+            className={`absolute bottom-0 left-0 right-0 bg-black bg-opacity-80 p-3 flex justify-center items-center space-x-4 transition-transform duration-300 ${
+              isHovered ? 'translate-y-0' : 'translate-y-full'
+            }`}
+          >
+            <button
+              onClick={handleAddToCart}
+              className="text-white hover:text-gray-200 transition-colors flex items-center"
+              disabled={isAddingToCart}
+            >
+              <FiShoppingBag className="mr-1" />
+              {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+            </button>
+          </div>
         </div>
         
-        {/* Add to cart button */}
-        <button 
-          onClick={handleAddToCart}
-          disabled={isAddingToCart}
-          className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-black text-white hover:bg-[#333] transition-all duration-300"
-        >
-          <span className="text-xs font-medium uppercase">{isAddingToCart ? 'Added!' : 'Add to Cart'}</span>
-        </button>
+        {/* Product Info */}
+        <div className="p-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{product.name}</h3>
+          
+          <div className="flex items-center mb-1">
+            {product.rating ? (
+              <div className="flex items-center">
+                {renderRatingStars()}
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500">No ratings yet</div>
+            )}
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              {discount > 0 && product.discountedPrice ? (
+                <>
+                  <span className="text-sm font-medium text-gray-900">₹{product.discountedPrice}</span>
+                  <span className="ml-2 text-xs text-gray-500 line-through">₹{product.price}</span>
+                </>
+              ) : (
+                <span className="text-sm font-medium text-gray-900">₹{product.price}</span>
+              )}
+            </div>
+            
+            {/* Category Badge */}
+            <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+              {product.category}
+            </span>
+          </div>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 } 

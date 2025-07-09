@@ -15,19 +15,25 @@ interface Product {
   price: number;
   discountedPrice?: number;
   images: string[];
+  productType: string;
   category: string;
-  subCategory?: string;
+  subCategories?: string[];
   tags?: string[];
   featured?: boolean;
-  bestSeller?: boolean;
-  newArrival?: boolean;
+  bestSelling?: boolean;
+  newArrivals?: boolean;
+  bestBuy?: boolean;
   inStock: boolean;
   quantity?: number;
   createdAt: string;
   updatedAt: string;
+  attributes?: {
+    volume?: string;
+  };
 }
 
 interface ProductListingProps {
+  productType?: string;
   category?: string;
   subCategory?: string;
   tag?: string;
@@ -36,6 +42,7 @@ interface ProductListingProps {
 }
 
 export default function ProductListing({
+  productType,
   category,
   subCategory,
   tag,
@@ -54,10 +61,12 @@ export default function ProductListing({
   // Filter states
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [sortBy, setSortBy] = useState('newest');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
+  const [selectedVolumes, setSelectedVolumes] = useState<string[]>([]);
+  const [availableSubCategories, setAvailableSubCategories] = useState<string[]>([]);
+  const [availableVolumes, setAvailableVolumes] = useState<string[]>([]);
   
-  // Fetch products based on category, subCategory, or tag
+  // Fetch products based on productType, category, subCategory, or tag
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -65,6 +74,7 @@ export default function ProductListing({
         
         // Build query parameters
         const params = new URLSearchParams();
+        if (productType) params.append('productType', productType);
         if (category) params.append('category', category);
         if (subCategory) params.append('subCategory', subCategory);
         if (tag) params.append('tag', tag);
@@ -79,14 +89,23 @@ export default function ProductListing({
         const data = await response.json();
         
         // Ensure data is an array of products
-        const productsArray: Product[] = Array.isArray(data) ? data : [];
+        const productsArray: Product[] = Array.isArray(data.products) ? data.products : [];
         setProducts(productsArray);
         
-        // Extract unique tags for filtering
+        // Extract unique sub-categories and volumes for filtering
         if (productsArray.length > 0) {
-          const allTags = productsArray.flatMap(product => product.tags || []);
-          const uniqueTags = [...new Set(allTags)];
-          setAvailableTags(uniqueTags);
+          // Extract sub-categories
+          const allSubCategories = productsArray.flatMap(product => product.subCategories || []);
+          const uniqueSubCategories = [...new Set(allSubCategories)];
+          setAvailableSubCategories(uniqueSubCategories);
+          
+          // Extract volumes
+          const allVolumes = productsArray.map(product => {
+            const attributes = product.attributes || {};
+            return attributes.volume || '';
+          }).filter(Boolean);
+          const uniqueVolumes = [...new Set(allVolumes)];
+          setAvailableVolumes(uniqueVolumes);
           
           // Find min and max price
           const prices = productsArray.map(product => product.discountedPrice || product.price);
@@ -105,7 +124,7 @@ export default function ProductListing({
     };
     
     fetchProducts();
-  }, [category, subCategory, tag]);
+  }, [productType, category, subCategory, tag]);
   
   // Apply filters and search
   const filteredProducts = products.filter(product => {
@@ -121,10 +140,18 @@ export default function ProductListing({
       return false;
     }
     
-    // Filter by selected tags
-    if (selectedTags.length > 0 && 
-        !selectedTags.some(tag => product.tags?.includes(tag))) {
+    // Filter by selected sub-categories
+    if (selectedSubCategories.length > 0 && 
+        !selectedSubCategories.some(subCat => product.subCategories?.includes(subCat))) {
       return false;
+    }
+    
+    // Filter by selected volumes
+    if (selectedVolumes.length > 0) {
+      const productVolume = product.attributes?.volume || '';
+      if (!selectedVolumes.includes(productVolume)) {
+        return false;
+      }
     }
     
     return true;
@@ -146,11 +173,19 @@ export default function ProductListing({
     }
   });
   
-  const handleTagToggle = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
+  const handleSubCategoryToggle = (subCategory: string) => {
+    setSelectedSubCategories(prev => 
+      prev.includes(subCategory)
+        ? prev.filter(sc => sc !== subCategory)
+        : [...prev, subCategory]
+    );
+  };
+  
+  const handleVolumeToggle = (volume: string) => {
+    setSelectedVolumes(prev => 
+      prev.includes(volume)
+        ? prev.filter(v => v !== volume)
+        : [...prev, volume]
     );
   };
   
@@ -158,7 +193,8 @@ export default function ProductListing({
     setSearchTerm('');
     setPriceRange([0, 10000]);
     setSortBy('newest');
-    setSelectedTags([]);
+    setSelectedSubCategories([]);
+    setSelectedVolumes([]);
   };
   
   return (
@@ -244,22 +280,44 @@ export default function ProductListing({
                 </div>
               </div>
               
-              {/* Tags */}
-              {availableTags.length > 0 && (
+              {/* Sub-Categories */}
+              {availableSubCategories.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-2">Tags</h4>
+                  <h4 className="font-medium mb-2">Sub-Categories</h4>
                   <div className="flex flex-wrap gap-2">
-                    {availableTags.map(tag => (
+                    {availableSubCategories.map(subCategory => (
                       <button
-                        key={tag}
-                        onClick={() => handleTagToggle(tag)}
+                        key={subCategory}
+                        onClick={() => handleSubCategoryToggle(subCategory)}
                         className={`px-3 py-1 text-sm rounded-full ${
-                          selectedTags.includes(tag)
+                          selectedSubCategories.includes(subCategory)
                             ? 'bg-black text-white'
                             : 'bg-gray-200 text-gray-700'
                         }`}
                       >
-                        {tag}
+                        {subCategory}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Volumes */}
+              {availableVolumes.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Volumes</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {availableVolumes.map(volume => (
+                      <button
+                        key={volume}
+                        onClick={() => handleVolumeToggle(volume)}
+                        className={`px-3 py-1 text-sm rounded-full ${
+                          selectedVolumes.includes(volume)
+                            ? 'bg-black text-white'
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {volume}
                       </button>
                     ))}
                   </div>

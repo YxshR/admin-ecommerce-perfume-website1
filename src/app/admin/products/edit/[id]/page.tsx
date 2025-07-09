@@ -18,7 +18,9 @@ interface ProductMedia {
 
 interface ProductData {
   name: string;
-  category: string[];
+  productType: string;
+  category: string;
+  subCategories: string[];
   gender: string;
   volume: string;
   price: number;
@@ -33,6 +35,9 @@ interface ProductData {
   sku: string;
   brand: string;
   slug: string;
+  bestSelling: boolean;
+  newArrivals: boolean;
+  bestBuy: boolean;
 }
 
 export default function EditProductPage() {
@@ -53,7 +58,9 @@ export default function EditProductPage() {
   // Product form state
   const [productData, setProductData] = useState<ProductData>({
     name: '',
-    category: [],
+    productType: '',
+    category: '',
+    subCategories: [],
     gender: '',
     volume: '',
     price: 0,
@@ -67,22 +74,101 @@ export default function EditProductPage() {
     quantity: 0,
     sku: '',
     brand: '',
-    slug: ''
+    slug: '',
+    bestSelling: false,
+    newArrivals: false,
+    bestBuy: false
   });
   
-  // Available categories
-  const categoryOptions = [
-    'Woody', 'Floral', 'Fruity', 'Fresh', 
-    'Sweet', 'Spicy', 'Oriental', 'Citrus', 
-    'Aquatic', 'Musky', 'Powdery', 'Green',
-    'Signature', 'Bestseller', 'New Arrival', 'Car Diffuser', 'Waxfume', "Room Spray", 'Attar'
+  // Product type options
+  const productTypeOptions = [
+    'Perfumes',
+    'Aesthetic Attars',
+    'Air Fresheners',
+    'Waxfume (Solid)'
   ];
+  
+  // Dynamic category options based on product type
+  const getCategoryOptions = () => {
+    switch(productData.productType) {
+      case 'Perfumes':
+        return ['Value for Money', 'Premium Perfumes', 'Luxury Perfumes', 'Combo Sets'];
+      case 'Aesthetic Attars':
+        return ['Premium Attars', 'Luxury Attars', 'Combo Sets'];
+      case 'Air Fresheners':
+        return ['Room Fresheners', 'Car Diffusers'];
+      case 'Waxfume (Solid)':
+        return ['Tin Zar'];
+      default:
+        return [];
+    }
+  };
+  
+  // Dynamic sub-category options based on product type and category
+  const getSubCategoryOptions = () => {
+    if (!productData.productType || !productData.category) return [];
+    
+    switch(productData.productType) {
+      case 'Perfumes':
+        switch(productData.category) {
+          case 'Value for Money':
+            return ['Peach', 'Sea Musk'];
+          case 'Premium Perfumes':
+            return ['Founder', 'Nectar'];
+          case 'Luxury Perfumes':
+            return ['Brise DavrilI'];
+          case 'Combo Sets':
+            return [
+              'Two 20 ml Set Combo Woman (Peach/Breeze)',
+              'Four 20 ml Set Combo Unisex (Founder, Nectar, Sea Musk, Peach)',
+              'Two 20 ml Combo Set MAN (Brise Davril, Nectar)',
+              'Two 20 ml Combo Set COUPLE (Brise DavrilI, Peach)'
+            ];
+          default:
+            return [];
+        }
+      case 'Aesthetic Attars':
+        switch(productData.category) {
+          case 'Premium Attars':
+            return ['Rose', 'Amber', 'Sandalwood', 'Kewra', 'Green Khus', 'Coffee'];
+          case 'Luxury Attars':
+            return ['Royal Blue', 'Blue Lomani', 'La Flora', 'Arabian OUD', 'Caramal'];
+          case 'Combo Sets':
+            return [
+              'Daily Officer Wear (Rose, Roayl Blue, Arabian OUD)',
+              'Party Wear (Musk Rose, Amber, La Flora)',
+              'Gift Box (Rose, Caramal, Blue Lomani)'
+            ];
+          default:
+            return [];
+        }
+      case 'Air Fresheners':
+        return ['Lavender', 'Chandan', 'Gulab', 'Lemon', 'Musk', 'Vanila'];
+      case 'Waxfume (Solid)':
+        return ['Tin Zar'];
+      default:
+        return [];
+    }
+  };
+  
+  // Dynamic volume options based on product type
+  const getVolumeOptions = () => {
+    switch(productData.productType) {
+      case 'Perfumes':
+        return ['20ml', '50ml', '100ml'];
+      case 'Aesthetic Attars':
+        return ['5ml', '8ml', '10ml'];
+      case 'Air Fresheners':
+        return ['10ml', '250ml'];
+      case 'Waxfume (Solid)':
+        return ['10gms', '25gms'];
+      default:
+        return [];
+    }
+  };
   
   // Gender options
   const genderOptions = ['Him', 'Her', 'Unisex'];
-  
-  // Volume options
-  const volumeOptions = ['20ml', '80ml', '100ml', '50ml', '200ml'];
   
   // Fetch product data when component mounts
   useEffect(() => {
@@ -119,11 +205,45 @@ export default function EditProductPage() {
           categoryArray = data.product.category;
         }
         
+        // Determine product type based on category
+        let productType = 'Perfumes'; // Default
+        let category = '';
+        let subCategories: string[] = [];
+        
+        // Try to extract product type and category from the existing data
+        if (categoryArray.includes('Car Diffuser') || categoryArray.includes('Room Spray')) {
+          productType = 'Air Fresheners';
+          category = categoryArray.includes('Car Diffuser') ? 'Car Diffusers' : 'Room Fresheners';
+        } else if (categoryArray.includes('Attar')) {
+          productType = 'Aesthetic Attars';
+          if (categoryArray.includes('Luxury')) {
+            category = 'Luxury Attars';
+          } else {
+            category = 'Premium Attars';
+          }
+        } else if (categoryArray.includes('Waxfume')) {
+          productType = 'Waxfume (Solid)';
+          category = 'Tin Zar';
+        } else {
+          // For perfumes, try to determine the category
+          if (categoryArray.includes('Luxury')) {
+            category = 'Luxury Perfumes';
+          } else if (categoryArray.includes('Premium')) {
+            category = 'Premium Perfumes';
+          } else if (categoryArray.includes('Bestseller')) {
+            category = 'Value for Money';
+          } else {
+            category = 'Value for Money'; // Default
+          }
+        }
+        
         // Transform the product data to match our form state
         setProductData({
           name: data.product.name || '',
           slug: data.product.slug || '',
-          category: categoryArray,
+          productType,
+          category,
+          subCategories,
           gender: data.product.attributes?.gender || '',
           volume: data.product.attributes?.volume || '',
           price: data.product.price || 0,
@@ -140,7 +260,10 @@ export default function EditProductPage() {
           inStock: data.product.quantity > 0,
           quantity: data.product.quantity || 0,
           sku: data.product.sku || '',
-          brand: data.product.brand || 'Avito Scent'
+          brand: data.product.brand || 'Avito Scent',
+          bestSelling: categoryArray.includes('Bestseller'),
+          newArrivals: categoryArray.includes('New Arrival'),
+          bestBuy: false // Default as we don't have this flag in the old data
         });
       }
     } catch (error) {
@@ -159,6 +282,16 @@ export default function EditProductPage() {
       setLoading(false);
     }
   };
+  
+  // Reset sub-categories when category changes
+  useEffect(() => {
+    if (!loading) {
+      setProductData(prev => ({
+        ...prev,
+        subCategories: []
+      }));
+    }
+  }, [productData.category, loading]);
   
   // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -195,16 +328,16 @@ export default function EditProductPage() {
     }
   };
   
-  // Handle category selection
-  const handleCategoryChange = (category: string) => {
+  // Handle sub-category selection
+  const handleSubCategoryChange = (subCategory: string) => {
     setProductData(prev => {
-      const newCategories = prev.category.includes(category) 
-        ? prev.category.filter(c => c !== category)
-        : [...prev.category, category];
+      const newSubCategories = prev.subCategories.includes(subCategory) 
+        ? prev.subCategories.filter(c => c !== subCategory)
+        : [...prev.subCategories, subCategory];
       
       return {
         ...prev,
-        category: newCategories
+        subCategories: newSubCategories
       };
     });
   };
@@ -364,16 +497,21 @@ export default function EditProductPage() {
     });
   };
   
-  // Validate form before submission
+  // Form validation
   const validateForm = (): string => {
     if (!productData.name.trim()) return 'Product name is required';
+    if (!productData.productType) return 'Please select a product type';
+    if (!productData.category) return 'Please select a category';
+    if (productData.subCategories.length === 0) return 'Please select at least one sub-category';
+    if (!productData.gender) return 'Please select a gender';
+    if (!productData.volume) return 'Please select product volume';
     if (productData.price <= 0) return 'Price must be greater than 0';
-    if (!productData.description.trim()) return 'Description is required';
-    if (productData.category.length === 0) return 'Please select at least one category';
-    if (!productData.sku.trim()) return 'SKU is required';
-    if (productData.inStock && productData.quantity <= 0) return 'Quantity must be greater than 0 for in-stock products';
     
-    return ''; // No errors
+    // Check if at least one image is uploaded
+    const hasImages = productData.media.some(m => m.type === 'image');
+    if (!hasImages) return 'Please add at least one image';
+    
+    return '';
   };
   
   // Handle form submission
@@ -459,272 +597,319 @@ export default function EditProductPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Edit Product</h1>
-          <Link href="/admin/products" className="text-blue-600 hover:text-blue-800">
+    <AdminLayout activeRoute="/admin/products">
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
+            <p className="text-gray-600">Update product information</p>
+          </div>
+          <Link 
+            href="/admin/products" 
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+          >
             Back to Products
           </Link>
         </div>
         
+        {/* Success/Error Messages */}
+        {saveSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+            Product updated successfully!
+          </div>
+        )}
+        
+        {saveError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {saveError}
+          </div>
+        )}
+        
         {notFound ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            Product not found. It may have been deleted or the ID is invalid.
+          <div className="bg-white p-8 rounded-lg shadow-md text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Product Not Found</h2>
+            <p className="text-gray-600 mb-6">The product you're looking for doesn't exist or has been removed.</p>
+            <Link 
+              href="/admin/products" 
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Back to Products
+            </Link>
           </div>
         ) : loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg overflow-hidden">
-            {/* Alert messages */}
-            {saveSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 mb-4 rounded">
-                Product updated successfully! Redirecting...
-              </div>
-            )}
-            
-            {saveError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-4 rounded">
-                {saveError}
-              </div>
-            )}
-            
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-medium mb-4">Basic Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Name *
+            {/* Basic Details */}
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-lg font-medium mb-4">Basic Details</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Product Name */}
+                <div className="col-span-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Name <span className="text-red-500">*</span>
                   </label>
-                  <input 
+                  <input
                     type="text"
+                    id="name"
                     name="name"
                     value={productData.name}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter product name"
                     required
                   />
                 </div>
                 
+                {/* Product Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Slug
-                  </label>
-                  <input 
-                    type="text"
-                    name="slug"
-                    value={productData.slug}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
-                    placeholder="product-url-slug"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    URL-friendly version of name. Leave blank to auto-generate.
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SKU *
-                  </label>
-                  <input 
-                    type="text"
-                    name="sku"
-                    value={productData.sku}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Brand
-                  </label>
-                  <input 
-                    type="text"
-                    name="brand"
-                    value={productData.brand}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
-                    placeholder="Avito Scent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price (₹) *
-                  </label>
-                  <input 
-                    type="number"
-                    name="price"
-                    value={productData.price}
-                    onChange={handleNumberChange}
-                    min="0"
-                    step="0.01"
-                    className="w-full p-2 border rounded-md"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Compare Price (₹)
-                  </label>
-                  <input 
-                    type="number"
-                    name="comparePrice"
-                    value={productData.comparePrice || ''}
-                    onChange={handleNumberChange}
-                    min="0"
-                    step="0.01"
-                    className="w-full p-2 border rounded-md"
-                    placeholder="Original price before discount"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Gender
+                  <label htmlFor="productType" className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Type <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="productType"
+                    name="productType"
+                    value={productData.productType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select product type</option>
+                    {productTypeOptions.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Category - Dynamic based on product type */}
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={productData.category}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    disabled={!productData.productType}
+                  >
+                    <option value="">Select category</option>
+                    {getCategoryOptions().map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Gender */}
+                <div>
+                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+                    Gender <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="gender"
                     name="gender"
                     value={productData.gender}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   >
-                    <option value="">Select Gender</option>
-                    {genderOptions.map(option => (
-                      <option key={option} value={option}>{option}</option>
+                    <option value="">Select gender</option>
+                    {genderOptions.map(gender => (
+                      <option key={gender} value={gender}>{gender}</option>
                     ))}
                   </select>
                 </div>
                 
+                {/* Volume - Dynamic based on product type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Volume
+                  <label htmlFor="volume" className="block text-sm font-medium text-gray-700 mb-1">
+                    Volume <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="volume"
                     name="volume"
                     value={productData.volume}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    disabled={!productData.productType}
                   >
-                    <option value="">Select Volume</option>
-                    {volumeOptions.map(option => (
-                      <option key={option} value={option}>{option}</option>
+                    <option value="">Select volume</option>
+                    {getVolumeOptions().map(volume => (
+                      <option key={volume} value={volume}>{volume}</option>
                     ))}
                   </select>
                 </div>
                 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description *
+                {/* Sub-Categories - Dynamic based on product type and category */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sub-Categories <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    name="description"
-                    value={productData.description}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="w-full p-2 border rounded-md"
-                    required
-                  ></textarea>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {getSubCategoryOptions().map(subCategory => (
+                      <div key={subCategory} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`subCategory-${subCategory}`}
+                          checked={productData.subCategories.includes(subCategory)}
+                          onChange={() => handleSubCategoryChange(subCategory)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor={`subCategory-${subCategory}`} className="ml-2 text-sm text-gray-700">
+                          {subCategory}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {productData.productType && productData.category && getSubCategoryOptions().length === 0 && (
+                    <p className="text-sm text-gray-500 mt-2">No sub-categories available for the selected category</p>
+                  )}
                 </div>
                 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    About Product
-                  </label>
-                  <textarea
-                    name="about"
-                    value={productData.about}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full p-2 border rounded-md"
-                    placeholder="Additional product details"
-                  ></textarea>
-                </div>
-                
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Disclaimer
-                  </label>
-                  <textarea
-                    name="disclaimer"
-                    value={productData.disclaimer}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full p-2 border rounded-md"
-                    placeholder="Product disclaimer or warnings"
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-            
-            {/* Categories */}
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-medium mb-4">Categories</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {categoryOptions.map(category => (
-                  <label key={category} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={productData.category.includes(category)}
-                      onChange={() => handleCategoryChange(category)}
-                      className="mr-2"
-                    />
-                    <span>{category}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            
-            {/* Inventory */}
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-medium mb-4">Inventory</h2>
-              <div className="space-y-4">
+                {/* Price */}
                 <div>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="inStock"
-                      checked={productData.inStock}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                    />
-                    <span>In Stock</span>
-                  </label>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                    Price (₹) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
-                    name="quantity"
-                    value={productData.quantity}
+                    id="price"
+                    name="price"
+                    value={productData.price}
                     onChange={handleNumberChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     min="0"
-                    className="w-full p-2 border rounded-md"
-                    disabled={!productData.inStock}
+                    step="0.01"
+                    placeholder="0.00"
+                    required
                   />
                 </div>
                 
+                {/* Compare Price */}
                 <div>
-                  <label className="flex items-center">
+                  <label htmlFor="comparePrice" className="block text-sm font-medium text-gray-700 mb-1">
+                    Compare Price (₹) <span className="text-gray-500 text-xs font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="comparePrice"
+                    name="comparePrice"
+                    value={productData.comparePrice || ''}
+                    onChange={handleNumberChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                {/* Marketing Flags */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Marketing Flags
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="bestSelling"
+                        name="bestSelling"
+                        checked={productData.bestSelling}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="bestSelling" className="ml-2 text-sm text-gray-700">
+                        Best Selling
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="newArrivals"
+                        name="newArrivals"
+                        checked={productData.newArrivals}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="newArrivals" className="ml-2 text-sm text-gray-700">
+                        New Arrivals
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="bestBuy"
+                        name="bestBuy"
+                        checked={productData.bestBuy}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="bestBuy" className="ml-2 text-sm text-gray-700">
+                        Best Buy
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Status */}
+                <div className="col-span-2 flex space-x-6">
+                  <div className="flex items-center">
                     <input
                       type="checkbox"
+                      id="featured"
                       name="featured"
                       checked={productData.featured}
                       onChange={handleCheckboxChange}
-                      className="mr-2"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <span>Featured Product</span>
-                  </label>
+                    <label htmlFor="featured" className="ml-2 text-sm text-gray-700">
+                      Featured Product
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="inStock"
+                      name="inStock"
+                      checked={productData.inStock}
+                      onChange={handleCheckboxChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="inStock" className="ml-2 text-sm text-gray-700">
+                      In Stock
+                    </label>
+                  </div>
                 </div>
+
+              {/* Quantity Field */}
+              <div className="col-span-2">
+                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock Quantity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  value={productData.quantity}
+                  onChange={handleNumberChange}
+                  disabled={!productData.inStock}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    !productData.inStock ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
+                  min="0"
+                  step="1"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  {productData.inStock ? 'Enter the available stock quantity' : 'Enable "In Stock" to set quantity'}
+                </p>
+              </div>
               </div>
             </div>
             

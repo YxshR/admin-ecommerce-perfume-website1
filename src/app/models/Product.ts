@@ -10,7 +10,9 @@ export interface IProductBase {
   images: string[];
   videos?: string[];
   mainImage: string;
+  productType: string;
   category: string;
+  subCategories?: string[];
   subcategory?: mongoose.Types.ObjectId;
   brand?: string;
   sku: string;
@@ -20,6 +22,9 @@ export interface IProductBase {
   // Rename isNew to avoid conflict with Document.isNew
   isNewProduct?: boolean;
   onSale?: boolean;
+  bestSelling?: boolean;
+  newArrivals?: boolean;
+  bestBuy?: boolean;
   rating?: number;
   numReviews?: number;
   reviews?: Array<{
@@ -109,9 +114,18 @@ const ProductSchema = new Schema({
     type: String,
     required: [true, 'Please provide a main product image']
   },
+  productType: {
+    type: String,
+    required: [true, 'Please select a product type'],
+    enum: ['Perfumes', 'Aesthetic Attars', 'Air Fresheners', 'Waxfume (Solid)']
+  },
   category: {
     type: String,
     required: [true, 'Please select a category']
+  },
+  subCategories: {
+    type: [String],
+    default: []
   },
   subcategory: {
     type: mongoose.Schema.Types.ObjectId,
@@ -150,6 +164,18 @@ const ProductSchema = new Schema({
     type: Boolean,
     default: false
   },
+  bestSelling: {
+    type: Boolean,
+    default: false
+  },
+  newArrivals: {
+    type: Boolean,
+    default: false
+  },
+  bestBuy: {
+    type: Boolean,
+    default: false
+  },
   rating: {
     type: Number,
     default: 0,
@@ -178,11 +204,15 @@ const ProductSchema = new Schema({
 
 // Create indexes for better performance
 ProductSchema.index({ name: 'text', description: 'text' });
+ProductSchema.index({ productType: 1 });
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ price: 1 });
 ProductSchema.index({ featured: 1 });
 ProductSchema.index({ isNewProduct: 1 }); // Updated index name
 ProductSchema.index({ onSale: 1 });
+ProductSchema.index({ bestSelling: 1 });
+ProductSchema.index({ newArrivals: 1 });
+ProductSchema.index({ bestBuy: 1 });
 
 // Create a virtual for discount percentage
 ProductSchema.virtual('discountPercentage').get(function() {

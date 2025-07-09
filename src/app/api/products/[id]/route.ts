@@ -91,7 +91,7 @@ export async function PUT(
     // Set main image or default if none provided
     const mainImage = productInfo.mainImage || (images.length > 0 ? images[0] : '/placeholder.jpg');
     
-    // Create product data with all fields - Fix category to be a string not an ObjectId
+    // Create product data with all fields
     const productData = {
       name: productInfo.name,
       slug: (productInfo.slug || productInfo.name.toLowerCase().replace(/\s+/g, '-')) + '-' + Date.now().toString().slice(-6),
@@ -100,12 +100,17 @@ export async function PUT(
       comparePrice: productInfo.comparePrice ? parseFloat(productInfo.comparePrice.toString()) : 0,
       images: images,
       mainImage: mainImage,
-      category: Array.isArray(productInfo.category) ? productInfo.category.join(', ') : productInfo.category,
+      productType: productInfo.productType,
+      category: productInfo.category,
+      subCategories: productInfo.subCategories || [],
       brand: productInfo.brand || 'Avito Scent',
       sku: productInfo.sku,
       quantity: productInfo.quantity || 0,
       featured: productInfo.featured || false,
-      isNewProduct: productInfo.isNewProduct || false,
+      bestSelling: productInfo.bestSelling || false,
+      newArrivals: productInfo.newArrivals || false,
+      bestBuy: productInfo.bestBuy || false,
+      isNewProduct: productInfo.newArrivals || false,
       onSale: productInfo.comparePrice && productInfo.comparePrice > productInfo.price,
       attributes: {
         gender: productInfo.gender,

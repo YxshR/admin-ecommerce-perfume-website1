@@ -18,7 +18,9 @@ interface ProductMedia {
 
 interface ProductData {
   name: string;
-  category: string[];
+  productType: string;
+  category: string;
+  subCategories: string[];
   gender: string;
   volume: string;
   price: number;
@@ -30,6 +32,9 @@ interface ProductData {
   featured: boolean;
   inStock: boolean;
   quantity: number;
+  bestSelling: boolean;
+  newArrivals: boolean;
+  bestBuy: boolean;
 }
 
 export default function AddProductPage() {
@@ -46,7 +51,9 @@ export default function AddProductPage() {
   // Product form state
   const [productData, setProductData] = useState<ProductData>({
     name: '',
-    category: [],
+    productType: '',
+    category: '',
+    subCategories: [],
     gender: '',
     volume: '',
     price: 0,
@@ -57,22 +64,101 @@ export default function AddProductPage() {
     media: [],
     featured: false,
     inStock: true,
-    quantity: 100
+    quantity: 100,
+    bestSelling: false,
+    newArrivals: false,
+    bestBuy: false
   });
   
-  // Available categories
-  const categoryOptions = [
-    'Woody', 'Floral', 'Fruity', 'Fresh', 
-    'Sweet', 'Spicy', 'Oriental', 'Citrus', 
-    'Aquatic', 'Musky', 'Powdery', 'Green',
-    'Signature', 'Bestseller', 'New Arrival', 'Car Diffuser', 'Waxfume', "Room Spray", 'Attar'
+  // Product type options
+  const productTypeOptions = [
+    'Perfumes',
+    'Aesthetic Attars',
+    'Air Fresheners',
+    'Waxfume (Solid)'
   ];
+  
+  // Dynamic category options based on product type
+  const getCategoryOptions = () => {
+    switch(productData.productType) {
+      case 'Perfumes':
+        return ['Value for Money', 'Premium Perfumes', 'Luxury Perfumes', 'Combo Sets'];
+      case 'Aesthetic Attars':
+        return ['Premium Attars', 'Luxury Attars', 'Combo Sets'];
+      case 'Air Fresheners':
+        return ['Room Fresheners', 'Car Diffusers'];
+      case 'Waxfume (Solid)':
+        return ['Tin Zar'];
+      default:
+        return [];
+    }
+  };
+  
+  // Dynamic sub-category options based on product type and category
+  const getSubCategoryOptions = () => {
+    if (!productData.productType || !productData.category) return [];
+    
+    switch(productData.productType) {
+      case 'Perfumes':
+        switch(productData.category) {
+          case 'Value for Money':
+            return ['Peach', 'Sea Musk'];
+          case 'Premium Perfumes':
+            return ['Founder', 'Nectar'];
+          case 'Luxury Perfumes':
+            return ['Brise DavrilI'];
+          case 'Combo Sets':
+            return [
+              'Two 20 ml Set Combo Woman (Peach/Breeze)',
+              'Four 20 ml Set Combo Unisex (Founder, Nectar, Sea Musk, Peach)',
+              'Two 20 ml Combo Set MAN (Brise Davril, Nectar)',
+              'Two 20 ml Combo Set COUPLE (Brise DavrilI, Peach)'
+            ];
+          default:
+            return [];
+        }
+      case 'Aesthetic Attars':
+        switch(productData.category) {
+          case 'Premium Attars':
+            return ['Rose', 'Amber', 'Sandalwood', 'Kewra', 'Green Khus', 'Coffee'];
+          case 'Luxury Attars':
+            return ['Royal Blue', 'Blue Lomani', 'La Flora', 'Arabian OUD', 'Caramal'];
+          case 'Combo Sets':
+            return [
+              'Daily Officer Wear (Rose, Roayl Blue, Arabian OUD)',
+              'Party Wear (Musk Rose, Amber, La Flora)',
+              'Gift Box (Rose, Caramal, Blue Lomani)'
+            ];
+          default:
+            return [];
+        }
+      case 'Air Fresheners':
+        return ['Lavender', 'Chandan', 'Gulab', 'Lemon', 'Musk', 'Vanila'];
+      case 'Waxfume (Solid)':
+        return ['Tin Zar'];
+      default:
+        return [];
+    }
+  };
+  
+  // Dynamic volume options based on product type
+  const getVolumeOptions = () => {
+    switch(productData.productType) {
+      case 'Perfumes':
+        return ['20ml', '50ml', '100ml'];
+      case 'Aesthetic Attars':
+        return ['5ml', '8ml', '10ml'];
+      case 'Air Fresheners':
+        return ['10ml', '250ml'];
+      case 'Waxfume (Solid)':
+        return ['10gms', '25gms'];
+      default:
+        return [];
+    }
+  };
   
   // Gender options
   const genderOptions = ['Him', 'Her', 'Unisex'];
-  
-  // Volume options
-  const volumeOptions = ['20ml', '80ml', '100ml', '50ml', '200ml'];
   
   useEffect(() => {
     // The useAdminAuth hook handles authentication check and redirects
@@ -80,6 +166,23 @@ export default function AddProductPage() {
       setLoading(false);
     }
   }, [authLoading, isAuthenticated]);
+  
+  // Reset category when product type changes
+  useEffect(() => {
+    setProductData(prev => ({
+      ...prev,
+      category: '',
+      subCategories: []
+    }));
+  }, [productData.productType]);
+  
+  // Reset sub-categories when category changes
+  useEffect(() => {
+    setProductData(prev => ({
+      ...prev,
+      subCategories: []
+    }));
+  }, [productData.category]);
   
   // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -108,16 +211,16 @@ export default function AddProductPage() {
     }));
   };
   
-  // Handle category selection
-  const handleCategoryChange = (category: string) => {
+  // Handle sub-category selection
+  const handleSubCategoryChange = (subCategory: string) => {
     setProductData(prev => {
-      const newCategories = prev.category.includes(category) 
-        ? prev.category.filter(c => c !== category)
-        : [...prev.category, category];
+      const newSubCategories = prev.subCategories.includes(subCategory) 
+        ? prev.subCategories.filter(c => c !== subCategory)
+        : [...prev.subCategories, subCategory];
       
       return {
         ...prev,
-        category: newCategories
+        subCategories: newSubCategories
       };
     });
   };
@@ -319,7 +422,9 @@ export default function AddProductPage() {
   // Form validation
   const validateForm = (): string => {
     if (!productData.name.trim()) return 'Product name is required';
-    if (productData.category.length === 0) return 'Please select at least one category';
+    if (!productData.productType) return 'Please select a product type';
+    if (!productData.category) return 'Please select a category';
+    if (productData.subCategories.length === 0) return 'Please select at least one sub-category';
     if (!productData.gender) return 'Please select a gender';
     if (!productData.volume) return 'Please select product volume';
     if (productData.price <= 0) return 'Price must be greater than 0';
@@ -360,14 +465,17 @@ export default function AddProductPage() {
         description: productData.description,
         price: productData.price,
         comparePrice: productData.discountPrice,
+        productType: productData.productType,
         category: productData.category,
+        subCategories: productData.subCategories,
         gender: productData.gender,
         volume: productData.volume,
         about: productData.about,
         disclaimer: productData.disclaimer,
         featured: productData.featured,
-        new_arrival: productData.category.includes('New Arrival'),
-        best_seller: productData.category.includes('Bestseller'),
+        bestSelling: productData.bestSelling,
+        newArrivals: productData.newArrivals,
+        bestBuy: productData.bestBuy,
         in_stock: productData.inStock,
         quantity: productData.quantity,
         slug: productData.name.toLowerCase().replace(/\s+/g, '-'), // Generate slug from name
@@ -474,6 +582,47 @@ export default function AddProductPage() {
                   />
                 </div>
                 
+                {/* Product Type */}
+                <div>
+                  <label htmlFor="productType" className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="productType"
+                    name="productType"
+                    value={productData.productType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select product type</option>
+                    {productTypeOptions.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Category - Dynamic based on product type */}
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={productData.category}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    disabled={!productData.productType}
+                  >
+                    <option value="">Select category</option>
+                    {getCategoryOptions().map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+                
                 {/* Gender */}
                 <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
@@ -494,7 +643,7 @@ export default function AddProductPage() {
                   </select>
                 </div>
                 
-                {/* Volume */}
+                {/* Volume - Dynamic based on product type */}
                 <div>
                   <label htmlFor="volume" className="block text-sm font-medium text-gray-700 mb-1">
                     Volume <span className="text-red-500">*</span>
@@ -506,12 +655,39 @@ export default function AddProductPage() {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
+                    disabled={!productData.productType}
                   >
                     <option value="">Select volume</option>
-                    {volumeOptions.map(volume => (
+                    {getVolumeOptions().map(volume => (
                       <option key={volume} value={volume}>{volume}</option>
                     ))}
                   </select>
+                </div>
+                
+                {/* Sub-Categories - Dynamic based on product type and category */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sub-Categories <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {getSubCategoryOptions().map(subCategory => (
+                      <div key={subCategory} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`subCategory-${subCategory}`}
+                          checked={productData.subCategories.includes(subCategory)}
+                          onChange={() => handleSubCategoryChange(subCategory)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor={`subCategory-${subCategory}`} className="ml-2 text-sm text-gray-700">
+                          {subCategory}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {productData.productType && productData.category && getSubCategoryOptions().length === 0 && (
+                    <p className="text-sm text-gray-500 mt-2">No sub-categories available for the selected category</p>
+                  )}
                 </div>
                 
                 {/* Price */}
@@ -551,26 +727,51 @@ export default function AddProductPage() {
                   />
                 </div>
                 
-                {/* Categories */}
+                {/* Marketing Flags */}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Categories <span className="text-red-500">*</span>
+                    Marketing Flags
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                    {categoryOptions.map(category => (
-                      <div key={category} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`category-${category}`}
-                          checked={productData.category.includes(category)}
-                          onChange={() => handleCategoryChange(category)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor={`category-${category}`} className="ml-2 text-sm text-gray-700">
-                          {category}
-                        </label>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="bestSelling"
+                        name="bestSelling"
+                        checked={productData.bestSelling}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="bestSelling" className="ml-2 text-sm text-gray-700">
+                        Best Selling
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="newArrivals"
+                        name="newArrivals"
+                        checked={productData.newArrivals}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="newArrivals" className="ml-2 text-sm text-gray-700">
+                        New Arrivals
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="bestBuy"
+                        name="bestBuy"
+                        checked={productData.bestBuy}
+                        onChange={handleCheckboxChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="bestBuy" className="ml-2 text-sm text-gray-700">
+                        Best Buy
+                      </label>
+                    </div>
                   </div>
                 </div>
                 
