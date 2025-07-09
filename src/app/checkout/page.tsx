@@ -36,6 +36,7 @@ export default function CheckoutPage() {
   const [subtotal, setSubtotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
+  const [isCartEmpty, setIsCartEmpty] = useState(false);
   
   // Load cart items from localStorage
   useEffect(() => {
@@ -52,9 +53,13 @@ export default function CheckoutPage() {
         }, 0);
         
         setSubtotal(total);
+        setIsCartEmpty(parsedCart.length === 0);
+      } else {
+        setIsCartEmpty(true);
       }
     } catch (error) {
       console.error('Error loading cart:', error);
+      setIsCartEmpty(true);
     }
   }, []);
   
@@ -147,8 +152,8 @@ export default function CheckoutPage() {
     router.push('/checkout/summary');
   };
   
-  // If cart is empty, redirect to cart page
-  if (cartItems.length === 0 && typeof window !== 'undefined') {
+  // If cart is empty, show empty cart message
+  if (isCartEmpty) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <h1 className="text-2xl font-medium mb-4">Your cart is empty</h1>

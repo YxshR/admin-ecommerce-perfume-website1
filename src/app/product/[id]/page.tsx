@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -36,6 +36,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [miniCartOpen, setMiniCartOpen] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [zoomImageUrl, setZoomImageUrl] = useState('');
 
   // Fetch product data
   useEffect(() => {
@@ -70,6 +74,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     
     fetchProduct();
   }, [params.id]);
+
+  // Update zoom image URL when selected image changes
+  useEffect(() => {
+    if (product && product.images && product.images.length > 0) {
+      setZoomImageUrl(product.images[selectedImage]);
+    } else if (product && product.mainImage) {
+      setZoomImageUrl(product.mainImage);
+    }
+  }, [product, selectedImage]);
 
   // Check if product is in user's wishlist
   const checkWishlistStatus = (productId: string) => {
@@ -190,6 +203,29 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     return 0;
   };
 
+  // Handle mouse move for zoom effect
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current) return;
+    
+    const { left, top, width, height } = imageContainerRef.current.getBoundingClientRect();
+    
+    // Calculate position as percentage
+    const x = Math.max(0, Math.min(100, ((e.clientX - left) / width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - top) / height) * 100));
+    
+    setZoomPosition({ x, y });
+  };
+
+  // Handle mouse enter for zoom
+  const handleMouseEnter = () => {
+    setIsZoomed(true);
+  };
+
+  // Handle mouse leave for zoom
+  const handleMouseLeave = () => {
+    setIsZoomed(false);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-16">
@@ -233,7 +269,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
         {/* Product Images */}
         <div className="space-y-4">
-          <div className="aspect-square bg-gray-50 relative overflow-hidden border">
+          <div 
+            ref={imageContainerRef}
+            className="aspect-square bg-gray-50 relative overflow-hidden border cursor-zoom-in"
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{ position: 'relative' }}
+          >
+            {/* Regular image */}
             <Image 
               src={product.images && product.images.length > 0 
                 ? product.images[selectedImage] 
@@ -245,6 +289,20 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               style={{ objectFit: 'cover' }}
               priority
             />
+            
+            {/* Zoom overlay */}
+            {isZoomed && zoomImageUrl && (
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${zoomImageUrl})`,
+                  backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '200%',
+                  zIndex: 10
+                }}
+              />
+            )}
           </div>
           
           {/* Thumbnail Gallery */}
