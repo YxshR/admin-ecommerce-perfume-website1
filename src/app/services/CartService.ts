@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 
 export interface CartItem {
   id: string;
+  _id?: string;
   name: string;
   price: number;
   image: string;
@@ -49,14 +50,23 @@ export const CartService = {
   // Add item to cart
   addItem: (item: CartItem): void => {
     const cart = CartService.getCartItems();
-    const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id);
+    const existingItemIndex = cart.findIndex(cartItem => 
+      cartItem.id === item.id || 
+      (item._id && cartItem.id === item._id)
+    );
     
     if (existingItemIndex >= 0) {
       // Update quantity if item exists
       cart[existingItemIndex].quantity += item.quantity;
     } else {
       // Add new item
-      cart.push(item);
+      cart.push({
+        id: item.id || item._id || '',
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        quantity: item.quantity
+      });
     }
     
     CartService.saveCartItems(cart);
@@ -77,7 +87,9 @@ export const CartService = {
   // Remove item from cart
   removeItem: (itemId: string): void => {
     const cart = CartService.getCartItems();
-    const updatedCart = cart.filter(item => item.id !== itemId);
+    const updatedCart = cart.filter(item => 
+      !(item.id === itemId || item._id === itemId)
+    );
     
     CartService.saveCartItems(updatedCart);
   },

@@ -8,6 +8,7 @@ import { FiShoppingBag, FiTrash2, FiMinus, FiPlus } from 'react-icons/fi';
 
 interface CartItem {
   _id: string;
+  id?: string;
   name: string;
   price: number;
   discountedPrice?: number;
@@ -27,10 +28,17 @@ export default function CartPage() {
       const storedCart = localStorage.getItem('cart');
       if (storedCart) {
         const parsedCart = JSON.parse(storedCart);
-        setCartItems(parsedCart);
+        
+        // Ensure each item has an _id property for React keys
+        const normalizedCart = parsedCart.map((item: any) => ({
+          ...item,
+          _id: item._id || item.id // Use existing _id or fallback to id
+        }));
+        
+        setCartItems(normalizedCart);
         
         // Calculate subtotal
-        const total = parsedCart.reduce((sum: number, item: CartItem) => {
+        const total = normalizedCart.reduce((sum: number, item: CartItem) => {
           const itemPrice = item.discountedPrice || item.price;
           return sum + (itemPrice * item.quantity);
         }, 0);
@@ -49,13 +57,22 @@ export default function CartPage() {
     if (newQuantity < 1) return;
     
     const updatedCart = cartItems.map(item => 
-      item._id === itemId ? { ...item, quantity: newQuantity } : item
+      (item._id === itemId || item.id === itemId) ? { ...item, quantity: newQuantity } : item
     );
     
     setCartItems(updatedCart);
     
-    // Update localStorage
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    // Update localStorage - ensure we're using the id property for localStorage
+    const storageCart = updatedCart.map(item => ({
+      id: item.id || item._id,
+      name: item.name,
+      price: item.price,
+      discountedPrice: item.discountedPrice,
+      image: item.image,
+      quantity: item.quantity
+    }));
+    
+    localStorage.setItem('cart', JSON.stringify(storageCart));
     
     // Recalculate subtotal
     const newSubtotal = updatedCart.reduce((sum, item) => {
@@ -68,11 +85,22 @@ export default function CartPage() {
   
   // Remove item from cart
   const removeItem = (itemId: string) => {
-    const updatedCart = cartItems.filter(item => item._id !== itemId);
+    const updatedCart = cartItems.filter(item => 
+      !(item._id === itemId || item.id === itemId)
+    );
     setCartItems(updatedCart);
     
-    // Update localStorage
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    // Update localStorage - ensure we're using the id property for localStorage
+    const storageCart = updatedCart.map(item => ({
+      id: item.id || item._id,
+      name: item.name,
+      price: item.price,
+      discountedPrice: item.discountedPrice,
+      image: item.image,
+      quantity: item.quantity
+    }));
+    
+    localStorage.setItem('cart', JSON.stringify(storageCart));
     
     // Recalculate subtotal
     const newSubtotal = updatedCart.reduce((sum, item) => {
@@ -81,6 +109,16 @@ export default function CartPage() {
     }, 0);
     
     setSubtotal(newSubtotal);
+
+    // Dispatch events to notify other components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'cart',
+      newValue: JSON.stringify(storageCart),
+      storageArea: localStorage
+    }));
+    
+    // Also dispatch a custom event for components that don't listen to storage
+    window.dispatchEvent(new Event('cart-updated'));
   };
   
   // Proceed to checkout
@@ -124,7 +162,7 @@ export default function CartPage() {
                   </thead>
                   <tbody className="divide-y">
                     {cartItems.map((item) => (
-                      <tr key={item._id} className="py-4">
+                      <tr key={item._id || item.id} className="py-4">
                         <td className="py-4">
                           <div className="flex items-center">
                             <div className="w-16 h-16 relative flex-shrink-0">

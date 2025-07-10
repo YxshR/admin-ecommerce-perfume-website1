@@ -6,17 +6,33 @@ import connectMongoDB from '@/app/lib/mongodb';
 // GET a single product by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     await connectMongoDB();
-    // Ensure params.id is properly handled
-    const id = params?.id;
+    // Get id directly from params
+    const { id } = context.params
     if (!id) {
       return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
     }
     
-    const product = await Product.findById(id);
+    let product;
+    
+    // Try to find by MongoDB ObjectId first
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      product = await Product.findById(id);
+    }
+    
+    // If not found or not a valid ObjectId, try to find by slug or custom ID field
+    if (!product) {
+      product = await Product.findOne({ 
+        $or: [
+          { slug: id },
+          { customId: id },
+          { sku: id }
+        ]
+      });
+    }
 
     if (!product) {
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
@@ -25,7 +41,10 @@ export async function GET(
     return NextResponse.json({ success: true, product }, { status: 200 });
   } catch (error) {
     console.error('Error fetching product:', error);
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Server error' 
+    }, { status: 500 });
   }
 }
 
@@ -36,8 +55,8 @@ export async function PUT(
 ) {
   try {
     await connectMongoDB();
-    // Ensure params.id is properly handled
-    const id = params?.id;
+    // Get id directly from params
+    const { id } = params;
     if (!id) {
       return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
     }
@@ -140,8 +159,8 @@ export async function DELETE(
 ) {
   try {
     await connectMongoDB();
-    // Ensure params.id is properly handled
-    const id = params?.id;
+    // Get id directly from params
+    const { id } = params;
     if (!id) {
       return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
     }

@@ -8,6 +8,7 @@ import { useAuth } from './AuthProvider';
 
 interface CartItem {
   id: string;
+  _id?: string;
   name: string;
   price: number;
   image: string;
@@ -163,7 +164,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
       }
       
       const updatedItems = cart.map((item: any) => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
+        (item.id === id || item._id === id) ? { ...item, quantity: newQuantity } : item
       );
       
       // Update state
@@ -186,6 +187,9 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
         newValue: JSON.stringify(updatedItems),
         storageArea: localStorage
       }));
+
+      // Also dispatch a custom event for components that don't listen to storage
+      window.dispatchEvent(new Event('cart-updated'));
     } catch (error) {
       console.error('Error updating localStorage cart:', error);
     }
@@ -237,7 +241,10 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
         cart = [];
       }
       
-      const updatedItems = cart.filter((item: any) => item.id !== id);
+      // Filter out the item with matching id OR _id
+      const updatedItems = cart.filter((item: any) => 
+        !(item.id === id || item._id === id)
+      );
       
       // Update state
       setCartItems(updatedItems);
@@ -259,6 +266,9 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
         newValue: JSON.stringify(updatedItems),
         storageArea: localStorage
       }));
+
+      // Also dispatch a custom event for components that don't listen to storage
+      window.dispatchEvent(new Event('cart-updated'));
     } catch (error) {
       console.error('Error removing item from localStorage cart:', error);
     }
@@ -308,7 +318,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
           ) : (
             <div className="space-y-4">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center border-b pb-4">
+                <div key={item.id || item._id} className="flex items-center border-b pb-4">
                   <div className="w-20 h-20 relative mr-4 border">
                     <Image 
                       src={item.image || "/images/placeholder-product.jpg"} 

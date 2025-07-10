@@ -45,6 +45,7 @@ export default function AddToCartButton({
       // Add to cart using CartService
       CartService.addItem({
         id: productId,
+        _id: productId, // Add _id for consistency
         name: productName,
         price: productPrice,
         image: productImage,

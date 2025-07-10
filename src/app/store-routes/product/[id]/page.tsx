@@ -78,20 +78,23 @@ export default function ProductDetailPage() {
         const response = await fetch(`/api/products/${id}`);
         
         if (!response.ok) {
-          throw new Error('Failed to fetch product');
+          const errorText = await response.text();
+          console.error(`API error (${response.status}): ${errorText}`);
+          throw new Error(`Failed to fetch product: ${response.status} ${response.statusText}`);
         }
         
         const data = await response.json();
         
         if (data.success && data.product) {
+          console.log("Product data:", data.product);
           // Transform API data to match our component's format
           const productData = {
             _id: data.product._id,
             name: data.product.name,
-            description: data.product.description,
+            description: data.product.description || "No description available",
             price: data.product.price,
             discountedPrice: data.product.comparePrice || 0,
-            category: data.product.category,
+            category: data.product.category || "Perfume",
             brand: data.product.brand || 'Avito Scent',
             images: data.product.images ? 
               data.product.images.map((img: string) => ({ url: img })) : 
@@ -103,20 +106,25 @@ export default function ProductDetailPage() {
             fragrance_notes: {
               top: data.product.attributes?.gender ? [data.product.attributes.gender] : ['Unisex'],
               middle: data.product.attributes?.volume ? [data.product.attributes.volume] : ['50ml'],
-              base: ['Amber', 'Musk']
+              base: data.product.attributes?.fragrance ? 
+                (Array.isArray(data.product.attributes.fragrance) ? 
+                  data.product.attributes.fragrance : 
+                  [data.product.attributes.fragrance || 'Amber Musk'])
+                : ['Amber', 'Musk']
             },
-            concentration: 'Eau de Parfum',
+            concentration: data.product.attributes?.concentration || data.product.productType || 'Eau de Parfum',
             size: parseInt(data.product.attributes?.volume?.replace(/[^0-9]/g, '') || '50'),
             gender: data.product.attributes?.gender || 'Unisex'
           };
           
           setProduct(productData);
         } else {
-          throw new Error('Product not found');
+          console.error('Product data invalid:', data);
+          throw new Error('Product not found or data invalid');
         }
       } catch (err) {
         console.error('Error fetching product:', err);
-        setError('Failed to load product details');
+        setError(err instanceof Error ? err.message : 'Failed to load product details');
         
         // Fallback to mock data if needed
         setProduct({
@@ -496,7 +504,7 @@ export default function ProductDetailPage() {
             {/* Fragrance Notes */}
             {product.fragrance_notes && (
               <div>
-                <h3 className="text-sm font-medium uppercase mb-2">Fragrance Notes</h3>
+                <h3 className="text-sm font-medium uppercase mb-2">Product Attributes</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <h4 className="text-xs text-gray-500">Gender</h4>
@@ -515,7 +523,7 @@ export default function ProductDetailPage() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500">Fregments</h4>
+                    <h4 className="text-xs text-gray-500">Fragrance</h4>
                     <ul className="mt-1 text-sm">
                       {product.fragrance_notes.base.map((note, index) => (
                         <li key={index}>{note}</li>

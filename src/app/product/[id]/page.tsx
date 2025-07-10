@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { FiPlus, FiMinus, FiArrowLeft } from 'react-icons/fi';
 import Image from 'next/image';
-import { FiHeart, FiShoppingBag, FiMinus, FiPlus, FiArrowLeft } from 'react-icons/fi';
-import { useAuth } from '../../components/AuthProvider';
-import AddToCartButton from '../../components/AddToCartButton';
-import MiniCartWithModal from '../../components/MiniCartWithModal';
+import AddToCartButton from '@/app/components/AddToCartButton';
+import MiniCartWithModal from '@/app/components/MiniCartWithModal';
+import { useAuth } from '@/app/components/AuthProvider';
 
 interface Product {
   _id: string;
@@ -36,7 +35,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [miniCartOpen, setMiniCartOpen] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -59,9 +57,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         
         if (data.success && data.product) {
           setProduct(data.product);
-          
-          // Check if product is in wishlist
-          checkWishlistStatus(data.product._id);
         } else {
           throw new Error('Product not found');
         }
@@ -85,174 +80,112 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     }
   }, [product, selectedImage]);
 
-  // Check if product is in user's wishlist
-  const checkWishlistStatus = (productId: string) => {
-    try {
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      setIsWishlisted(wishlist.some((item: any) => item.productId === productId));
-    } catch (error) {
-      console.error('Error checking wishlist status:', error);
-    }
-  };
-
-  // Handle toggle wishlist
-  const handleToggleWishlist = () => {
-    if (!product) return;
-    
-    try {
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      
-      if (isWishlisted) {
-        // Remove from wishlist
-        const updatedWishlist = wishlist.filter((item: any) => item.productId !== product._id);
-        localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
-        setIsWishlisted(false);
-      } else {
-        // Add to wishlist
-        wishlist.push({
-          productId: product._id,
-          name: product.name,
-          price: product.comparePrice || product.price,
-          image: product.mainImage || product.images[0] || '',
-          addedAt: new Date().toISOString()
-        });
-        localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        setIsWishlisted(true);
-      }
-      
-      // Trigger storage event for other components
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'wishlist',
-        newValue: localStorage.getItem('wishlist'),
-        storageArea: localStorage
-      }));
-      
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-    }
-  };
-
-  // Handle buy now
   const handleBuyNow = () => {
     if (!product) return;
     
     // Add to cart first
     const cartItem = {
-      id: product._id,
+      _id: product._id,
       name: product.name,
-      price: product.comparePrice || product.price,
-      image: product.mainImage || (product.images && product.images.length > 0 ? product.images[0] : ''),
-      quantity: quantity
+      price: product.price,
+      discountedPrice: product.comparePrice && product.comparePrice > product.price ? product.price : undefined,
+      quantity: quantity,
+      image: product.mainImage || (product.images && product.images.length > 0 ? product.images[0] : '/placeholder-image.jpg'),
     };
     
-    // Update localStorage cart
+    // Get existing cart or create new one
+    let cart = [];
     try {
-      const savedCart = localStorage.getItem('cart') || '[]';
-      let cart = JSON.parse(savedCart);
-      
-      if (!Array.isArray(cart)) {
-        cart = [];
+      const existingCart = localStorage.getItem('cart');
+      if (existingCart) {
+        cart = JSON.parse(existingCart);
       }
-      
-      // Check if item already exists in cart
-      const existingItemIndex = cart.findIndex((item: any) => item.id === cartItem.id);
-      
-      if (existingItemIndex >= 0) {
-        // Update quantity if item exists
-        cart[existingItemIndex].quantity = quantity;
-      } else {
-        // Add new item if it doesn't exist
-        cart.push(cartItem);
-      }
-      
-      // Save updated cart to localStorage
-      localStorage.setItem('cart', JSON.stringify(cart));
-      localStorage.setItem('cart_updated', Date.now().toString());
-      
-      // Trigger storage event for other components
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'cart',
-        newValue: JSON.stringify(cart),
-        storageArea: localStorage
-      }));
-    } catch (error) {
-      console.error('Error updating cart:', error);
+    } catch (err) {
+      console.error('Error reading cart from localStorage:', err);
     }
     
-    // Show mini cart with checkout option
-    setMiniCartOpen(true);
+    // Check if product already exists in cart
+    const existingItemIndex = cart.findIndex((item: any) => item._id === product._id);
+    
+    if (existingItemIndex >= 0) {
+      // Update quantity if already in cart
+      cart[existingItemIndex].quantity += quantity;
+    } else {
+      // Add new item
+      cart.push(cartItem);
+    }
+    
+    // Save updated cart
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Dispatch storage event for other components to detect the change
+    window.dispatchEvent(new Event('storage'));
+    
+    // Navigate to checkout
+    router.push('/checkout');
   };
-
-  // Function to increment/decrement quantity
+  
   const updateQuantity = (value: number) => {
     const newQuantity = quantity + value;
     if (newQuantity >= 1 && newQuantity <= (product?.quantity || 10)) {
       setQuantity(newQuantity);
     }
   };
-
-  // Function to show mini cart
+  
   const showMiniCart = () => {
     setMiniCartOpen(true);
   };
-
-  // Calculate discount percentage
+  
   const getDiscountPercentage = () => {
-    if (product && product.comparePrice && product.price) {
-      return Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100);
-    }
-    return 0;
+    if (!product || !product.comparePrice || product.comparePrice <= product.price) return 0;
+    
+    const discount = ((product.comparePrice - product.price) / product.comparePrice) * 100;
+    return Math.round(discount);
   };
-
-  // Handle mouse move for zoom effect
+  
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
     
     const { left, top, width, height } = imageContainerRef.current.getBoundingClientRect();
-    
-    // Calculate position as percentage
-    const x = Math.max(0, Math.min(100, ((e.clientX - left) / width) * 100));
-    const y = Math.max(0, Math.min(100, ((e.clientY - top) / height) * 100));
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
     
     setZoomPosition({ x, y });
   };
-
-  // Handle mouse enter for zoom
+  
   const handleMouseEnter = () => {
     setIsZoomed(true);
   };
-
-  // Handle mouse leave for zoom
+  
   const handleMouseLeave = () => {
     setIsZoomed(false);
   };
-
+  
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-        </div>
+      <div className="container mx-auto px-4 py-16 flex justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
       </div>
     );
   }
-
+  
   if (error || !product) {
     return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center">
-          <h2 className="text-2xl font-medium text-gray-900 mb-4">Product Not Found</h2>
-          <p className="mb-8">{error || "We couldn't find the product you're looking for."}</p>
-          <Link href="/collection" className="inline-block bg-black text-white px-6 py-3 hover:bg-gray-800">
-            Continue Shopping
-          </Link>
-        </div>
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-medium text-red-600 mb-4">Error</h2>
+        <p className="text-gray-700">{error || 'Product not found'}</p>
+        <button 
+          onClick={() => router.push('/collection')}
+          className="mt-6 px-6 py-2 bg-black text-white hover:bg-gray-800"
+        >
+          Browse Products
+        </button>
       </div>
     );
   }
-
+  
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 md:py-16">
       {/* Add MiniCartWithModal component */}
       <MiniCartWithModal isOpen={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
       
@@ -404,15 +337,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               Buy Now
             </button>
           </div>
-          
-          {/* Wishlist button */}
-          <button 
-            onClick={handleToggleWishlist}
-            className="flex items-center text-gray-600 hover:text-black mb-6"
-          >
-            <FiHeart className={`mr-2 ${isWishlisted ? 'text-red-500 fill-current' : ''}`} />
-            {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-          </button>
           
           {/* Description */}
           <div className="border-t border-gray-200 pt-6">
