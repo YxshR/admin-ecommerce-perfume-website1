@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiShoppingBag, FiHeart, FiStar, FiArrowLeft, FiVideo, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiShoppingBag, FiArrowLeft, FiVideo, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Image from 'next/image';
 import { useAuth } from '@/app/components/AuthProvider';
 import AddToCartButton from '@/app/components/AddToCartButton';
-import AddToWishlistButton from '@/app/components/AddToWishlistButton';
+// Removed AddToWishlistButton import
 import { UserActivityTracker } from '@/app/services/UserActivityTracker';
 
 interface Product {
@@ -39,22 +39,15 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const { user } = useAuth();
   
   // Check user login status
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-    
-    // If user is logged in, check if product is in wishlist
-    if (token) {
-      checkWishlistStatus();
-    }
   }, []);
   
   // Track product view
@@ -160,60 +153,6 @@ export default function ProductDetailPage() {
       fetchProduct();
     }
   }, [id]);
-  
-  // Check if product is in user's wishlist
-  const checkWishlistStatus = async () => {
-    // In a real app, you would fetch the user's wishlist from an API
-    // For now, using localStorage to simulate the functionality
-    try {
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      setIsWishlisted(wishlist.some((item: any) => item.productId === id));
-    } catch (error) {
-      console.error('Error checking wishlist status:', error);
-    }
-  };
-  
-  // Handle add to wishlist
-  const handleToggleWishlist = async () => {
-    if (!isLoggedIn) {
-      // Redirect to login page if user is not logged in
-      router.push('/account/login?redirect=/product/' + id);
-      return;
-    }
-    
-    setIsAddingToWishlist(true);
-    
-    try {
-      // In a real app, you would call an API to update the wishlist
-      // For now, using localStorage to simulate the functionality
-      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      
-      if (isWishlisted) {
-        // Remove from wishlist
-        const updatedWishlist = wishlist.filter((item: any) => item.productId !== id);
-        localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
-        setIsWishlisted(false);
-      } else {
-        // Add to wishlist
-        if (product) {
-          const wishlistItem = {
-            productId: id,
-            name: product.name,
-            price: product.discountedPrice > 0 ? product.discountedPrice : product.price,
-            image: product.images[0]?.url || '',
-            addedAt: new Date().toISOString()
-          };
-          wishlist.push(wishlistItem);
-          localStorage.setItem('wishlist', JSON.stringify(wishlist));
-          setIsWishlisted(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-    } finally {
-      setIsAddingToWishlist(false);
-    }
-  };
   
   // Handle add to cart
   const handleAddToCart = () => {
@@ -476,23 +415,26 @@ export default function ProductDetailPage() {
             
             {/* Actions */}
             <div className="flex flex-col space-y-3">
-              <AddToCartButton
-                productId={product._id}
-                productName={product.name}
-                productPrice={product.discountedPrice > 0 ? product.discountedPrice : product.price}
-                productImage={product.images[0]?.url || ''}
-                quantity={quantity}
-                className="bg-black text-white py-3 px-6 hover:bg-gray-900 disabled:bg-gray-400"
-              />
+              {/* Action buttons */}
+              <div className="flex flex-col md:flex-row gap-4 mt-6">
+                <AddToCartButton
+                  productId={product._id}
+                  productName={product.name}
+                  productPrice={product.discountedPrice > 0 ? product.discountedPrice : product.price}
+                  productImage={product.images[0]?.url || ''}
+                  className="bg-black text-white py-3 px-6 hover:bg-gray-800 flex-1 text-center"
+                />
+                
+                {/* Buy Now button */}
+                <button 
+                  onClick={handleAddToCart}
+                  className="border border-black py-3 px-6 hover:bg-gray-100 flex-1"
+                >
+                  Buy Now
+                </button>
+              </div>
               
-              <AddToWishlistButton
-                productId={product._id}
-                productName={product.name}
-                productPrice={product.discountedPrice > 0 ? product.discountedPrice : product.price}
-                productImage={product.images[0]?.url || ''}
-                className="border border-black py-3 px-6 hover:bg-gray-100"
-                iconOnly={false}
-              />
+              {/* Removed AddToWishlistButton */}
             </div>
             
             {/* Description */}

@@ -1,12 +1,13 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { FiShoppingBag, FiHeart, FiSearch, FiX, FiMenu, FiChevronDown } from 'react-icons/fi';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { FiMenu, FiX, FiChevronDown, FiSearch, FiShoppingBag } from 'react-icons/fi';
+import { useAuth } from './AuthProvider';
 import MiniCartWithModal from './MiniCartWithModal';
 
-// Define types for nav item settings
+// Define interfaces for component props and state
 interface NavItem {
   id: string;
   name: string;
@@ -34,96 +35,111 @@ interface NavigationItem {
   dropdownItems?: DropdownItem[];
 }
 
+// Define a type for the navigation items state
+interface NavItems {
+  [key: string]: boolean;
+  home: boolean;
+  collection: boolean;
+  perfumes: boolean;
+  attars: boolean;
+  fresheners: boolean;
+  waxfume: boolean;
+  about: boolean;
+  track: boolean;
+}
+
+// Define a type for component settings
+interface ComponentSettings {
+  [key: string]: boolean;
+  search: boolean;
+  miniCart: boolean;
+  announcement: boolean;
+}
+
 export default function Nav() {
-  const pathname = usePathname();
   const router = useRouter();
-  const [cartItemsCount, setCartItemsCount] = useState(0);
+  const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [miniCartOpen, setMiniCartOpen] = useState(false);
-  
-  // Dropdown states
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [cartItemsCount, setCartItemsCount] = useState(0);
   
-  // Dropdown refs
+  // Refs for dropdown elements
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
-  // State for admin-configured settings
-  const [navItems, setNavItems] = useState<Record<string, boolean>>({
+  // Store navigation items
+  const [navItems, setNavItems] = useState<NavItems>({
     home: true,
+    collection: true,
     perfumes: true,
-    "aesthetic-attars": true,
-    "air-fresheners": true,
-    "waxfume": true,
-    "new-arrivals": true,
+    attars: true,
+    fresheners: true,
+    waxfume: true,
     about: true,
     track: true
   });
   
-  const [componentSettings, setComponentSettings] = useState<Record<string, boolean>>({
-    announcement: true,
+  // Store component settings
+  const [componentSettings, setComponentSettings] = useState<ComponentSettings>({
     search: true,
     miniCart: true,
-    wishlist: true
+    announcement: true
   });
   
-  // Load settings from localStorage
+  // Fetch layout settings from API
   useEffect(() => {
-    try {
-      // Load navigation settings
-      const savedNavItems = localStorage.getItem('store_nav_settings');
-      if (savedNavItems) {
-        const parsedItems = JSON.parse(savedNavItems);
-        const navMap: Record<string, boolean> = {};
-        parsedItems.forEach((item: NavItem) => {
-          navMap[item.id] = item.enabled;
-        });
-        setNavItems(navMap);
-      }
-      
-      // Load component settings
-      const savedComponents = localStorage.getItem('store_component_settings');
-      if (savedComponents) {
-        const parsedComponents = JSON.parse(savedComponents);
-        const componentMap: Record<string, boolean> = {};
-        parsedComponents.forEach((component: StoreComponent) => {
-          componentMap[component.id] = component.enabled;
-        });
-        
-        // Apply component settings (e.g., hide announcement bar if disabled)
-        if (componentMap.announcement !== undefined) {
-          setShowAnnouncement(componentMap.announcement);
+    const fetchLayoutSettings = async () => {
+      try {
+        const response = await fetch('/api/layout/products');
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Update navigation items based on API response
+          if (data.navItems) {
+            setNavItems(prev => ({
+              ...prev,
+              ...data.navItems
+            }));
+          }
+          
+          // Update component settings based on API response
+          if (data.components) {
+            setComponentSettings(prev => ({
+              ...prev,
+              ...data.components
+            }));
+          }
         }
-        
-        setComponentSettings(componentMap);
+      } catch (error) {
+        console.error('Error fetching layout settings:', error);
       }
-    } catch (error) {
-      console.error('Error loading navigation settings:', error);
-    }
+    };
+    
+    fetchLayoutSettings();
   }, []);
   
-  // Fetch cart items count
+  // Get cart items count from localStorage
   useEffect(() => {
     const getCartCount = () => {
       try {
-        // Get cart from localStorage
-        const cart = localStorage.getItem('cart');
-        if (cart) {
-          const parsedCart = JSON.parse(cart);
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          const parsedCart = JSON.parse(storedCart);
           if (Array.isArray(parsedCart)) {
-            // Count total items including quantities
-            const count = parsedCart.reduce((total: number, item: any) => total + item.quantity, 0);
-            console.log("localStorage cart count:", count);
-            setCartItemsCount(count);
+            // Count total items in cart
+            const totalItems = parsedCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            setCartItemsCount(totalItems);
           } else {
             setCartItemsCount(0);
           }
         } else {
           setCartItemsCount(0);
         }
-      } catch (parseError) {
-        console.error('Error parsing localStorage cart:', parseError);
+      } catch (error) {
+        console.error('Error loading cart count:', error);
         setCartItemsCount(0);
       }
     };
@@ -131,24 +147,23 @@ export default function Nav() {
     // Initial count
     getCartCount();
     
-    // Set up event listeners
+    // Listen for storage changes
     const handleStorageChange = () => {
-      console.log('Storage event detected in Nav, updating cart count');
       getCartCount();
     };
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Add a timer to periodically check cart count (every 5 seconds)
-    const intervalId = setInterval(getCartCount, 5000);
+    // Also listen for custom events
+    window.addEventListener('cart-updated', handleStorageChange);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(intervalId);
+      window.removeEventListener('cart-updated', handleStorageChange);
     };
   }, []);
-
-  // Handle clicks outside the dropdowns
+  
+  // Handle clicks outside dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (activeDropdown && 
@@ -157,59 +172,61 @@ export default function Nav() {
         setActiveDropdown(null);
       }
     };
-
+    
     document.addEventListener('mousedown', handleClickOutside);
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [activeDropdown]);
   
-  // Listen for custom event to open mini cart
+  // Handle open mini cart from other components
   useEffect(() => {
     const handleOpenMiniCart = () => {
       setMiniCartOpen(true);
     };
     
-    // Check for localStorage flag to open checkout modal
+    window.addEventListener('open-minicart', handleOpenMiniCart);
+    
     const checkForCheckoutFlag = () => {
       try {
-        const openCheckoutModal = localStorage.getItem('open_checkout_modal');
-        if (openCheckoutModal === 'true') {
+        const checkoutComplete = localStorage.getItem('checkout_complete');
+        if (checkoutComplete === 'true') {
           // Clear the flag
-          localStorage.removeItem('open_checkout_modal');
-          // Open mini cart
+          localStorage.removeItem('checkout_complete');
+          
+          // Show mini cart with success message
           setMiniCartOpen(true);
         }
       } catch (error) {
-        console.error('Error checking localStorage for checkout flag:', error);
+        console.error('Error checking checkout flag:', error);
       }
     };
     
-    // Check when component mounts
+    // Check for checkout flag on mount
     checkForCheckoutFlag();
     
-    window.addEventListener('openMiniCart', handleOpenMiniCart);
-    // Also listen for storage events in case the flag is set from another tab
+    // Also check when storage changes
     window.addEventListener('storage', checkForCheckoutFlag);
     
     return () => {
-      window.removeEventListener('openMiniCart', handleOpenMiniCart);
+      window.removeEventListener('open-minicart', handleOpenMiniCart);
       window.removeEventListener('storage', checkForCheckoutFlag);
     };
   }, []);
-
+  
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
-
+  
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
   };
-
+  
   const handleDropdownHover = (id: string) => {
     setActiveDropdown(id);
   };
-
+  
   const handleDropdownLeave = () => {
     setActiveDropdown(null);
   };
@@ -217,55 +234,95 @@ export default function Nav() {
   const toggleDropdown = (id: string) => {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
-
+  
   const toggleMiniCart = () => {
     setMiniCartOpen(!miniCartOpen);
   };
   
-  // Navigation items with dropdowns
+  // Navigation items configuration
   const navigationItems: NavigationItem[] = [
     {
       id: 'home',
       name: 'Home',
       path: '/',
-      hasDropdown: true,
-      dropdownItems: [
-        { name: 'Best Selling', path: '/best-selling' },
-        { name: 'New Arrivals', path: '/new-arrivals' },
-        { name: 'Best Buy', path: '/best-buy' }
-      ]
+      hasDropdown: false
+    },
+    {
+      id: 'collection',
+      name: 'Collection',
+      path: '/collection',
+      hasDropdown: false
     },
     {
       id: 'perfumes',
       name: 'Perfumes',
-      path: '/collection',
+      path: '/perfumes',
       hasDropdown: true,
       dropdownItems: [
-        { name: 'Value for Money', path: '/perfumes/value-for-money' },
-        { name: 'Premium Perfumes', path: '/perfumes/premium' },
-        { name: 'Luxury Perfumes', path: '/perfumes/luxury' },
-        { name: 'Combo Sets', path: '/perfumes/combo' }
+        {
+          name: 'All Perfumes',
+          path: '/perfumes'
+        },
+        {
+          name: 'Luxury Collection',
+          path: '/perfumes/luxury'
+        },
+        {
+          name: 'Premium Collection',
+          path: '/perfumes/premium'
+        },
+        {
+          name: 'Value For Money',
+          path: '/perfumes/value-for-money'
+        },
+        {
+          name: 'Combo Offers',
+          path: '/perfumes/combo'
+        }
       ]
     },
     {
-      id: 'aesthetic-attars',
+      id: 'attars',
       name: 'Aesthetic Attars',
       path: '/aesthetic-attars',
       hasDropdown: true,
       dropdownItems: [
-        { name: 'Premium Attars', path: '/aesthetic-attars/premium' },
-        { name: 'Luxury Attars', path: '/aesthetic-attars/luxury' },
-        { name: 'Combo Sets', path: '/aesthetic-attars/combo' }
+        {
+          name: 'All Attars',
+          path: '/aesthetic-attars'
+        },
+        {
+          name: 'Premium Attars',
+          path: '/aesthetic-attars/premium'
+        },
+        {
+          name: 'Luxury Attars',
+          path: '/aesthetic-attars/luxury'
+        },
+        {
+          name: 'Combo Offers',
+          path: '/aesthetic-attars/combo'
+        }
       ]
     },
     {
-      id: 'air-fresheners',
+      id: 'fresheners',
       name: 'Air Fresheners',
       path: '/air-fresheners',
       hasDropdown: true,
       dropdownItems: [
-        { name: 'Room Air Fresheners', path: '/air-fresheners/room' },
-        { name: 'Luxury Car Diffusers', path: '/air-fresheners/car' }
+        {
+          name: 'All Fresheners',
+          path: '/air-fresheners'
+        },
+        {
+          name: 'Car Fresheners',
+          path: '/air-fresheners/car'
+        },
+        {
+          name: 'Room Fresheners',
+          path: '/air-fresheners/room'
+        }
       ]
     },
     {
@@ -275,7 +332,7 @@ export default function Nav() {
       hasDropdown: false
     },
     {
-      id: 'About',
+      id: 'about',
       name: 'About Us',
       path: '/about-us',
       hasDropdown: false
@@ -285,7 +342,7 @@ export default function Nav() {
   return (
     <>
       {/* Announcement Bar */}
-      {showAnnouncement && (
+      {componentSettings.announcement && (
         <div className="bg-black text-white text-center py-2 text-sm">
           Free shipping on orders above ₹500
         </div>
@@ -391,17 +448,6 @@ export default function Nav() {
                 </button>
               )}
               
-              {/* Wishlist */}
-              {/* {componentSettings.wishlist && (
-                <Link
-                  href="/wishlist"
-                  className="text-gray-700 hover:text-black hidden md:block p-2 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-110"
-                  aria-label="Wishlist"
-                >
-                  <FiHeart size={20} />
-                </Link>
-              )} */}
-              
               {/* Mobile menu button */}
               <button
                 onClick={toggleMobileMenu}
@@ -499,16 +545,6 @@ export default function Nav() {
                     Track Order
                   </Link>
                 )}
-                
-                {/* {componentSettings.wishlist && (
-                  <Link
-                    href="/wishlist"
-                    className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Wishlist
-                  </Link>
-                )} */}
               </div>
             </nav>
           </div>

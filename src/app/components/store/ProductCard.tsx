@@ -309,7 +309,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
       
-      {/* Wishlist button */}
+      {/* Wishlist button
       <button
         onClick={handleToggleWishlist}
         className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow-md transition-all hover:scale-110"
@@ -318,7 +318,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <FiHeart 
           className={`w-5 h-5 ${isWishlisted ? 'text-red-500 fill-current' : 'text-gray-600'}`} 
         />
-      </button>
+      </button> */}
       
       {/* Product Image - Link wrapper */}
       <Link href={`/product/${product._id}`} className="block relative h-64 md:h-80 overflow-hidden">
