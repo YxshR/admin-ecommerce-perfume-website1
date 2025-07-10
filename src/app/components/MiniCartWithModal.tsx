@@ -11,6 +11,7 @@ import GuestCheckoutModal from './GuestCheckoutModal';
 
 interface CartItem {
   _id: string;
+  id?: string;  // Add optional id property to support both formats
   name: string;
   price: number;
   discountedPrice?: number;
@@ -107,14 +108,32 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
   };
   
   const removeItem = (itemId: string) => {
-    const updatedCart = cartItems.filter(item => item._id !== itemId);
+    // Get the current cart from localStorage to ensure we're working with the latest data
+    const storedCart = localStorage.getItem('cart');
+    let currentCart: CartItem[] = [];
+    
+    try {
+      if (storedCart) {
+        currentCart = JSON.parse(storedCart);
+      }
+    } catch (error) {
+      console.error('Error parsing cart from localStorage:', error);
+    }
+    
+    // Filter out the item with the specified ID
+    const updatedCart = currentCart.filter((item: CartItem) => 
+      // Check both _id and id properties to ensure compatibility
+      !(item._id === itemId || item.id === itemId)
+    );
+    
+    // Update state
     setCartItems(updatedCart);
     
     // Update localStorage
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     
     // Recalculate subtotal
-    const newSubtotal = updatedCart.reduce((sum, item) => {
+    const newSubtotal = updatedCart.reduce((sum: number, item: CartItem) => {
       const itemPrice = item.discountedPrice || item.price;
       return sum + (itemPrice * item.quantity);
     }, 0);
@@ -123,6 +142,8 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
     
     // Dispatch storage event for other components to detect the change
     window.dispatchEvent(new Event('storage'));
+    // Also dispatch a custom event for components that don't listen to storage
+    window.dispatchEvent(new Event('cart-updated'));
   };
   
   const handlePhoneSubmit = (phone: string) => {
@@ -232,7 +253,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
           ) : (
             <div className="space-y-4">
               {cartItems.map((item) => (
-                <div key={item._id} className="flex border-b pb-4">
+                <div key={item._id || item.id || ''} className="flex border-b pb-4">
                   <div className="w-20 h-20 relative flex-shrink-0">
                     <Image
                       src={item.image || '/placeholder-image.jpg'}
@@ -250,7 +271,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeItem(item._id);
+                          removeItem(item._id || item.id || '');
                         }}
                         className="text-gray-400 hover:text-red-500"
                         aria-label="Remove item"
@@ -264,7 +285,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            updateQuantity(item._id, item.quantity - 1);
+                            updateQuantity(item._id || item.id || '', item.quantity - 1);
                           }}
                           className="px-2 py-1 text-gray-600 hover:text-black"
                           aria-label="Decrease quantity"
@@ -276,7 +297,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            updateQuantity(item._id, item.quantity + 1);
+                            updateQuantity(item._id || item.id || '', item.quantity + 1);
                           }}
                           className="px-2 py-1 text-gray-600 hover:text-black"
                           aria-label="Increase quantity"
