@@ -48,6 +48,11 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
     inStock: product.inStock !== undefined ? product.inStock : true
   };
   
+  // Check if product has a valid discount - comparePrice is the original higher price
+  const hasDiscount = 
+    (formattedProduct.comparePrice && formattedProduct.comparePrice > formattedProduct.price) || 
+    (formattedProduct.comparePrice && formattedProduct.comparePrice > 0 && formattedProduct.comparePrice < formattedProduct.price);
+  
   // Add to cart handler
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,7 +78,7 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
           id: formattedProduct._id,
           name: formattedProduct.name,
           price: formattedProduct.price,
-          discountedPrice: formattedProduct.discountedPrice,
+          comparePrice: formattedProduct.comparePrice,
           image: formattedProduct.mainImage,
           quantity: 1
         });
@@ -87,12 +92,16 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
       window.dispatchEvent(new Event('cart-updated'));
       
       // Optional: Show a notification or feedback
-      alert('Product added to cart!');
+      
       
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
   };
+  
+  const displayPrice = formattedProduct.price;
+  const displayOriginalPrice = formattedProduct.comparePrice || 
+    (formattedProduct.comparePrice ? formattedProduct.price : undefined);
   
   return (
     <div className="h-full flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-gray-300">
@@ -104,7 +113,7 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
             className="w-full h-64 object-cover object-center transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
-        {formattedProduct.discountedPrice && formattedProduct.discountedPrice < formattedProduct.price && (
+        {hasDiscount && (
           <div className="absolute top-2 left-2 bg-black text-white text-xs font-bold px-2 py-1 rounded">
             ON SALE
           </div>
@@ -120,13 +129,17 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
         <p className="text-gray-500 text-sm mb-3 line-clamp-2">{formattedProduct.description}</p>
         <div className="mt-auto flex justify-between items-center">
           <div className="flex items-baseline">
-            {formattedProduct.discountedPrice && formattedProduct.discountedPrice < formattedProduct.price ? (
+            {hasDiscount ? (
               <>
-                <span className="text-lg font-bold">₹{formattedProduct.discountedPrice}</span>
-                <span className="text-sm text-gray-400 line-through ml-2">₹{formattedProduct.price}</span>
+                <span className="text-lg font-bold text-red-600">₹{displayOriginalPrice}</span>
+                {displayOriginalPrice && (
+                  <span className="text-sm text-gray-400 line-through ml-2">
+                    MRP ₹{displayPrice}
+                  </span>
+                )}
               </>
             ) : (
-              <span className="text-lg font-bold">₹{formattedProduct.price}</span>
+              <span className="text-lg font-bold">₹{displayPrice}</span>
             )}
           </div>
           <div className="text-sm text-gray-500">
