@@ -297,12 +297,12 @@ export default function Nav() {
             {/* Logo */}
             <Link href="/" className="flex-shrink-0 flex gap-2 items-center">
               <img
-                src="/logoog.jpg"
+                src="/avitologo.png"
                 alt="Avito Scent"
-                className="h-10 w-auto"
+                className="h-16 w-auto"
               />
               
-              <p>Avito Scent</p>
+             
             </Link>
             
             {/* Desktop Navigation */}

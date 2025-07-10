@@ -3,16 +3,16 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Value for Money Perfumes | Avito Scent',
-  description: 'Discover our affordable yet high-quality perfumes that offer excellent value for money.',
+  description: 'Discover quality fragrances at affordable prices with our value for money perfume collection.',
 };
 
-export default function ValueForMoneyPerfumesPage() {
+export default async function ValueForMoneyPerfumesPage() {
   return (
     <ProductListing 
-      category="perfumes"
-      subCategory="value-for-money"
+      productType="Perfumes"
+      category="Value for Money"
       title="Value for Money Perfumes"
-      description="Discover our affordable yet high-quality perfumes that offer excellent value for money."
+      description="Discover quality fragrances at affordable prices with our value for money perfume collection."
     />
   );
 } 

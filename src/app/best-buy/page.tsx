@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Explore our best value products that offer exceptional quality at competitive prices.',
 };
 
-export default function BestBuyPage() {
+export default async function BestBuyPage() {
   return (
     <ProductListing 
       tag="best-buy"

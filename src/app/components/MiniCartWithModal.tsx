@@ -327,30 +327,31 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
         )}
       </div>
       
-      {/* Phone Number Modal */}
-      <PhoneNumberModal
-        key="phone-modal"
-        isOpen={showPhoneModal}
-        onClose={() => setShowPhoneModal(false)}
-        onSubmit={handlePhoneSubmit}
-      />
+      {/* Modals */}
+      {showPhoneModal && (
+        <PhoneNumberModal
+          isOpen={showPhoneModal}
+          onClose={() => setShowPhoneModal(false)}
+          onSubmit={handlePhoneSubmit}
+        />
+      )}
       
-                      {/* OTP Verification Modal */}
-      <OTPVerificationModal
-        key="otp-modal"
-        isOpen={showOtpModal}
-        onClose={() => setShowOtpModal(false)}
-        phone={phoneNumber}
-        onVerified={handleOtpVerified}
-      />
+      {showOtpModal && (
+        <OTPVerificationModal
+          isOpen={showOtpModal}
+          onClose={() => setShowOtpModal(false)}
+          phone={phoneNumber}
+          onVerified={handleOtpVerified}
+        />
+      )}
       
-      {/* Guest Checkout Modal */}
-      <GuestCheckoutModal
-        key="guest-checkout-modal"
-        isOpen={showGuestCheckoutModal}
-        onClose={() => setShowGuestCheckoutModal(false)}
-        onSubmit={handleGuestCheckoutSubmit}
-      />
+      {showGuestCheckoutModal && (
+        <GuestCheckoutModal
+          isOpen={showGuestCheckoutModal}
+          onClose={() => setShowGuestCheckoutModal(false)}
+          onSubmit={handleGuestCheckoutSubmit}
+        />
+      )}
     </>
   );
 } 

@@ -2,16 +2,16 @@ import ProductListing from '../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Waxfume (Solid) Collection | Avito Scent',
-  description: 'Explore our innovative solid waxfume collection that provides long-lasting fragrance with elegant presentation.',
+  title: 'Waxfume Collection | Avito Scent',
+  description: 'Discover our innovative solid perfume collection that combines convenience with lasting fragrance.',
 };
 
-export default function WaxfumePage() {
+export default async function WaxfumePage() {
   return (
     <ProductListing 
       productType="Waxfume (Solid)"
-      title="Waxfume (Solid) Collection"
-      description="Explore our innovative solid waxfume collection that provides long-lasting fragrance with elegant presentation."
+      title="Waxfume Collection"
+      description="Discover our innovative solid perfume collection that combines convenience with lasting fragrance."
     />
   );
 } 

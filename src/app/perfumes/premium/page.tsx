@@ -3,16 +3,16 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Premium Perfumes | Avito Scent',
-  description: 'Explore our collection of premium perfumes crafted with the finest ingredients for a lasting impression.',
+  description: 'Experience our premium perfume collection that combines quality ingredients with exceptional craftsmanship.',
 };
 
-export default function PremiumPerfumesPage() {
+export default async function PremiumPerfumesPage() {
   return (
     <ProductListing 
-      category="perfumes"
-      subCategory="premium"
+      productType="Perfumes"
+      category="Premium Perfumes"
       title="Premium Perfumes"
-      description="Explore our collection of premium perfumes crafted with the finest ingredients for a lasting impression."
+      description="Experience our premium perfume collection that combines quality ingredients with exceptional craftsmanship."
     />
   );
 } 

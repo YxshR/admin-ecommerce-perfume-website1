@@ -20,10 +20,11 @@ interface Product {
   mainImage: string;
   images: string[];
   quantity: number;
-  attributes?: {
-    gender?: string;
-    volume?: string;
-  };
+  gender: string;
+  volume: string;
+  productType: string;
+  subCategories: string[];
+  attributes?: Record<string, string>;
 }
 
 export default function ProductPage({ params }: { params: { id: string } }) {
@@ -335,7 +336,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <div>
             <h1 className="text-3xl font-medium text-black">{product.name}</h1>
             <div className="text-sm text-gray-500 mt-1">
-              {product.brand || 'Avito Scent'} | {product.attributes?.volume || '50ml'} | {product.attributes?.gender || 'Unisex'}
+              {product.brand || 'Avito Scent'} | {product.volume || '50ml'} | {product.gender || 'Unisex'}
             </div>
           </div>
           
@@ -434,11 +435,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 text-gray-500">Volume</td>
-                  <td className="py-2">{product.attributes?.volume || '50ml'}</td>
+                  <td className="py-2">{product.volume || '50ml'}</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 text-gray-500">Gender</td>
-                  <td className="py-2">{product.attributes?.gender || 'Unisex'}</td>
+                  <td className="py-2">{product.gender || 'Unisex'}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2 text-gray-500">Product Type</td>
+                  <td className="py-2">{product.productType}</td>
                 </tr>
               </tbody>
             </table>

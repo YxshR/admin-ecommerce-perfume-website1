@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default async function AestheticAttarsPage() {
   return (
     <ProductListing 
-      category="aesthetic-attars"
+      productType="Aesthetic Attars"
       title="Aesthetic Attars Collection"
       description="Discover our collection of traditional and modern aesthetic attars crafted with natural ingredients."
     />

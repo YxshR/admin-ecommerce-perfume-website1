@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default async function AirFreshenersPage() {
   return (
     <ProductListing 
-      category="air-fresheners"
+      productType="Air Fresheners"
       title="Air Fresheners Collection"
       description="Discover our collection of premium air fresheners for your home and car, designed to create a welcoming atmosphere."
     />

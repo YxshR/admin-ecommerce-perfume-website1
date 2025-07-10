@@ -19,6 +19,7 @@ export default function PaymentPage() {
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed'>('pending');
   const [trackingId, setTrackingId] = useState<string | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [userDismissedModal, setUserDismissedModal] = useState(false);
   
   // Load order ID from session storage
   useEffect(() => {
@@ -101,6 +102,7 @@ export default function PaymentPage() {
         modal: {
           ondismiss: function() {
             setIsLoading(false);
+            setUserDismissedModal(true);
           }
         },
         // Add payment methods
@@ -135,7 +137,14 @@ export default function PaymentPage() {
               show_default_blocks: false
             }
           }
-        }
+        },
+        // Hide account section
+        remember_customer: false,
+        readonly: {
+          email: true,
+          contact: true
+        },
+        hide_account_section: true
       };
       
       // Initialize Razorpay
@@ -199,10 +208,10 @@ export default function PaymentPage() {
   
   // Start payment when script is loaded and order ID is available
   useEffect(() => {
-    if (scriptLoaded && orderId && paymentStatus === 'pending' && !isLoading) {
+    if (scriptLoaded && orderId && paymentStatus === 'pending' && !isLoading && !userDismissedModal) {
       initializePayment();
     }
-  }, [scriptLoaded, orderId, paymentStatus, isLoading]);
+  }, [scriptLoaded, orderId, paymentStatus, isLoading, userDismissedModal]);
   
   return (
     <div className="max-w-lg mx-auto">
@@ -268,7 +277,10 @@ export default function PaymentPage() {
             
             <div className="flex flex-col space-y-3">
               <button
-                onClick={initializePayment}
+                onClick={() => {
+                  setUserDismissedModal(false);
+                  initializePayment();
+                }}
                 className="bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800"
               >
                 Try Again
@@ -294,10 +306,39 @@ export default function PaymentPage() {
             
             <div className="flex flex-col space-y-3">
               <button
-                onClick={initializePayment}
+                onClick={() => {
+                  setUserDismissedModal(false);
+                  initializePayment();
+                }}
                 className="bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800"
               >
                 Try Again
+              </button>
+              
+              <button
+                onClick={() => router.push('/checkout/summary')}
+                className="text-gray-600 py-2 px-4 hover:text-black"
+              >
+                Back to Order Summary
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && paymentStatus === 'pending' && !error && userDismissedModal && (
+          <div className="py-8">
+            <h2 className="text-xl font-medium mb-4">Complete Your Payment</h2>
+            <p className="text-gray-600 mb-6">You closed the payment window. Click below to reopen it and complete your payment.</p>
+            
+            <div className="flex flex-col space-y-3">
+              <button
+                onClick={() => {
+                  setUserDismissedModal(false);
+                  initializePayment();
+                }}
+                className="bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800"
+              >
+                Proceed to Payment
               </button>
               
               <button

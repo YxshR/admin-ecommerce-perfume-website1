@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default async function PerfumesPage() {
   return (
     <ProductListing 
-      category="perfumes"
+      productType="Perfumes"
       title="Perfumes Collection"
       description="Explore our exclusive collection of premium and luxury perfumes for every occasion."
     />

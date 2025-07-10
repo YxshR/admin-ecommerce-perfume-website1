@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 export default function PremiumAestheticAttarsPage() {
   return (
     <ProductListing 
-      category="aesthetic-attars"
-      subCategory="premium"
+      productType="Aesthetic Attars"
+      category="Premium Attars"
       title="Premium Aesthetic Attars"
       description="Experience our premium aesthetic attars crafted with the finest natural ingredients for a rich and lasting fragrance."
     />

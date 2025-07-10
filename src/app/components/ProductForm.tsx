@@ -145,22 +145,36 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [error, setError] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   
-  // Reset dependent fields when product type changes
+  // Track whether this is the initial render
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // For editing mode, ensure category and volume options are available immediately
   useEffect(() => {
-    if (selectedProductType) {
-      // Reset category when product type changes
+    if (isEditing && initialData.productType) {
+      // No need to reset values here, just ensure they're enabled
+    }
+  }, [isEditing, initialData]);
+  
+  // Mark as initialized after the first render
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+  
+  // Reset dependent fields when product type changes, but only after initial render
+  useEffect(() => {
+    if (selectedProductType && isInitialized && !isEditing) {
       setValue('category', '');
       setValue('subCategories', []);
       setValue('volume', '');
     }
-  }, [selectedProductType, setValue]);
+  }, [selectedProductType, setValue, isInitialized, isEditing]);
   
-  // Reset subcategories when category changes
+  // Reset subcategories when category changes, but only after initial render
   useEffect(() => {
-    if (selectedCategory) {
+    if (selectedCategory && isInitialized && !isEditing) {
       setValue('subCategories', []);
     }
-  }, [selectedCategory, setValue]);
+  }, [selectedCategory, setValue, isInitialized, isEditing]);
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -487,17 +501,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <select
               {...register('category')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              disabled={!selectedProductType}
+              disabled={!selectedProductType && !isEditing}
             >
               <option value="">Select Category</option>
-              {selectedProductType && categoryOptions[selectedProductType as keyof typeof categoryOptions]?.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
+              {(selectedProductType || (isEditing && initialData.productType)) && 
+                categoryOptions[(selectedProductType || initialData.productType) as keyof typeof categoryOptions]?.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))
+              }
             </select>
             {errors.category && (
               <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
             )}
-            {!selectedProductType && (
+            {!selectedProductType && !isEditing && (
               <p className="mt-1 text-sm text-amber-600">Select a product type first</p>
             )}
           </div>
@@ -508,9 +524,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
               Sub-Categories
             </label>
             <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
-              {selectedProductType && selectedCategory && 
-                subCategoryOptions[selectedProductType as keyof typeof subCategoryOptions]?.[
-                  selectedCategory as keyof (typeof subCategoryOptions)[keyof typeof subCategoryOptions]
+              {((selectedProductType && selectedCategory) || (isEditing && initialData.productType && initialData.category)) && 
+                subCategoryOptions[(selectedProductType || initialData.productType) as keyof typeof subCategoryOptions]?.[
+                  (selectedCategory || initialData.category) as keyof (typeof subCategoryOptions)[keyof typeof subCategoryOptions]
                 ]?.map(subCat => (
                   <div key={subCat} className="flex items-center">
                     <input
@@ -525,7 +541,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     </label>
                   </div>
                 ))}
-              {(!selectedProductType || !selectedCategory) && (
+              {((!selectedProductType && !isEditing) || (!selectedCategory && !isEditing)) && (
                 <p className="text-sm text-gray-500">Select a product type and category first</p>
               )}
             </div>
@@ -539,17 +555,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <select
               {...register('volume')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              disabled={!selectedProductType}
+              disabled={!selectedProductType && !isEditing}
             >
               <option value="">Select Volume</option>
-              {selectedProductType && volumeOptions[selectedProductType as keyof typeof volumeOptions]?.map(vol => (
-                <option key={vol} value={vol}>{vol}</option>
-              ))}
+              {(selectedProductType || (isEditing && initialData.productType)) && 
+                volumeOptions[(selectedProductType || initialData.productType) as keyof typeof volumeOptions]?.map(vol => (
+                  <option key={vol} value={vol}>{vol}</option>
+                ))
+              }
             </select>
             {errors.volume && (
               <p className="mt-1 text-sm text-red-600">{errors.volume.message}</p>
             )}
-            {!selectedProductType && (
+            {!selectedProductType && !isEditing && (
               <p className="mt-1 text-sm text-amber-600">Select a product type first</p>
             )}
           </div>

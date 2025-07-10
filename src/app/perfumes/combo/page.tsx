@@ -3,16 +3,16 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Perfume Combo Sets | Avito Scent',
-  description: 'Explore our curated perfume combo sets that offer great value and variety for every occasion.',
+  description: 'Explore our carefully curated perfume combo sets that offer a variety of complementary fragrances.',
 };
 
-export default function PerfumeComboSetsPage() {
+export default async function PerfumeComboSetsPage() {
   return (
     <ProductListing 
-      category="perfumes"
-      subCategory="combo"
+      productType="Perfumes"
+      category="Combo Sets"
       title="Perfume Combo Sets"
-      description="Explore our curated perfume combo sets that offer great value and variety for every occasion."
+      description="Explore our carefully curated perfume combo sets that offer a variety of complementary fragrances."
     />
   );
 } 

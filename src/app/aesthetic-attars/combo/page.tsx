@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 export default function AestheticAttarComboSetsPage() {
   return (
     <ProductListing 
-      category="aesthetic-attars"
-      subCategory="combo"
+      productType="Aesthetic Attars"
+      category="Combo Sets"
       title="Aesthetic Attar Combo Sets"
       description="Explore our curated aesthetic attar combo sets that offer a variety of traditional and modern fragrances."
     />

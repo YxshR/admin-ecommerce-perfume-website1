@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   description: 'Elevate your driving experience with our luxury car diffusers that provide a premium fragrance experience on the go.',
 };
 
-export default function LuxuryCarDiffusersPage() {
+export default async function LuxuryCarDiffusersPage() {
   return (
     <ProductListing 
-      category="air-fresheners"
-      subCategory="car"
+      productType="Air Fresheners"
+      category="Car Diffusers"
       title="Luxury Car Diffusers"
       description="Elevate your driving experience with our luxury car diffusers that provide a premium fragrance experience on the go."
     />

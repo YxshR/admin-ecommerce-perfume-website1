@@ -1,5 +1,3 @@
-'use server';
-
 import ProductListing from '../components/ProductListing';
 import { Metadata } from 'next';
 
@@ -8,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Discover our latest fragrance creations and be the first to experience our newest scents.',
 };
 
-export default function NewArrivalsPage() {
+export default async function NewArrivalsPage() {
   return (
     <ProductListing 
       tag="new-arrival"

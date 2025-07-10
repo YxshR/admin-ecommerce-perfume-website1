@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   description: 'Transform your living spaces with our premium room air fresheners that create a welcoming and refreshing atmosphere.',
 };
 
-export default function RoomAirFreshenersPage() {
+export default async function RoomAirFreshenersPage() {
   return (
     <ProductListing 
-      category="air-fresheners"
-      subCategory="room"
+      productType="Air Fresheners"
+      category="Room Fresheners"
       title="Room Air Fresheners"
       description="Transform your living spaces with our premium room air fresheners that create a welcoming and refreshing atmosphere."
     />

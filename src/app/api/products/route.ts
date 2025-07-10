@@ -18,7 +18,18 @@ export async function GET(request: NextRequest) {
     const filter: any = {};
     
     if (category) {
-      filter.category = category;
+      // Handle category mapping
+      if (category === 'aesthetic-attars') {
+        filter.productType = 'Aesthetic Attars';
+      } else if (category === 'perfumes') {
+        filter.productType = 'Perfumes';
+      } else if (category === 'air-fresheners') {
+        filter.productType = 'Air Fresheners';
+      } else if (category === 'waxfume') {
+        filter.productType = 'Waxfume (Solid)';
+      } else {
+        filter.category = category;
+      }
     }
     
     if (productType) {
@@ -39,24 +50,21 @@ export async function GET(request: NextRequest) {
           break;
         default:
           // For other tags, you might have a tags array field
-          // filter.tags = tag;
+          filter.subCategories = tag;
           break;
       }
     }
     
+    console.log('Product filter:', filter);
+    
     // Execute query with filters
     const products = await Product.find(filter).sort({ createdAt: -1 });
     
-    // Transform products for consistency
-    const transformedProducts = products.map(product => {
-      // Use any type to allow adding custom properties
-      const productObj: any = product.toObject();
-      
-      return productObj;
-    });
+    console.log(`Found ${products.length} products matching filter`);
     
-    return NextResponse.json({ success: true, products: transformedProducts }, { status: 200 });
+    return NextResponse.json({ success: true, products }, { status: 200 });
   } catch (err) {
+    console.error('Error fetching products:', err);
     return NextResponse.json({ 
       success: false, 
       error: err instanceof Error ? err.message : 'Server error'
@@ -88,6 +96,7 @@ export async function POST(request: Request) {
     }
     
     const productInfo = JSON.parse(productInfoJson);
+    console.log('Received product info:', productInfo);
     
     // Extract media URLs from the product info
     // The media URLs should already be uploaded to Cloudinary at this point
@@ -128,6 +137,8 @@ export async function POST(request: Request) {
       isNewProduct: productInfo.isNewArrival || false, // For backward compatibility
       onSale: productInfo.comparePrice && productInfo.comparePrice > productInfo.price,
     };
+    
+    console.log('Creating new product:', productData);
     
     // Save to database
     const product = await Product.create(productData);

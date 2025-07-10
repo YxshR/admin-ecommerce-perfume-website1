@@ -13,16 +13,23 @@ interface Product {
   slug: string;
   description: string;
   price: number;
+  comparePrice?: number;
   discountedPrice?: number;
   images: string[];
+  mainImage: string;
   category: string;
-  subCategory?: string;
-  tags?: string[];
+  productType: string;
+  subCategories?: string[];
+  volume: string;
+  gender: string;
+  isBestSelling?: boolean;
+  isNewArrival?: boolean;
+  isBestBuy?: boolean;
   featured?: boolean;
-  bestSeller?: boolean;
-  newArrival?: boolean;
+  tags?: string[];
   inStock: boolean;
   quantity?: number;
+  brand?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -72,6 +79,8 @@ export default function ProductListing({
         if (subCategory) params.append('subCategory', subCategory);
         if (tag) params.append('tag', tag);
         
+        console.log('Fetching products with params:', Object.fromEntries(params.entries()));
+        
         // Fetch products from API
         const response = await fetch(`/api/products?${params.toString()}`);
         
@@ -80,6 +89,7 @@ export default function ProductListing({
         }
         
         const data = await response.json();
+        console.log('API response:', data);
         
         // Ensure data is an array of products
         const productsArray: Product[] = Array.isArray(data.products) ? data.products : [];

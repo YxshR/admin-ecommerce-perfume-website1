@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Discover our most popular and best-selling fragrances loved by customers across India.',
 };
 
-export default function BestSellingPage() {
+export default async function BestSellingPage() {
   return (
     <ProductListing 
       tag="best-seller"
