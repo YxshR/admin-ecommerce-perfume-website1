@@ -251,7 +251,12 @@ export default function Nav() {
       id: 'collection',
       name: 'Collection',
       path: '/collection',
-      hasDropdown: false
+      hasDropdown: true,
+      dropdownItems: [
+        { name: 'Best Selling', path: '/best-selling' },
+        { name: 'New Arrivals', path: '/new-arrivals' },
+        { name: 'Best Buy', path: '/best-buy' }
+      ]
     },
     {
       id: 'perfumes',

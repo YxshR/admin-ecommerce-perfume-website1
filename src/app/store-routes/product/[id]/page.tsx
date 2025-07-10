@@ -79,7 +79,11 @@ export default function ProductDetailPage() {
         const data = await response.json();
         
         if (data.success && data.product) {
-          console.log("Product data:", data.product);
+          
+          
+          // Get attributes safely with fallback to empty object
+          const attributes = data.product.attributes || {};
+          
           // Transform API data to match our component's format
           const productData = {
             _id: data.product._id,
@@ -97,17 +101,14 @@ export default function ProductDetailPage() {
               [],
             stock: data.product.quantity || 0,
             fragrance_notes: {
-              top: data.product.attributes?.gender ? [data.product.attributes.gender] : ['Unisex'],
-              middle: data.product.attributes?.volume ? [data.product.attributes.volume] : ['50ml'],
-              base: data.product.attributes?.fragrance ? 
-                (Array.isArray(data.product.attributes.fragrance) ? 
-                  data.product.attributes.fragrance : 
-                  [data.product.attributes.fragrance || 'Amber Musk'])
-                : ['Amber', 'Musk']
+              top: [data.product.gender || 'Unisex'],
+              middle: [data.product.volume || '50ml'],
+              base: data.product.subCategories && data.product.subCategories.length > 0 ? 
+                data.product.subCategories : ['Amber', 'Musk']
             },
-            concentration: data.product.attributes?.concentration || data.product.productType || 'Eau de Parfum',
-            size: parseInt(data.product.attributes?.volume?.replace(/[^0-9]/g, '') || '50'),
-            gender: data.product.attributes?.gender || 'Unisex'
+            concentration: data.product.productType || 'Eau de Parfum',
+            size: parseInt(data.product.volume?.replace(/[^0-9]/g, '') || '50'),
+            gender: data.product.gender || 'Unisex'
           };
           
           setProduct(productData);
@@ -454,6 +455,7 @@ export default function ProductDetailPage() {
                       {product.fragrance_notes.top.map((note, index) => (
                         <li key={index}>{note}</li>
                       ))}
+                      
                     </ul>
                   </div>
                   <div>
@@ -470,6 +472,7 @@ export default function ProductDetailPage() {
                       {product.fragrance_notes.base.map((note, index) => (
                         <li key={index}>{note}</li>
                       ))}
+                      
                     </ul>
                   </div>
                 </div>
