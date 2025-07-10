@@ -48,6 +48,52 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
     inStock: product.inStock !== undefined ? product.inStock : true
   };
   
+  // Add to cart handler
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      // Get existing cart from localStorage
+      const existingCart = localStorage.getItem('cart') || '[]';
+      const cart = JSON.parse(existingCart);
+      
+      // Check if product already exists in cart
+      const existingItemIndex = cart.findIndex((item: any) => 
+        item._id === formattedProduct._id || item.id === formattedProduct._id
+      );
+      
+      if (existingItemIndex >= 0) {
+        // Update quantity if product already in cart
+        cart[existingItemIndex].quantity += 1;
+      } else {
+        // Add new product to cart
+        cart.push({
+          _id: formattedProduct._id,
+          id: formattedProduct._id,
+          name: formattedProduct.name,
+          price: formattedProduct.price,
+          discountedPrice: formattedProduct.discountedPrice,
+          image: formattedProduct.mainImage,
+          quantity: 1
+        });
+      }
+      
+      // Save updated cart to localStorage
+      localStorage.setItem('cart', JSON.stringify(cart));
+      
+      // Trigger events to notify other components
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('cart-updated'));
+      
+      // Optional: Show a notification or feedback
+      alert('Product added to cart!');
+      
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  };
+  
   return (
     <div className="h-full flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-gray-300">
       <div className="relative overflow-hidden group">
@@ -59,8 +105,8 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
           />
         </Link>
         {formattedProduct.discountedPrice && formattedProduct.discountedPrice < formattedProduct.price && (
-          <div className="absolute top-2 right-2 bg-black text-white text-xs font-bold px-2 py-1 rounded">
-            {Math.round(((formattedProduct.price - formattedProduct.discountedPrice) / formattedProduct.price) * 100)}% OFF
+          <div className="absolute top-2 left-2 bg-black text-white text-xs font-bold px-2 py-1 rounded">
+            ON SALE
           </div>
         )}
       </div>
@@ -70,6 +116,7 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
             {formattedProduct.name}
           </Link>
         </h3>
+        <p className="text-sm text-gray-600 mb-1">{formattedProduct.category}</p>
         <p className="text-gray-500 text-sm mb-3 line-clamp-2">{formattedProduct.description}</p>
         <div className="mt-auto flex justify-between items-center">
           <div className="flex items-baseline">
@@ -83,9 +130,15 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
             )}
           </div>
           <div className="text-sm text-gray-500">
-            {formattedProduct.volume && `${formattedProduct.volume} ML`}
+            {formattedProduct.volume && `${formattedProduct.volume} `}
           </div>
         </div>
+        <button 
+          onClick={handleAddToCart}
+          className="mt-4 w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition-colors"
+        >
+          Add to Cart
+        </button>
       </div>
     </div>
   );
@@ -499,7 +552,7 @@ export default function ProductListing({
                             className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
                           />
                           <label htmlFor={`volume-${volume}`} className="ml-2 text-sm">
-                            {volume} ML
+                            {volume} 
                           </label>
                         </div>
                       ))}
