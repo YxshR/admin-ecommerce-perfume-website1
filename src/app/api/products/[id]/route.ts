@@ -1,32 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import Product from '../../../models/Product';
-
-// Connect to MongoDB with connection pooling
-let isConnected = false;
-
-const connectMongo = async () => {
-  if (isConnected) {
-    console.log('Using existing MongoDB connection');
-    return;
-  }
-
-  try {
-    // Prevent multiple connections in development
-    if (mongoose.connections[0].readyState) {
-      isConnected = true;
-      console.log('Using existing MongoDB connection');
-      return;
-    }
-    
-    await mongoose.connect("mongodb+srv://Yash:8BQEkh4JaATCGblO@yash.pweao0h.mongodb.net/ecommerce");
-    isConnected = true;
-    console.log('MongoDB connected');
-  } catch (error) {
-    console.error('MongoDB connection failed:', error);
-    throw new Error('Failed to connect to database');
-  }
-};
+import connectMongoDB from '@/app/lib/mongodb';
 
 // GET a single product by ID
 export async function GET(
@@ -34,8 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await connectMongo();
-    // Ensure params is properly awaited
+    await connectMongoDB();
     const id = params.id;
     const product = await Product.findById(id);
 
@@ -56,8 +30,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    await connectMongo();
-    // Ensure params is properly awaited
+    await connectMongoDB();
     const id = params.id;
     
     // Handle multipart form data
@@ -71,22 +44,9 @@ export async function PUT(
     
     const productInfo = JSON.parse(productInfoJson);
     
-    // Get existing images if any
-    const existingImagesJson = formData.get('existingImages') as string;
-    const existingImages = existingImagesJson ? JSON.parse(existingImagesJson) : [];
-    
-    // Handle new image files if they exist
-    const newImages = [];
-    for (let [key, value] of formData.entries()) {
-      if (key.startsWith('media_') && value instanceof File) {
-        // In a real app, you would upload these files to a storage service
-        // For now, we'll just use their names or simulate URLs
-        newImages.push(`/uploads/${value.name}`);
-      }
-    }
-    
-    // Combine existing and new images
-    const images = [...existingImages, ...newImages];
+    // Extract images and videos
+    const images = productInfo.images || [];
+    const videos = productInfo.videos || [];
     
     // Set main image or default if none provided
     const mainImage = productInfo.mainImage || (images.length > 0 ? images[0] : '/placeholder.jpg');
@@ -94,30 +54,32 @@ export async function PUT(
     // Create product data with all fields
     const productData = {
       name: productInfo.name,
-      slug: (productInfo.slug || productInfo.name.toLowerCase().replace(/\s+/g, '-')) + '-' + Date.now().toString().slice(-6),
+      slug: productInfo.slug || (productInfo.name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now().toString().slice(-6)),
       description: productInfo.description,
       price: parseFloat(productInfo.price.toString()),
       comparePrice: productInfo.comparePrice ? parseFloat(productInfo.comparePrice.toString()) : 0,
       images: images,
+      videos: videos,
       mainImage: mainImage,
+      
+      // New categorization fields
       productType: productInfo.productType,
       category: productInfo.category,
       subCategories: productInfo.subCategories || [],
+      volume: productInfo.volume,
+      
+      // Marketing flags
+      isBestSelling: productInfo.isBestSelling || false,
+      isNewArrival: productInfo.isNewArrival || false,
+      isBestBuy: productInfo.isBestBuy || false,
+      
+      // Keep existing fields
       brand: productInfo.brand || 'Avito Scent',
       sku: productInfo.sku,
       quantity: productInfo.quantity || 0,
       featured: productInfo.featured || false,
-      bestSelling: productInfo.bestSelling || false,
-      newArrivals: productInfo.newArrivals || false,
-      bestBuy: productInfo.bestBuy || false,
-      isNewProduct: productInfo.newArrivals || false,
-      onSale: productInfo.comparePrice && productInfo.comparePrice > productInfo.price,
-      attributes: {
-        gender: productInfo.gender,
-        volume: productInfo.volume,
-        about: productInfo.about,
-        disclaimer: productInfo.disclaimer || ''
-      }
+      isNewProduct: productInfo.isNewArrival || false, // For backward compatibility
+      onSale: productInfo.comparePrice && productInfo.comparePrice > productInfo.price
     };
     
     console.log('Updating product:', id);
@@ -167,8 +129,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await connectMongo();
-    // Ensure params is properly awaited
+    await connectMongoDB();
     const id = params.id;
     const product = await Product.findByIdAndDelete(id);
 

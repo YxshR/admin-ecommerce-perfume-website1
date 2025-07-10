@@ -10,35 +10,10 @@ export async function GET() {
     
     const products = await Product.find({}).sort({ createdAt: -1 });
     
-    // Transform products to include gender and ml values directly in the product object
+    // Transform products for consistency
     const transformedProducts = products.map(product => {
       // Use any type to allow adding custom properties
       const productObj: any = product.toObject();
-      
-      // Extract gender and volume from attributes if they exist
-      if (productObj.attributes) {
-        // Convert Map to object if needed
-        const attrs = productObj.attributes instanceof Map 
-          ? Object.fromEntries(productObj.attributes) 
-          : productObj.attributes;
-          
-        // Add gender directly to product
-        if (attrs.gender) {
-          productObj.gender = attrs.gender.toLowerCase();
-        }
-        
-        // Add ml/volume directly to product
-        if (attrs.volume) {
-          // Try to extract numeric value if it's in format like "50 ML"
-          const volumeMatch = String(attrs.volume).match(/(\d+)\s*ml/i);
-          if (volumeMatch && volumeMatch[1]) {
-            productObj.ml = parseInt(volumeMatch[1], 10);
-          } else if (!isNaN(Number(attrs.volume))) {
-            // If it's just a number
-            productObj.ml = parseInt(attrs.volume, 10);
-          }
-        }
-      }
       
       return productObj;
     });
@@ -79,14 +54,8 @@ export async function POST(request: Request) {
     
     // Extract media URLs from the product info
     // The media URLs should already be uploaded to Cloudinary at this point
-    const mediaItems = productInfo.media || [];
-    const images = mediaItems
-      .filter((media: any) => media.type === 'image')
-      .map((media: any) => media.url);
-    
-    const videos = mediaItems
-      .filter((media: any) => media.type === 'video')
-      .map((media: any) => media.url);
+    const images = productInfo.images || [];
+    const videos = productInfo.videos || [];
     
     // Set main image or default if none provided
     const mainImage = productInfo.mainImage || (images.length > 0 ? images[0] : '/placeholder.jpg');
@@ -99,26 +68,27 @@ export async function POST(request: Request) {
       price: parseFloat(productInfo.price.toString()),
       comparePrice: productInfo.comparePrice ? parseFloat(productInfo.comparePrice.toString()) : undefined,
       images: images,
-      videos: videos, // Store videos separately
+      videos: videos,
       mainImage: mainImage,
+      
+      // New categorization fields
       productType: productInfo.productType,
       category: productInfo.category,
       subCategories: productInfo.subCategories || [],
+      volume: productInfo.volume,
+      
+      // Marketing flags
+      isBestSelling: productInfo.isBestSelling || false,
+      isNewArrival: productInfo.isNewArrival || false,
+      isBestBuy: productInfo.isBestBuy || false,
+      
+      // Keep existing fields
       brand: productInfo.brand || 'Avito Scent',
       sku: productInfo.sku,
       quantity: parseInt(productInfo.quantity.toString() || '0'),
       featured: productInfo.featured || false,
-      bestSelling: productInfo.bestSelling || false,
-      newArrivals: productInfo.newArrivals || false,
-      bestBuy: productInfo.bestBuy || false,
-      isNewProduct: productInfo.newArrivals || false,
+      isNewProduct: productInfo.isNewArrival || false, // For backward compatibility
       onSale: productInfo.comparePrice && productInfo.comparePrice > productInfo.price,
-      attributes: {
-        gender: productInfo.gender,
-        volume: productInfo.volume,
-        about: productInfo.about,
-        disclaimer: productInfo.disclaimer || ''
-      }
     };
     
     // Save to database

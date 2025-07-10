@@ -1,141 +1,179 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { FiSave, FiX, FiUpload } from 'react-icons/fi';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, Controller } from 'react-hook-form';
+import { FiSave, FiX, FiUpload, FiTrash } from 'react-icons/fi';
 
-// Google Cloud Storage API endpoint
-const API_UPLOAD_ENDPOINT = '/api/upload';
+// Define the schema for product form validation
+const productSchema = z.object({
+  name: z.string().min(3, 'Product name must be at least 3 characters'),
+  slug: z.string().optional(),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  price: z.number().min(0, 'Price must be a positive number'),
+  comparePrice: z.number().min(0, 'Compare price must be a positive number').optional(),
+  sku: z.string().min(3, 'SKU must be at least 3 characters'),
+  quantity: z.number().min(0, 'Quantity must be a non-negative number'),
+  brand: z.string().optional(),
+  
+  // New categorization fields
+  productType: z.string().min(1, 'Product type is required'),
+  category: z.string().min(1, 'Category is required'),
+  subCategories: z.array(z.string()),
+  volume: z.string().min(1, 'Volume is required'),
+  
+  // Marketing flags
+  isBestSelling: z.boolean().default(false),
+  isNewArrival: z.boolean().default(false),
+  isBestBuy: z.boolean().default(false),
+  featured: z.boolean().default(false),
+});
 
-interface Product {
-  _id: string;
-  name: string;
-  description: string;
-  referenceName: string;
-  price: number;
-  discountedPrice: number;
-  stock: number;
-  category: string;
-  images: ProductImage[];
-  videos: ProductVideo[];
-  featured: boolean;
-  new_arrival: boolean;
-  best_seller: boolean;
+type ProductFormValues = z.infer<typeof productSchema>;
+
+// Media types
+interface ProductMedia {
+  id: string;
+  type: 'image' | 'video';
+  url: string;
+  file?: File;
+  preview?: string;
 }
 
 interface ProductFormProps {
-  initialData?: Partial<Product>;
+  initialData?: Partial<ProductFormValues & { media?: ProductMedia[] }>;
   isEditing?: boolean;
   onSuccess?: () => void;
 }
 
-interface ProductImage {
-  public_id: string;
-  url: string;
-}
-
-interface ProductVideo {
-  public_id: string;
-  url: string;
-}
-
-interface ProductFormData {
-  name: string;
-  description: string;
-  referenceName: string;
-  price: number;
-  discountedPrice: number;
-  stock: number;
-  category: string;
-  images: ProductImage[];
-  videos: ProductVideo[];
-}
-
-const categories = [
-  'Electronics',
-  'Cameras',
-  'Laptops',
-  'Accessories',
-  'Headphones',
-  'Food',
-  'Books',
-  'Clothes',
-  'Shoes',
-  'Beauty',
-  'Health',
-  'Sports',
-  'Outdoor',
-  'Home'
-];
+// API endpoint for uploads
+const API_UPLOAD_ENDPOINT = '/api/upload/cloudinary';
 
 const ProductForm: React.FC<ProductFormProps> = ({ 
   initialData = {}, 
   isEditing = false,
   onSuccess
 }) => {
-  const [formData, setFormData] = useState<ProductFormData>({
-    name: initialData.name || '',
-    description: initialData.description || '',
-    referenceName: initialData.referenceName || '',
-    price: initialData.price || 0,
-    discountedPrice: initialData.discountedPrice || 0,
-    stock: initialData.stock || 0,
-    category: initialData.category || categories[0],
-    images: initialData.images || [],
-    videos: initialData.videos || [],
-  });
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [videoFiles, setVideoFiles] = useState<File[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [uploadedVideos, setUploadedVideos] = useState<string[]>([]);
-  const [isFeatured, setIsFeatured] = useState(initialData.featured || false);
-  const [isNewArrival, setIsNewArrival] = useState(initialData.new_arrival || false);
-  const [isBestSeller, setIsBestSeller] = useState(initialData.best_seller || false);
-  const [uploadStatus, setUploadStatus] = useState('');
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'price' || name === 'discountedPrice' || name === 'stock' 
-        ? parseFloat(value) 
-        : value
-    }));
+  // Product type options
+  const productTypes = [
+    'Perfumes',
+    'Aesthetic Attars',
+    'Air Fresheners',
+    'Waxfume (Solid)'
+  ];
+
+  // Dynamic categories based on product type
+  const categoryOptions = {
+    'Perfumes': ['Value for Money', 'Premium Perfumes', 'Luxury Perfumes', 'Combo Sets'],
+    'Aesthetic Attars': ['Premium Attars', 'Luxury Attars', 'Combo Sets'],
+    'Air Fresheners': ['Room Fresheners', 'Car Diffusers'],
+    'Waxfume (Solid)': ['Tin Zar']
   };
-  
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setImageFiles(files);
-      
-      // Create temporary URLs for preview
-      const previewUrls = files.map(file => URL.createObjectURL(file));
-      setUploadedImages(previewUrls);
-    }
-  };
-  
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setVideoFiles(files);
-      
-      // Create temporary URLs for preview
-      const previewUrls = files.map(file => URL.createObjectURL(file));
-      setUploadedVideos(previewUrls);
+
+  // Dynamic subcategories based on product type and category
+  const subCategoryOptions = {
+    'Perfumes': {
+      'Value for Money': ['Peach', 'Sea Musk'],
+      'Premium Perfumes': ['Founder', 'Nectar'],
+      'Luxury Perfumes': ['Brise DavrilI'],
+      'Combo Sets': [
+        'Two 20 ml Set Combo Woman (Peach/Breeze)',
+        'Four 20 ml Set Combo Unisex (Founder, Nectar, Sea Musk, Peach)',
+        'Two 20 ml Combo Set MAN (Brise Davril, Nectar)',
+        'Two 20 ml Combo Set COUPLE (Brise DavrilI, Peach)'
+      ]
+    },
+    'Aesthetic Attars': {
+      'Premium Attars': ['Rose', 'Amber', 'Sandalwood', 'Kewra', 'Green Khus', 'Coffee'],
+      'Luxury Attars': ['Royal Blue', 'Blue Lomani', 'La Flora', 'Arabian OUD', 'Caramal'],
+      'Combo Sets': [
+        'Daily Officer Wear (Rose, Royal Blue, Arabian OUD)',
+        'Party Wear (Musk Rose, Amber, La Flora)',
+        'Gift Box (Rose, Caramal, Blue Lomani)'
+      ]
+    },
+    'Air Fresheners': {
+      'Room Fresheners': ['Lavender', 'Chandan', 'Gulab', 'Lemon', 'Musk', 'Vanila'],
+      'Car Diffusers': ['Lavender', 'Chandan', 'Gulab', 'Lemon', 'Musk', 'Vanila']
+    },
+    'Waxfume (Solid)': {
+      'Tin Zar': []
     }
   };
 
-  // Upload file to Google Cloud Storage
-  const uploadToStorage = async (file: File, resourceType: 'image' | 'video') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('resourceType', resourceType);
-    formData.append('folder', resourceType === 'image' ? 'product_images' : 'product_videos');
+  // Dynamic volume options based on product type
+  const volumeOptions = {
+    'Perfumes': ['20ml', '50ml', '100ml'],
+    'Aesthetic Attars': ['5ml', '8ml', '10ml'],
+    'Air Fresheners': ['10ml', '250ml'],
+    'Waxfume (Solid)': ['10gms', '25gms']
+  };
+
+  // Form state
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: initialData.name || '',
+      slug: initialData.slug || '',
+      description: initialData.description || '',
+      price: initialData.price || 0,
+      comparePrice: initialData.comparePrice || 0,
+      sku: initialData.sku || '',
+      quantity: initialData.quantity || 0,
+      brand: initialData.brand || 'Avito Scent',
+      productType: initialData.productType || '',
+      category: initialData.category || '',
+      subCategories: initialData.subCategories || [],
+      volume: initialData.volume || '',
+      isBestSelling: initialData.isBestSelling || false,
+      isNewArrival: initialData.isNewArrival || false,
+      isBestBuy: initialData.isBestBuy || false,
+      featured: initialData.featured || false,
+    }
+  });
+  
+  // Watch for changes in productType and category to update dependent fields
+  const selectedProductType = watch('productType');
+  const selectedCategory = watch('category');
+
+  // State for media handling
+  const [media, setMedia] = useState<ProductMedia[]>(initialData.media || []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [uploadStatus, setUploadStatus] = useState('');
+  
+  // Reset dependent fields when product type changes
+  useEffect(() => {
+    if (selectedProductType) {
+      // Reset category when product type changes
+      setValue('category', '');
+      setValue('subCategories', []);
+      setValue('volume', '');
+    }
+  }, [selectedProductType, setValue]);
+  
+  // Reset subcategories when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      setValue('subCategories', []);
+    }
+  }, [selectedCategory, setValue]);
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    setLoading(true);
+    setError('');
+    setUploadStatus('Uploading images...');
     
     try {
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'product_images');
+      
       const response = await fetch(API_UPLOAD_ENDPOINT, {
         method: 'POST',
         body: formData,
@@ -147,407 +185,511 @@ const ProductForm: React.FC<ProductFormProps> = ({
       
       const data = await response.json();
       
-      if (!data.success) {
-        throw new Error(data.error || 'Upload failed');
+      if (data.success) {
+        // Add the uploaded image to the media array
+        const newMedia = {
+          id: data.public_id,
+          type: 'image' as const,
+          url: data.url,
+          preview: data.url
+        };
+        
+        setMedia(prev => [...prev, newMedia]);
+        setUploadStatus('Image uploaded successfully');
+      } else {
+        throw new Error(data.error || 'Failed to upload image');
       }
-      
-      return {
-        public_id: data.public_id,
-        url: data.url
-      };
-    } catch (err) {
-      console.error(`Error uploading ${resourceType}:`, err);
-      throw new Error(`Failed to upload ${resourceType}`);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setError(error instanceof Error ? error.message : 'Failed to upload image');
+    } finally {
+      setLoading(false);
+      // Reset the file input
+      e.target.value = '';
     }
   };
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle video upload
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
     setLoading(true);
     setError('');
+    setUploadStatus('Uploading video...');
     
     try {
-      // Process and upload image files if any are selected
-      let newImages = [...formData.images];
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('resourceType', 'video');
+      formData.append('folder', 'product_videos');
       
-      if (imageFiles.length > 0) {
-        setUploadStatus('Uploading images to storage...');
-        
-        // Upload each image to Google Cloud Storage
-        const uploadPromises = imageFiles.map(file => uploadToStorage(file, 'image'));
-        const uploadedImagesData = await Promise.all(uploadPromises);
-        
-        // Replace existing images with new ones
-        newImages = uploadedImagesData;
-        setUploadStatus('Images uploaded successfully!');
+      const response = await fetch(API_UPLOAD_ENDPOINT, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
       }
       
-      // Process and upload video files if any are selected
-      let newVideos = [...formData.videos];
+      const data = await response.json();
       
-      if (videoFiles.length > 0) {
-        setUploadStatus('Uploading videos to storage...');
+      if (data.success) {
+        // Add the uploaded video to the media array
+        const newMedia = {
+          id: data.public_id,
+          type: 'video' as const,
+          url: data.url,
+          preview: data.url
+        };
         
-        // Upload each video to Google Cloud Storage
-        const uploadPromises = videoFiles.map(file => uploadToStorage(file, 'video'));
-        const uploadedVideosData = await Promise.all(uploadPromises);
-        
-        // Add new videos
-        newVideos = [...newVideos, ...uploadedVideosData];
-        setUploadStatus('Videos uploaded successfully!');
+        setMedia(prev => [...prev, newMedia]);
+        setUploadStatus('Video uploaded successfully');
+      } else {
+        throw new Error(data.error || 'Failed to upload video');
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      setError(error instanceof Error ? error.message : 'Failed to upload video');
+    } finally {
+      setLoading(false);
+      // Reset the file input
+      e.target.value = '';
+    }
+  };
+  
+  // Handle media deletion
+  const handleDeleteMedia = (idToDelete: string) => {
+    setMedia(prev => prev.filter(item => item.id !== idToDelete));
+  };
+
+  // Handle form submission
+  const onSubmit = async (data: ProductFormValues) => {
+    setLoading(true);
+    setError('');
+    setUploadStatus('Saving product...');
+    
+    try {
+      if (media.length === 0) {
+        throw new Error('At least one image is required');
       }
       
-      setUploadStatus('Saving product data...');
-      
-      // Prepare final product data
+      // Prepare product data for submission
       const productData = {
-        ...formData,
-        images: newImages,
-        videos: newVideos,
-        featured: isFeatured,
-        new_arrival: isNewArrival,
-        best_seller: isBestSeller
+        ...data,
+        mainImage: media.find(m => m.type === 'image')?.url || '',
+        images: media.filter(m => m.type === 'image').map(m => m.url),
+        videos: media.filter(m => m.type === 'video').map(m => m.url),
       };
       
+      // Generate formData to send
+      const formData = new FormData();
+      formData.append('productInfo', JSON.stringify(productData));
+      
+      let response;
+      
       if (isEditing && initialData._id) {
-        await axios.put(`/api/products/${initialData._id}`, productData);
+        response = await fetch(`/api/products/${initialData._id}`, {
+          method: 'PUT',
+          body: formData
+        });
       } else {
-        await axios.post('/api/products', productData);
+        response = await fetch('/api/products', {
+          method: 'POST',
+          body: formData
+        });
       }
       
-      setUploadStatus('Product saved successfully!');
-      
-      if (onSuccess) {
-        onSuccess();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed with status: ${response.status}`);
       }
-    } catch (err) {
-      console.error('Error saving product:', err);
-      setError('Failed to save product. Please try again.');
-      setUploadStatus('');
+      
+      const responseData = await response.json();
+      
+      if (responseData.success) {
+        setUploadStatus('Product saved successfully!');
+        if (onSuccess) onSuccess();
+      } else {
+        throw new Error(responseData.error || 'Failed to save product');
+      }
+    } catch (error) {
+      console.error('Error saving product:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred while saving the product');
     } finally {
       setLoading(false);
     }
   };
+
+  // Handle subcategory toggle
+  const toggleSubCategory = (subCategory: string) => {
+    const currentSubCategories = watch('subCategories');
+    if (currentSubCategories.includes(subCategory)) {
+      setValue('subCategories', currentSubCategories.filter(sc => sc !== subCategory));
+    } else {
+      setValue('subCategories', [...currentSubCategories, subCategory]);
+    }
+  };
   
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6">
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md">
           {error}
         </div>
       )}
       
       {uploadStatus && (
-        <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-md">
+        <div className="mb-6 p-4 bg-blue-50 text-blue-700 rounded-md">
           {uploadStatus}
         </div>
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Product Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            required
-          />
-        </div>
-        
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Reference Name (Alternative search terms)
-          </label>
-          <input
-            type="text"
-            name="referenceName"
-            value={formData.referenceName}
-            onChange={handleChange}
-            placeholder="Alternative names, keywords, or common search terms"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-          />
-          <p className="mt-1 text-xs text-gray-500">Add alternative names that customers might search for</p>
-        </div>
-        
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            required
-          />
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+          
+          {/* Product Name */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Name *
+            </label>
+            <input
+              type="text"
+              {...register('name')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
+          </div>
+          
+          {/* SKU */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              SKU *
+            </label>
+            <input
+              type="text"
+              {...register('sku')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            {errors.sku && (
+              <p className="mt-1 text-sm text-red-600">{errors.sku.message}</p>
+            )}
+          </div>
+          
+          {/* Brand */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Brand
+            </label>
+            <input
+              type="text"
+              {...register('brand')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          
+          {/* Description */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description *
+            </label>
+            <textarea
+              {...register('description')}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+            )}
+          </div>
+          
+          {/* Pricing */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price *
+              </label>
+              <input
+                type="number"
+                {...register('price', { valueAsNumber: true })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                min="0"
+                step="0.01"
+              />
+              {errors.price && (
+                <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Compare Price
+              </label>
+              <input
+                type="number"
+                {...register('comparePrice', { valueAsNumber: true })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+          
+          {/* Inventory */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity *
+            </label>
+            <input
+              type="number"
+              {...register('quantity', { valueAsNumber: true })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              min="0"
+            />
+            {errors.quantity && (
+              <p className="mt-1 text-sm text-red-600">{errors.quantity.message}</p>
+            )}
+          </div>
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Price ($)
-          </label>
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            min="0"
-            step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            required
-          />
+          <h2 className="text-xl font-semibold mb-4">Categorization</h2>
+          
+          {/* Product Type */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Type *
+            </label>
+            <select
+              {...register('productType')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="">Select Product Type</option>
+              {productTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            {errors.productType && (
+              <p className="mt-1 text-sm text-red-600">{errors.productType.message}</p>
+            )}
+          </div>
+          
+          {/* Category - Dynamic based on product type */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category *
+            </label>
+            <select
+              {...register('category')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              disabled={!selectedProductType}
+            >
+              <option value="">Select Category</option>
+              {selectedProductType && categoryOptions[selectedProductType as keyof typeof categoryOptions]?.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            {errors.category && (
+              <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+            )}
+            {!selectedProductType && (
+              <p className="mt-1 text-sm text-amber-600">Select a product type first</p>
+            )}
+          </div>
+          
+          {/* Sub-Categories - Multi-select based on category */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sub-Categories
+            </label>
+            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
+              {selectedProductType && selectedCategory && 
+                subCategoryOptions[selectedProductType as keyof typeof subCategoryOptions]?.[
+                  selectedCategory as keyof (typeof subCategoryOptions)[keyof typeof subCategoryOptions]
+                ]?.map(subCat => (
+                  <div key={subCat} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`subcat-${subCat}`}
+                      checked={watch('subCategories')?.includes(subCat)}
+                      onChange={() => toggleSubCategory(subCat)}
+                      className="h-4 w-4 text-blue-600 rounded"
+                    />
+                    <label htmlFor={`subcat-${subCat}`} className="ml-2 text-sm text-gray-700">
+                      {subCat}
+                    </label>
+                  </div>
+                ))}
+              {(!selectedProductType || !selectedCategory) && (
+                <p className="text-sm text-gray-500">Select a product type and category first</p>
+              )}
+            </div>
+          </div>
+          
+          {/* Volume - Dynamic based on product type */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Volume *
+            </label>
+            <select
+              {...register('volume')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              disabled={!selectedProductType}
+            >
+              <option value="">Select Volume</option>
+              {selectedProductType && volumeOptions[selectedProductType as keyof typeof volumeOptions]?.map(vol => (
+                <option key={vol} value={vol}>{vol}</option>
+              ))}
+            </select>
+            {errors.volume && (
+              <p className="mt-1 text-sm text-red-600">{errors.volume.message}</p>
+            )}
+            {!selectedProductType && (
+              <p className="mt-1 text-sm text-amber-600">Select a product type first</p>
+            )}
+          </div>
+          
+          <h2 className="text-xl font-semibold mb-4 mt-8">Marketing</h2>
+          
+          {/* Marketing Flags */}
+          <div className="mb-4 grid grid-cols-2 gap-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isBestSelling"
+                {...register('isBestSelling')}
+                className="h-4 w-4 text-blue-600 rounded"
+              />
+              <label htmlFor="isBestSelling" className="ml-2 text-sm text-gray-700">
+                Best Selling
+              </label>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isNewArrival"
+                {...register('isNewArrival')}
+                className="h-4 w-4 text-blue-600 rounded"
+              />
+              <label htmlFor="isNewArrival" className="ml-2 text-sm text-gray-700">
+                New Arrival
+              </label>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isBestBuy"
+                {...register('isBestBuy')}
+                className="h-4 w-4 text-blue-600 rounded"
+              />
+              <label htmlFor="isBestBuy" className="ml-2 text-sm text-gray-700">
+                Best Buy
+              </label>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="featured"
+                {...register('featured')}
+                className="h-4 w-4 text-blue-600 rounded"
+              />
+              <label htmlFor="featured" className="ml-2 text-sm text-gray-700">
+                Featured
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Media Section */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Media</h2>
+        
+        <div className="flex flex-wrap gap-4 mb-4">
+          {media.map((item, index) => (
+            <div key={item.id} className="relative">
+              {item.type === 'image' ? (
+                <img 
+                  src={item.url} 
+                  alt="Product" 
+                  className="w-24 h-24 object-cover rounded-md border border-gray-300"
+                />
+              ) : (
+                <video 
+                  src={item.url}
+                  className="w-24 h-24 object-cover rounded-md border border-gray-300"
+                  controls
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => handleDeleteMedia(item.id)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 text-xs"
+              >
+                <FiX />
+              </button>
+            </div>
+          ))}
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Discounted Price ($)
-          </label>
-          <input
-            type="number"
-            name="discountedPrice"
-            value={formData.discountedPrice}
-            onChange={handleChange}
-            min="0"
-            step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Stock
-          </label>
-          <input
-            type="number"
-            name="stock"
-            value={formData.stock}
-            onChange={handleChange}
-            min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            required
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Product Images
-          </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors">
+        <div className="flex gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload Images
+            </label>
             <input
               type="file"
               accept="image/*"
-              multiple
-              onChange={handleImageChange}
+              onChange={handleImageUpload}
               className="hidden"
               id="image-upload"
+              disabled={loading}
             />
-            <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center">
-              <FiUpload size={24} className="mb-2 text-gray-400" />
-              <span className="text-sm text-gray-600 font-medium">Upload Product Images</span>
-              <span className="text-xs text-gray-500 mt-1">Click to browse files</span>
+            <label
+              htmlFor="image-upload"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-white hover:bg-gray-50 cursor-pointer"
+            >
+              <FiUpload className="mr-2" /> Add Image
             </label>
-            <p className="mt-2 text-xs text-gray-500">
-              {imageFiles.length > 0 ? `${imageFiles.length} files selected` : 'JPEG, PNG up to 5MB'}
-            </p>
           </div>
           
-          {uploadedImages.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Image Previews:</h4>
-              <div className="grid grid-cols-4 gap-2">
-                {uploadedImages.map((url, index) => (
-                  <div key={index} className="relative">
-                    <img src={url} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-md" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newImages = [...uploadedImages];
-                        const newFiles = [...imageFiles];
-                        newImages.splice(index, 1);
-                        newFiles.splice(index, 1);
-                        setUploadedImages(newImages);
-                        setImageFiles(newFiles);
-                      }}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 shadow-sm"
-                    >
-                      <FiX size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Show existing images if editing */}
-          {isEditing && formData.images.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Images:</h4>
-              <div className="grid grid-cols-4 gap-2">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="relative">
-                    <img src={image.url} alt={`Product image ${index}`} className="w-full h-24 object-cover rounded-md" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          images: prev.images.filter((_, i) => i !== index)
-                        }));
-                      }}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 shadow-sm"
-                    >
-                      <FiX size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Product Videos
-          </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload Videos
+            </label>
             <input
               type="file"
               accept="video/*"
-              multiple
-              onChange={handleVideoChange}
+              onChange={handleVideoUpload}
               className="hidden"
               id="video-upload"
+              disabled={loading}
             />
-            <label htmlFor="video-upload" className="cursor-pointer flex flex-col items-center justify-center">
-              <FiUpload size={24} className="mb-2 text-gray-400" />
-              <span className="text-sm text-gray-600 font-medium">Upload Product Videos</span>
-              <span className="text-xs text-gray-500 mt-1">Click to browse files</span>
-            </label>
-            <p className="mt-2 text-xs text-gray-500">
-              {videoFiles.length > 0 ? `${videoFiles.length} files selected` : 'MP4, WEBM up to 50MB'}
-            </p>
-          </div>
-          
-          {uploadedVideos.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Video Files:</h4>
-              <div className="space-y-2">
-                {videoFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                    <span className="text-sm truncate max-w-xs">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newVideos = [...uploadedVideos];
-                        const newFiles = [...videoFiles];
-                        newVideos.splice(index, 1);
-                        newFiles.splice(index, 1);
-                        setUploadedVideos(newVideos);
-                        setVideoFiles(newFiles);
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <FiX size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Show existing videos if editing */}
-          {isEditing && formData.videos.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Videos:</h4>
-              <div className="space-y-2">
-                {formData.videos.map((video, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                    <span className="text-sm truncate max-w-xs">{video.url.split('/').pop()}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          videos: prev.videos.filter((_, i) => i !== index)
-                        }));
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <FiX size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="col-span-2">
-          <h3 className="block text-sm font-medium text-gray-700 mb-3">Display Options</h3>
-          <div className="flex flex-wrap gap-6">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isFeatured}
-                onChange={(e) => setIsFeatured(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-gray-700">Featured Product</span>
-            </label>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isNewArrival}
-                onChange={(e) => setIsNewArrival(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-gray-700">New Arrival</span>
-            </label>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isBestSeller}
-                onChange={(e) => setIsBestSeller(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-gray-700">Best Seller</span>
+            <label
+              htmlFor="video-upload"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-white hover:bg-gray-50 cursor-pointer"
+            >
+              <FiUpload className="mr-2" /> Add Video
             </label>
           </div>
         </div>
       </div>
       
-      <div className="mt-6 flex justify-end">
+      {/* Submit Button */}
+      <div className="mt-8 flex justify-end">
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
           <FiSave className="mr-2" />
-          {loading ? 'Saving...' : 'Save Product'}
+          {loading ? 'Saving...' : isEditing ? 'Update Product' : 'Save Product'}
         </button>
       </div>
     </form>

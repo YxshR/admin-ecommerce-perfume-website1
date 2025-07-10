@@ -10,10 +10,19 @@ export interface IProductBase {
   images: string[];
   videos?: string[];
   mainImage: string;
+  
+  // New categorization fields
   productType: string;
   category: string;
-  subCategories?: string[];
-  subcategory?: mongoose.Types.ObjectId;
+  subCategories: string[];
+  volume: string;
+  
+  // Marketing flags
+  isBestSelling: boolean;
+  isNewArrival: boolean;
+  isBestBuy: boolean;
+  
+  // Keep existing fields
   brand?: string;
   sku: string;
   quantity: number;
@@ -22,9 +31,6 @@ export interface IProductBase {
   // Rename isNew to avoid conflict with Document.isNew
   isNewProduct?: boolean;
   onSale?: boolean;
-  bestSelling?: boolean;
-  newArrivals?: boolean;
-  bestBuy?: boolean;
   rating?: number;
   numReviews?: number;
   reviews?: Array<{
@@ -114,6 +120,8 @@ const ProductSchema = new Schema({
     type: String,
     required: [true, 'Please provide a main product image']
   },
+  
+  // New categorization fields
   productType: {
     type: String,
     required: [true, 'Please select a product type'],
@@ -127,6 +135,26 @@ const ProductSchema = new Schema({
     type: [String],
     default: []
   },
+  volume: {
+    type: String,
+    required: [true, 'Please select a volume']
+  },
+  
+  // Marketing flags
+  isBestSelling: {
+    type: Boolean,
+    default: false
+  },
+  isNewArrival: {
+    type: Boolean,
+    default: false
+  },
+  isBestBuy: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Keep existing fields
   subcategory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SubCategory'
@@ -164,18 +192,6 @@ const ProductSchema = new Schema({
     type: Boolean,
     default: false
   },
-  bestSelling: {
-    type: Boolean,
-    default: false
-  },
-  newArrivals: {
-    type: Boolean,
-    default: false
-  },
-  bestBuy: {
-    type: Boolean,
-    default: false
-  },
   rating: {
     type: Number,
     default: 0,
@@ -207,12 +223,12 @@ ProductSchema.index({ name: 'text', description: 'text' });
 ProductSchema.index({ productType: 1 });
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ price: 1 });
+ProductSchema.index({ isBestSelling: 1 });
+ProductSchema.index({ isNewArrival: 1 });
+ProductSchema.index({ isBestBuy: 1 });
 ProductSchema.index({ featured: 1 });
 ProductSchema.index({ isNewProduct: 1 }); // Updated index name
 ProductSchema.index({ onSale: 1 });
-ProductSchema.index({ bestSelling: 1 });
-ProductSchema.index({ newArrivals: 1 });
-ProductSchema.index({ bestBuy: 1 });
 
 // Create a virtual for discount percentage
 ProductSchema.virtual('discountPercentage').get(function() {
