@@ -10,7 +10,12 @@ export async function GET(
 ) {
   try {
     await connectMongoDB();
-    const id = params.id;
+    // Ensure params.id is properly handled
+    const id = params?.id;
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
+    }
+    
     const product = await Product.findById(id);
 
     if (!product) {
@@ -31,7 +36,11 @@ export async function PUT(
 ) {
   try {
     await connectMongoDB();
-    const id = params.id;
+    // Ensure params.id is properly handled
+    const id = params?.id;
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
+    }
     
     // Handle multipart form data
     const formData = await request.formData();
@@ -67,6 +76,7 @@ export async function PUT(
       category: productInfo.category,
       subCategories: productInfo.subCategories || [],
       volume: productInfo.volume,
+      gender: productInfo.gender || 'Unisex', // Default to Unisex if not provided
       
       // Marketing flags
       isBestSelling: productInfo.isBestSelling || false,
@@ -130,7 +140,12 @@ export async function DELETE(
 ) {
   try {
     await connectMongoDB();
-    const id = params.id;
+    // Ensure params.id is properly handled
+    const id = params?.id;
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
+    }
+    
     const product = await Product.findByIdAndDelete(id);
 
     if (!product) {

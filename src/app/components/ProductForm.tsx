@@ -22,6 +22,7 @@ const productSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   subCategories: z.array(z.string()),
   volume: z.string().min(1, 'Volume is required'),
+  gender: z.string().min(1, 'Gender is required'),
   
   // Marketing flags
   isBestSelling: z.boolean().default(false),
@@ -126,6 +127,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       category: initialData.category || '',
       subCategories: initialData.subCategories || [],
       volume: initialData.volume || '',
+      gender: initialData.gender || '',
       isBestSelling: initialData.isBestSelling || false,
       isNewArrival: initialData.isNewArrival || false,
       isBestBuy: initialData.isBestBuy || false,
@@ -549,6 +551,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
             )}
             {!selectedProductType && (
               <p className="mt-1 text-sm text-amber-600">Select a product type first</p>
+            )}
+          </div>
+
+          {/* Gender */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Gender *
+            </label>
+            <select
+              {...register('gender')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Unisex">Unisex</option>
+            </select>
+            {errors.gender && (
+              <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
             )}
           </div>
           

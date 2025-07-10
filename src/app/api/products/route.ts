@@ -1,14 +1,51 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Product from '../../models/Product';
 import connectMongoDB from '@/app/lib/mongodb';
 
-// GET all products
-export async function GET() {
+// GET all products with optional filtering
+export async function GET(request: NextRequest) {
   try {
     await connectMongoDB();
     
-    const products = await Product.find({}).sort({ createdAt: -1 });
+    // Parse query parameters
+    const url = new URL(request.url);
+    const category = url.searchParams.get('category');
+    const productType = url.searchParams.get('productType');
+    const tag = url.searchParams.get('tag');
+    
+    // Build filter object
+    const filter: any = {};
+    
+    if (category) {
+      filter.category = category;
+    }
+    
+    if (productType) {
+      filter.productType = productType;
+    }
+    
+    // Handle special tag filters
+    if (tag) {
+      switch (tag) {
+        case 'best-seller':
+          filter.isBestSelling = true;
+          break;
+        case 'new-arrival':
+          filter.isNewArrival = true;
+          break;
+        case 'best-buy':
+          filter.isBestBuy = true;
+          break;
+        default:
+          // For other tags, you might have a tags array field
+          // filter.tags = tag;
+          break;
+      }
+    }
+    
+    // Execute query with filters
+    const products = await Product.find(filter).sort({ createdAt: -1 });
     
     // Transform products for consistency
     const transformedProducts = products.map(product => {
@@ -76,6 +113,7 @@ export async function POST(request: Request) {
       category: productInfo.category,
       subCategories: productInfo.subCategories || [],
       volume: productInfo.volume,
+      gender: productInfo.gender || 'Unisex', // Default to Unisex if not provided
       
       // Marketing flags
       isBestSelling: productInfo.isBestSelling || false,

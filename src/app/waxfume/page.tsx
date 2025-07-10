@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function WaxfumePage() {
   return (
     <ProductListing 
-      category="waxfume"
+      productType="Waxfume (Solid)"
       title="Waxfume (Solid) Collection"
       description="Explore our innovative solid waxfume collection that provides long-lasting fragrance with elegant presentation."
     />

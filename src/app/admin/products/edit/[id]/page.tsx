@@ -57,6 +57,7 @@ export default function EditProductPage() {
           category: product.category || '',
           subCategories: product.subCategories || [],
           volume: product.volume || '',
+          gender: product.gender || '', // Added gender field
           
           // Marketing flags
           isBestSelling: product.isBestSelling || false,

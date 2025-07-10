@@ -16,6 +16,7 @@ export interface IProductBase {
   category: string;
   subCategories: string[];
   volume: string;
+  gender: string; // Added gender field
   
   // Marketing flags
   isBestSelling: boolean;
@@ -139,6 +140,11 @@ const ProductSchema = new Schema({
     type: String,
     required: [true, 'Please select a volume']
   },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Unisex'],
+    default: 'Unisex'
+  },
   
   // Marketing flags
   isBestSelling: {
@@ -222,6 +228,7 @@ const ProductSchema = new Schema({
 ProductSchema.index({ name: 'text', description: 'text' });
 ProductSchema.index({ productType: 1 });
 ProductSchema.index({ category: 1 });
+ProductSchema.index({ gender: 1 });
 ProductSchema.index({ price: 1 });
 ProductSchema.index({ isBestSelling: 1 });
 ProductSchema.index({ isNewArrival: 1 });

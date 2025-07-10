@@ -29,6 +29,7 @@ interface Product {
 
 interface ProductListingProps {
   category?: string;
+  productType?: string;
   subCategory?: string;
   tag?: string;
   title: string;
@@ -37,6 +38,7 @@ interface ProductListingProps {
 
 export default function ProductListing({
   category,
+  productType,
   subCategory,
   tag,
   title,
@@ -57,7 +59,7 @@ export default function ProductListing({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Fetch products based on category, subCategory, or tag
+  // Fetch products based on category, productType, subCategory, or tag
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -66,6 +68,7 @@ export default function ProductListing({
         // Build query parameters
         const params = new URLSearchParams();
         if (category) params.append('category', category);
+        if (productType) params.append('productType', productType);
         if (subCategory) params.append('subCategory', subCategory);
         if (tag) params.append('tag', tag);
         
@@ -79,7 +82,7 @@ export default function ProductListing({
         const data = await response.json();
         
         // Ensure data is an array of products
-        const productsArray: Product[] = Array.isArray(data) ? data : [];
+        const productsArray: Product[] = Array.isArray(data.products) ? data.products : [];
         setProducts(productsArray);
         
         // Extract unique tags for filtering
@@ -105,7 +108,7 @@ export default function ProductListing({
     };
     
     fetchProducts();
-  }, [category, subCategory, tag]);
+  }, [category, productType, subCategory, tag]);
   
   // Apply filters and search
   const filteredProducts = products.filter(product => {
