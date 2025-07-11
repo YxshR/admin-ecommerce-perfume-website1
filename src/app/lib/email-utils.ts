@@ -65,4 +65,101 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
     console.error('Error sending email:', error);
     return false;
   }
+};
+
+// Send contact form notification to admin
+export const sendContactFormEmail = async (
+  contactData: { 
+    name: string; 
+    email: string; 
+    phone?: string; 
+    subject: string; 
+    message: string; 
+  }
+): Promise<boolean> => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST ,
+      port: parseInt(process.env.EMAIL_PORT || "465"),
+      secure: process.env.EMAIL_PORT === "465", // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER ,
+        pass: process.env.EMAIL_PASSWORD 
+      }
+    });
+    
+    const { name, email, phone, subject, message } = contactData;
+    const currentYear = new Date().getFullYear();
+    
+    // Email content
+    const mailOptions = {
+      from: `"Avito Luxury Website" <${process.env.EMAIL_USER || "info@avitoluxury.in"}>`,
+      to: process.env.EMAIL_RECIPIENT || "youngblood.yr@gmail.com",
+      subject: `New Contact Form Submission: ${subject}`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Luxury Contact Form Email</title>
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-gray-300 p-6">
+  <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-2xl border border-gray-200 p-8">
+    <!-- Logo -->
+    <div class="flex justify-center mb-6">
+      <img src="https://res.cloudinary.com/dzzxpyqif/image/upload/v1752250731/avitologo3_yt1lzu.png" alt="Company Logo" class="w-40">
+    </div>
+
+    <!-- Title -->
+    <h2 class="text-3xl font-bold text-center text-[#1c1f36] tracking-wide mb-2">New Message Received</h2>
+    <p class="text-center text-[#9b870c] text-sm mb-8 uppercase">From your website contact form</p>
+
+    <!-- Info Block -->
+    <div class="grid gap-4 text-[15px] text-gray-800">
+      <div class="flex">
+        <span class="w-32 font-semibold text-gray-600">Full Name:</span>
+        <span>${name}</span>
+      </div>
+      <div class="flex">
+        <span class="w-32 font-semibold text-gray-600">Email:</span>
+        <span>${email}</span>
+      </div>
+      <div class="flex">
+        <span class="w-32 font-semibold text-gray-600">Phone:</span>
+        <span>${phone || 'Not provided'}</span>
+      </div>
+      <div class="flex">
+        <span class="w-32 font-semibold text-gray-600">Subject:</span>
+        <span>${subject}</span>
+      </div>
+    </div>
+
+    <!-- Message -->
+    <div class="mt-8 border-l-4 border-[#9b870c] bg-[#fdfaf3] p-5 rounded-md shadow-sm">
+      <p class="text-[15px] text-gray-700 leading-relaxed whitespace-pre-line">
+        ${message}
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-xs text-center text-gray-500 mt-10">
+      &copy; ${currentYear} Avito Luxury. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>`
+    };
+    
+    // Send the email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Contact form email sent:', info.response);
+    return true;
+  } catch (error) {
+    console.error('Error sending contact form email:', error);
+    return false;
+  }
 }; 

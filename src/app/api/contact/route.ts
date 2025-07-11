@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectMongoDB from '@/app/lib/mongodb';
 import Contact from '@/app/models/Contact';
+import { sendContactFormEmail } from '@/app/lib/email-utils';
 
 // POST request handler for form submissions
 export async function POST(request: NextRequest) {
@@ -31,6 +32,21 @@ export async function POST(request: NextRequest) {
       message,
       status: 'pending',
     });
+    
+    // Send email notification to admin
+    try {
+      await sendContactFormEmail({
+        name,
+        email,
+        phone,
+        subject,
+        message
+      });
+      console.log('Contact form email notification sent successfully');
+    } catch (emailError) {
+      // Log the error but don't fail the request
+      console.error('Failed to send contact form email notification:', emailError);
+    }
     
     // Return success response
     return NextResponse.json(

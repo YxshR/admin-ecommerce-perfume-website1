@@ -48,7 +48,9 @@ const nextConfig = {
     TWILIO_ACCOUNT_SID: '',
     TWILIO_AUTH_TOKEN: '8d7cf3fb4202832be671f6ff6db65202',
     TWILIO_PHONE_NUMBER: '+918126518755',
-    TWILIO_VERIFY_SERVICE_SID: 'VA6d30f761fb32414863edfb815f56ed05'
+    TWILIO_VERIFY_SERVICE_SID: 'VA6d30f761fb32414863edfb815f56ed05',
+    // Email configuration
+
   },
   output: 'standalone',
   // Add experimental features to improve compatibility with Vercel deployments

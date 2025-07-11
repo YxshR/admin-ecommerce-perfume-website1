@@ -341,6 +341,12 @@ export default function Nav() {
       name: 'About Us',
       path: '/about-us',
       hasDropdown: false
+    },
+    {
+      id: 'contact',
+      name: 'Contact Us',
+      path: '/contact',
+      hasDropdown: false
     }
   ];
   
