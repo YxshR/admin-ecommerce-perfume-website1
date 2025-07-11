@@ -3,12 +3,12 @@ import nodemailer from 'nodemailer';
 // Create a transporter object using SMTP transport
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.hostinger.com',
-    port: parseInt(process.env.EMAIL_PORT || '465'),
-    secure: process.env.EMAIL_PORT === '465' || true,
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT || '587'),
+    secure: process.env.EMAIL_PORT === '465',
     auth: {
-      user: process.env.EMAIL_USER || 'info@avitoluxury.in',
-      pass: process.env.EMAIL_PASSWORD || '23321'
+      user: process.env.EMAIL_USER || 'avitoluxury@gmail.com',
+      pass: process.env.EMAIL_PASSWORD
     }
   });
 };
@@ -23,8 +23,13 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
   try {
     const transporter = createTransporter();
 
+    if (!process.env.EMAIL_PASSWORD) {
+      console.error('Email password not configured. Please set EMAIL_PASSWORD in .env.local');
+      return false;
+    }
+
     const mailOptions = {
-      from: `Avito Luxury Admin <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+      from: `Avito Luxury Admin <${process.env.EMAIL_USER || 'avitoluxury@gmail.com'}>`,
       to: email,
       subject: 'Admin Login OTP Verification',
       html: `
