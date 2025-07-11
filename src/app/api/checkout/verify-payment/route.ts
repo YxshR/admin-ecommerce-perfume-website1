@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/lib/db-connect';
 import Order from '@/app/models/Order';
+import Product from '@/app/models/Product';
 import crypto from 'crypto';
+import { sendOrderConfirmationEmail } from '@/app/lib/email-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,8 +26,11 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
     
-    // Find order
-    const order = await Order.findById(orderId);
+    // Find order and populate user information
+    const order = await Order.findById(orderId).populate('user').populate({
+      path: 'items.product',
+      model: Product
+    });
     
     if (!order) {
       return NextResponse.json(
@@ -71,6 +76,73 @@ export async function POST(request: NextRequest) {
     };
     
     await order.save();
+    
+    // Send order confirmation email
+    try {
+      const formattedDate = new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Kolkata'
+      });
+
+      // Format order data for email with enhanced product details
+      const emailData = {
+        user: {
+          fullName: order.shippingAddress.fullName,
+          email: order.user.email,
+          phone: order.shippingAddress.phone,
+          alternatePhone: order.alternatePhone || '',
+          address: {
+            line1: order.shippingAddress.address,
+            line2: '',
+            city: order.shippingAddress.city,
+            state: order.shippingAddress.state,
+            zip: order.shippingAddress.postalCode,
+            country: order.shippingAddress.country
+          }
+        },
+        order: {
+          items: order.items.map(item => {
+            // Get product details if available
+            const productDetails = item.product ? {
+              category: item.product.category || 'N/A',
+              subCategory: item.product.subCategories && item.product.subCategories.length > 0 
+                ? item.product.subCategories[0] 
+                : 'N/A',
+              volume: item.product.volume || 'N/A',
+              image: item.product.mainImage || item.image || '/placeholder-product.jpg'
+            } : {
+              category: 'N/A',
+              subCategory: 'N/A',
+              volume: 'N/A',
+              image: item.image || '/placeholder-product.jpg'
+            };
+            
+            return {
+              name: item.name,
+              category: productDetails.category,
+              subCategory: productDetails.subCategory,
+              volume: productDetails.volume,
+              image: productDetails.image,
+              quantity: item.quantity,
+              price: item.price,
+              total: item.price * item.quantity
+            };
+          })
+        },
+        payment: {
+          id: razorpay_payment_id,
+          amount: order.totalPrice,
+          method: order.paymentMethod,
+          date: formattedDate
+        }
+      };
+
+      await sendOrderConfirmationEmail(emailData);
+    } catch (emailError) {
+      console.error('Failed to send order confirmation email:', emailError);
+      // Don't fail the request if email sending fails
+    }
     
     return NextResponse.json({
       success: true,

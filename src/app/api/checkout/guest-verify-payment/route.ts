@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/lib/db-connect';
-import Order from '@/app/models/Order';
+import GuestOrder from '@/app/models/GuestOrder';
 import Product from '@/app/models/Product';
 import crypto from 'crypto';
 import { sendOrderConfirmationEmail } from '@/app/lib/email-utils';
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
     
-    // Find order and populate user information
-    const order = await Order.findById(orderId).populate('user').populate({
+    // Find guest order and populate product information
+    const order = await GuestOrder.findById(orderId).populate({
       path: 'items.product',
       model: Product
     });
@@ -70,9 +70,7 @@ export async function POST(request: NextRequest) {
       id: razorpay_payment_id,
       status: 'completed',
       update_time: new Date().toISOString(),
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
+      email_address: order.customerInfo.email
     };
     
     await order.save();
@@ -88,16 +86,15 @@ export async function POST(request: NextRequest) {
       // Format order data for email with enhanced product details
       const emailData = {
         user: {
-          fullName: order.shippingAddress.fullName,
-          email: order.user.email,
-          phone: order.shippingAddress.phone,
-          alternatePhone: order.alternatePhone || '',
+          fullName: order.customerInfo.name,
+          email: order.customerInfo.email,
+          phone: order.customerInfo.phone,
           address: {
-            line1: order.shippingAddress.address,
-            line2: '',
+            line1: order.shippingAddress.addressLine1,
+            line2: order.shippingAddress.addressLine2 || '',
             city: order.shippingAddress.city,
             state: order.shippingAddress.state,
-            zip: order.shippingAddress.postalCode,
+            zip: order.shippingAddress.pincode,
             country: order.shippingAddress.country
           }
         },
@@ -146,11 +143,11 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      trackingId: order.trackingId
+      trackingId: order.trackingNumber
     });
     
   } catch (error) {
-    console.error('Error verifying Razorpay payment:', error);
+    console.error('Error verifying guest payment:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to verify payment' },
       { status: 500 }
