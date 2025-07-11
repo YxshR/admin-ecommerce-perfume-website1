@@ -110,6 +110,15 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
 
     if (isOpen) {
       fetchCart();
+      
+      // Listen for cart updates
+      window.addEventListener('storage', fetchCart);
+      window.addEventListener('cart-updated', fetchCart);
+      
+      return () => {
+        window.removeEventListener('storage', fetchCart);
+        window.removeEventListener('cart-updated', fetchCart);
+      };
     }
   }, [isOpen, isAuthenticated]);
 
@@ -190,6 +199,10 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
 
       // Also dispatch a custom event for components that don't listen to storage
       window.dispatchEvent(new Event('cart-updated'));
+      
+      // Force refresh of component state
+      const refreshItems = [...updatedItems];
+      setCartItems(refreshItems);
     } catch (error) {
       console.error('Error updating localStorage cart:', error);
     }
@@ -336,7 +349,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                     <h3 className="font-medium">{item.name}</h3>
                     <div className="flex items-center mt-2">
                       <button 
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id || item._id || '', item.quantity - 1)}
                         className="w-8 h-8 flex items-center justify-center border"
                         disabled={item.quantity <= 1}
                       >
@@ -349,7 +362,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                         className="w-10 text-center border-t border-b h-8"
                       />
                       <button 
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id || item._id || '', item.quantity + 1)}
                         className="w-8 h-8 flex items-center justify-center border"
                       >
                         <FiPlus size={16} />

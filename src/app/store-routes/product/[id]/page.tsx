@@ -194,7 +194,7 @@ export default function ProductDetailPage() {
     window.dispatchEvent(new Event('storage'));
     
     // Optionally redirect to cart or show confirmation
-    alert('Product added to cart!');
+    
   };
   
   // Calculate discount percentage

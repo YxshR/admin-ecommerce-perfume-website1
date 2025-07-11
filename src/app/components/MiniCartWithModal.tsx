@@ -37,33 +37,46 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
   
   // Fetch cart items from localStorage
   useEffect(() => {
-    if (isOpen) {
-      try {
-        setLoading(true);
-        const storedCart = localStorage.getItem('cart');
-        if (storedCart) {
-          const parsedCart = JSON.parse(storedCart);
-          setCartItems(parsedCart);
-          
-          // Calculate subtotal
-          const total = parsedCart.reduce((sum: number, item: CartItem) => {
-            const itemPrice = item.discountedPrice || item.price;
-            return sum + (itemPrice * item.quantity);
-          }, 0);
-          
-          setSubtotal(total);
-        } else {
+    const fetchCartItems = () => {
+      if (isOpen) {
+        try {
+          setLoading(true);
+          const storedCart = localStorage.getItem('cart');
+          if (storedCart) {
+            const parsedCart = JSON.parse(storedCart);
+            setCartItems(parsedCart);
+            
+            // Calculate subtotal
+            const total = parsedCart.reduce((sum: number, item: CartItem) => {
+              const itemPrice = item.discountedPrice || item.price;
+              return sum + (itemPrice * item.quantity);
+            }, 0);
+            
+            setSubtotal(total);
+          } else {
+            setCartItems([]);
+            setSubtotal(0);
+          }
+        } catch (error) {
+          console.error('Error loading cart:', error);
           setCartItems([]);
           setSubtotal(0);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Error loading cart:', error);
-        setCartItems([]);
-        setSubtotal(0);
-      } finally {
-        setLoading(false);
       }
-    }
+    };
+    
+    fetchCartItems();
+    
+    // Listen for cart updates
+    window.addEventListener('storage', fetchCartItems);
+    window.addEventListener('cart-updated', fetchCartItems);
+    
+    return () => {
+      window.removeEventListener('storage', fetchCartItems);
+      window.removeEventListener('cart-updated', fetchCartItems);
+    };
   }, [isOpen]);
   
   // Handle clicks outside the cart
@@ -87,7 +100,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
     if (newQuantity < 1) return;
     
     const updatedCart = cartItems.map(item => 
-      item._id === itemId ? { ...item, quantity: newQuantity } : item
+      (item._id === itemId || item.id === itemId) ? { ...item, quantity: newQuantity } : item
     );
     
     setCartItems(updatedCart);
@@ -105,6 +118,12 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
     
     // Dispatch storage event for other components to detect the change
     window.dispatchEvent(new Event('storage'));
+    // Also dispatch a custom event for components that don't listen to storage
+    window.dispatchEvent(new Event('cart-updated'));
+    
+    // Force refresh of component state
+    const refreshItems = [...updatedCart];
+    setCartItems(refreshItems);
   };
   
   const removeItem = (itemId: string) => {
@@ -144,6 +163,10 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
     window.dispatchEvent(new Event('storage'));
     // Also dispatch a custom event for components that don't listen to storage
     window.dispatchEvent(new Event('cart-updated'));
+    
+    // Force refresh of component state
+    const refreshItems = [...updatedCart];
+    setCartItems(refreshItems);
   };
   
   const handlePhoneSubmit = (phone: string) => {
@@ -285,7 +308,8 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            updateQuantity(item._id || item.id || '', item.quantity - 1);
+                            const itemId = item._id || item.id || '';
+                            updateQuantity(itemId, item.quantity - 1);
                           }}
                           className="px-2 py-1 text-gray-600 hover:text-black"
                           aria-label="Decrease quantity"
@@ -297,7 +321,8 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            updateQuantity(item._id || item.id || '', item.quantity + 1);
+                            const itemId = item._id || item.id || '';
+                            updateQuantity(itemId, item.quantity + 1);
                           }}
                           className="px-2 py-1 text-gray-600 hover:text-black"
                           aria-label="Increase quantity"
