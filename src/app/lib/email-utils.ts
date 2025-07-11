@@ -177,3 +177,195 @@ export const sendContactFormEmail = async (
     return false;
   }
 };
+
+// Send order notification to admin
+export const sendOrderNotificationEmail = async (
+  orderData: {
+    user: {
+      fullName: string;
+      email: string;
+      phone: string;
+      address: {
+        line1: string;
+        line2?: string;
+        city: string;
+        state: string;
+        zip: string;
+        country: string;
+      };
+    };
+    order: {
+      id: string;
+      items: Array<{
+        name: string;
+        category: string;
+        subCategory: string;
+        volume: string;
+        quantity: number;
+        price: number;
+        total: number;
+      }>;
+    };
+    payment: {
+      id: string;
+      amount: number;
+      method: string;
+      date: string;
+    };
+  }
+): Promise<boolean> => {
+  try {
+    // Create a transporter with specific Hostinger settings
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT || "465"),
+      secure: process.env.EMAIL_PORT === "465",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+      }
+    });
+
+    // Format items for the email template
+    const itemsHtml = orderData.order.items.map(item => `
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 10px; vertical-align: top;">${item.name}</td>
+        <td style="padding: 10px; vertical-align: top;">${item.category}</td>
+        <td style="padding: 10px; vertical-align: top;">${item.subCategory}</td>
+        <td style="padding: 10px; vertical-align: top;">${item.volume}</td>
+        <td style="padding: 10px; text-align: center; vertical-align: top;">${item.quantity}</td>
+        <td style="padding: 10px; text-align: right; vertical-align: top;">₹${item.price}</td>
+        <td style="padding: 10px; text-align: right; vertical-align: top;">₹${item.total}</td>
+      </tr>
+    `).join('');
+
+    const mailOptions = {
+      from: `Avito Luxury Order <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+      to: process.env.EMAIL_RECIPIENT,
+      subject: `New Order Received: #${orderData.order.id}`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Order Notification</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="700" cellpadding="0" cellspacing="0" style="background: #fff; border-radius: 8px; overflow: hidden; padding: 30px;">
+          
+          <!-- Header -->
+          <tr>
+            <td>
+              <h2 style="margin-top: 0; color: #2c3e50;">🛒 New Order Received</h2>
+              <p style="margin-bottom: 20px;">A new order has been placed and payment has been successfully received. Please find the order details below:</p>
+            </td>
+          </tr>
+
+          <!-- Customer Information -->
+          <tr>
+            <td>
+              <h3 style="color: #2980b9;">🧍‍♂️ Customer Information</h3>
+              <table cellpadding="5" cellspacing="0" style="width: 100%; font-size: 14px;">
+                <tr>
+                  <td><strong>Name:</strong></td>
+                  <td>${orderData.user.fullName}</td>
+                </tr>
+                <tr>
+                  <td><strong>Email:</strong></td>
+                  <td>${orderData.user.email}</td>
+                </tr>
+                <tr>
+                  <td><strong>Phone:</strong></td>
+                  <td>${orderData.user.phone}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Shipping Address -->
+          <tr>
+            <td style="padding-top: 20px;">
+              <h3 style="color: #2980b9;">📦 Shipping Address</h3>
+              <p style="font-size: 14px;">
+                ${orderData.user.address.line1}<br />
+                ${orderData.user.address.line2 ? orderData.user.address.line2 + '<br />' : ''}
+                ${orderData.user.address.city}, ${orderData.user.address.state} - ${orderData.user.address.zip}<br />
+                ${orderData.user.address.country}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Product Details -->
+          <tr>
+            <td style="padding-top: 20px;">
+              <h3 style="color: #2980b9;">🛍️ Product Details</h3>
+              <table width="100%" style="border-collapse: collapse; font-size: 14px; margin-bottom: 20px;">
+                <thead>
+                  <tr style="background-color: #ecf0f1;">
+                    <th style="padding: 12px; text-align: left;">Product</th>
+                    <th style="padding: 12px; text-align: left;">Category</th>
+                    <th style="padding: 12px; text-align: left;">Sub-Category</th>
+                    <th style="padding: 12px; text-align: left;">Volume</th>
+                    <th style="padding: 12px; text-align: center;">Qty</th>
+                    <th style="padding: 12px; text-align: right;">Price</th>
+                    <th style="padding: 12px; text-align: right;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Payment Info -->
+          <tr>
+            <td>
+              <h3 style="color: #2980b9;">💳 Payment Details</h3>
+              <table cellpadding="5" cellspacing="0" style="width: 100%; font-size: 14px;">
+                <tr>
+                  <td><strong>Payment ID:</strong></td>
+                  <td>${orderData.payment.id}</td>
+                </tr>
+                <tr>
+                  <td><strong>Amount Paid:</strong></td>
+                  <td>₹${orderData.payment.amount}</td>
+                </tr>
+                <tr>
+                  <td><strong>Payment Method:</strong></td>
+                  <td>${orderData.payment.method}</td>
+                </tr>
+                <tr>
+                  <td><strong>Date:</strong></td>
+                  <td>${orderData.payment.date}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top: 30px; font-size: 12px; color: #999;">
+              <p>This is an automated message from your order system. Please do not reply.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Order notification email sent:', info.response);
+    return true;
+  } catch (error) {
+    console.error('Error sending order notification email:', error);
+    return false;
+  }
+};
