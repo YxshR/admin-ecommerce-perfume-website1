@@ -49,7 +49,9 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH request handler to update a contact's status
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
+    // Ensure params is awaited before accessing properties
+    const id = params.id;
+    
     // Connect to the database
     await connectMongoDB();
     
@@ -60,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const { status } = body;
     
     // Validate status value
-    if (!status || !['pending', 'read', 'responded'].includes(status)) {
+    if (!status || !['pending', 'read', 'responded', 'resolved'].includes(status)) {
       return NextResponse.json(
         { success: false, message: 'Invalid status value' },
         { status: 400 }
@@ -109,7 +111,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE request handler to delete a contact
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
+    // Ensure params is awaited before accessing properties
+    const id = params.id;
+    
     // Connect to the database
     await connectMongoDB();
     

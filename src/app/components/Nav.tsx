@@ -46,6 +46,7 @@ interface NavItems {
   waxfume: boolean;
   about: boolean;
   track: boolean;
+  contact: boolean;
 }
 
 // Define a type for component settings
@@ -79,7 +80,8 @@ export default function Nav() {
     fresheners: true,
     waxfume: true,
     about: true,
-    track: true
+    track: true,
+    contact: true
   });
   
   // Store component settings

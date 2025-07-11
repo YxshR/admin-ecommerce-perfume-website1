@@ -7,7 +7,7 @@ export interface IContact extends Document {
   phone?: string;
   subject: string;
   message: string;
-  status: 'pending' | 'responded' | 'resolved';
+  status: 'pending' | 'read' | 'responded' | 'resolved';
   response?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -49,7 +49,7 @@ const ContactSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'responded', 'resolved'],
+    enum: ['pending', 'read', 'responded', 'resolved'],
     default: 'pending'
   },
   response: {
