@@ -142,7 +142,9 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
             )}
           </div>
           <div className="text-sm text-gray-500">
-            {formattedProduct.volume && `${formattedProduct.volume} `}
+            {formattedProduct.volume && 
+              `${formattedProduct.volume} ${formattedProduct.productType === 'Waxfume' ? 'gms' : 'ml'}`
+            }
           </div>
         </div>
         <button 

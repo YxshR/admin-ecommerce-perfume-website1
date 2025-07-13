@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // Using Next.js Image for better optimization
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import ShopNowButton from './ui/ShopNowButton';
@@ -29,12 +28,6 @@ export default function SaleCarousel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Ensure component is mounted before rendering to avoid hydration issues
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Fetch products with highest discount percentage
   useEffect(() => {
@@ -95,7 +88,7 @@ export default function SaleCarousel() {
           })
           // Sort by discount percentage (highest first)
           .sort((a: any, b: any) => b.discountPercentage - a.discountPercentage)
-          // Take top 6 highest discounted products
+          // Take top 6 highest discounted products (reduced from 10)
           .slice(0, 6);
         
         setProducts(discountedProducts);
@@ -163,18 +156,16 @@ export default function SaleCarousel() {
   // Use mock data if no products found or loading
   const displayProducts = products.length > 0 ? products : mockProducts;
   
-  if (!isMounted) return null;
-  
   if (loading && displayProducts.length === 0) {
     return (
-      <div className="w-full h-[250px] xs:h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] bg-gray-100 flex items-center justify-center">
-        <div className="animate-pulse text-gray-500 text-sm sm:text-base md:text-lg">Loading fragrances...</div>
+      <div className="w-full h-96 bg-gray-100 flex items-center justify-center">
+        <div className="animate-pulse text-gray-500 text-lg">Loading fragrances...</div>
       </div>
     );
   }
   
   return (
-    <div className="relative w-full h-[250px] xs:h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px] overflow-hidden bg-gray-50">
+    <div className="relative w-full h-[300px] xs:h-[350px] sm:h-[400px] md:h-[500px] overflow-hidden bg-gray-50">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -187,57 +178,43 @@ export default function SaleCarousel() {
           {displayProducts[currentIndex] && (
             <div className="grid grid-cols-1 md:grid-cols-2 h-full">
               {/* Image - Mobile: Top, Desktop: Left */}
-              <div className="order-1 md:order-1 flex items-center justify-center h-[150px] xs:h-[170px] sm:h-[200px] md:h-full bg-gray-100 relative">
-                <div className="relative w-full h-full max-w-[90%] md:max-w-[80%] flex items-center justify-center">
-                  {/* Using picture element for better browser compatibility */}
-                  <picture>
-                    <source 
-                      srcSet={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'} 
-                      type="image/webp"
-                    />
-                    <source 
-                      srcSet={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'} 
-                      type="image/jpeg"
-                    />
-                    <img
-                      src={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'}
-                      alt={displayProducts[currentIndex].name || "Perfume product"}
-                      className="object-contain w-auto h-auto max-h-full max-w-full"
-                      loading="eager"
-                      onError={(e) => {
-                        // Fallback to placeholder on error
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null; // Prevent infinite loop
-                        target.src = '/perfume-placeholder.jpg';
-                      }}
-                    />
-                  </picture>
-                </div>
+              <div className="order-1 md:order-1 flex items-center justify-center h-[180px] xs:h-[200px] sm:h-[220px] md:h-full bg-gray-100">
+                <img
+                  src={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'}
+                  alt={displayProducts[currentIndex].name || "Perfume product"}
+                  className="object-contain w-auto h-full max-h-full max-w-[90%] md:max-w-[80%]"
+                  onError={(e) => {
+                    // Fallback to placeholder on error
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null; // Prevent infinite loop
+                    target.src = '/perfume-placeholder.jpg';
+                  }}
+                />
               </div>
               
               {/* Content - Mobile: Bottom, Desktop: Right */}
-              <div className="order-2 md:order-2 flex flex-col items-center justify-center p-2 xs:p-3 sm:p-4 md:p-5 lg:p-8">
-                <div className="text-center space-y-1 xs:space-y-1.5 sm:space-y-2 md:space-y-3 lg:space-y-4 max-w-[95%] xs:max-w-[90%] sm:max-w-sm mx-auto">
-                  <div className="bg-red-600 text-white inline-block px-1.5 xs:px-2 py-0.5 xs:py-1 text-[10px] xs:text-xs uppercase tracking-wider mb-0.5 xs:mb-1 md:mb-2">
+              <div className="order-2 md:order-2 flex flex-col items-center justify-center p-3 xs:p-4 md:p-6 lg:p-8">
+                <div className="text-center space-y-1 xs:space-y-2 md:space-y-4 max-w-sm mx-auto">
+                  <div className="bg-red-600 text-white inline-block px-2 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
                     {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
                   </div>
-                  <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold line-clamp-2">
+                  <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold line-clamp-2">
                     {displayProducts[currentIndex].name}
                   </h2>
-                  <p className="text-[10px] xs:text-xs sm:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">
+                  <p className="text-xs xs:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">
                     {displayProducts[currentIndex].description}
                   </p>
                   
-                  <div className="flex items-center justify-center mt-0.5 xs:mt-1 sm:mt-1.5 md:mt-2 lg:mt-4 space-x-1.5 xs:space-x-2 md:space-x-3 lg:space-x-4">
-                    <span className="text-sm xs:text-base sm:text-lg md:text-xl font-bold">
+                  <div className="flex items-center justify-center mt-1 xs:mt-2 md:mt-4 space-x-2 md:space-x-4">
+                    <span className="text-base xs:text-lg md:text-xl font-bold">
                       ₹{displayProducts[currentIndex].discountedPrice.toFixed(0)}
                     </span>
-                    <span className="text-[10px] xs:text-xs text-gray-500 line-through">
+                    <span className="text-xs xs:text-sm text-gray-500 line-through">
                       MRP ₹{displayProducts[currentIndex].price.toFixed(0)}
                     </span>
                   </div>
                   
-                  <div className="mt-1.5 xs:mt-2 sm:mt-3 md:mt-4">
+                  <div className="mt-2 md:mt-4">
                     <ShopNowButton href={`/product/${displayProducts[currentIndex]._id}`} />
                   </div>
                 </div>
@@ -247,37 +224,36 @@ export default function SaleCarousel() {
         </motion.div>
       </AnimatePresence>
       
-      {/* Navigation arrows - more accessible and responsive */}
+      {/* Navigation arrows */}
       {displayProducts.length > 1 && (
         <>
           <button 
             onClick={goToPrev}
-            className="absolute top-1/2 left-1 xs:left-2 sm:left-3 md:left-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-1.5 md:p-2 rounded-full shadow-md hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+            className="absolute top-1/2 left-1 xs:left-2 sm:left-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-2 rounded-full shadow-md hover:bg-white"
             aria-label="Previous product"
           >
-            <FiChevronLeft className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+            <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={goToNext}
-            className="absolute top-1/2 right-1 xs:right-2 sm:right-3 md:right-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-1.5 md:p-2 rounded-full shadow-md hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+            className="absolute top-1/2 right-1 xs:right-2 sm:right-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-2 rounded-full shadow-md hover:bg-white"
             aria-label="Next product"
           >
-            <FiChevronRight className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
+            <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </>
       )}
       
-      {/* Dots indicator - more responsive and accessible */}
-      <div className="absolute bottom-1 xs:bottom-1.5 sm:bottom-2 md:bottom-3 lg:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5 md:space-x-2 z-20">
+      {/* Dots indicator */}
+      <div className="absolute bottom-2 xs:bottom-3 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2 z-20">
         {displayProducts.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}
-            className={`w-1 h-1 xs:w-1.5 xs:h-1.5 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 lg:w-3 lg:h-3 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 ${
+            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full transition-all ${
               i === currentIndex ? 'bg-black' : 'bg-gray-300'
             }`}
             aria-label={`Go to slide ${i + 1}`}
-            aria-current={i === currentIndex ? 'true' : 'false'}
           />
         ))}
       </div>
