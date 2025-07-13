@@ -497,6 +497,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         return 'bg-gray-100 text-gray-800';
     }
   };
+  
 
   if (loading) {
     return (
@@ -533,6 +534,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
     );
   }
+  
 
   return (
     <div className="p-4 sm:p-6">
@@ -640,6 +642,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <p className="text-gray-700"><strong>Total Amount:</strong> ₹{order.total?.toFixed(2) || 'N/A'}</p>
           </div>
         </div>
+        
 
         {/* Order details */}
         <div className="bg-white shadow rounded-lg p-4 sm:p-6">

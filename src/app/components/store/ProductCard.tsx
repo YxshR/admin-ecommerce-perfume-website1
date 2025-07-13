@@ -16,6 +16,7 @@ export const triggerMiniCartOpen = () => {
 interface Product {
   _id: string;
   name: string;
+  productType: string;
   description: string;
   price: number;
   discountedPrice: number;
@@ -335,10 +336,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       
       {/* Product Info */}
       <div className="p-4 flex-grow flex flex-col">
-        {/* Sub-Category */}
-        <div className="text-xs text-gray-500 uppercase mb-1">
-          {product.subCategory || product.category}
-        </div>
+{/* Product Type */}
+<div className="text-xs text-gray-500 uppercase mb-1">
+  {product.productType}
+</div>
         
         {/* Title - Link wrapper */}
         <Link href={`/product/${product._id}`} className="block">
@@ -347,10 +348,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
         
-        {/* Product Type */}
-        <p className="text-xs text-gray-500 mb-2 line-clamp-1">
-          {product.subCategory || product.category} | Perfume
-        </p>
+{/* Sub-Category */}
+<p className="text-xs text-gray-500 mb-2 line-clamp-1">
+  {product.subCategory}
+</p>
         
         {/* Price */}
         <div className="flex items-center justify-center mt-auto mb-3">

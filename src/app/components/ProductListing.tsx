@@ -123,8 +123,9 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
             {formattedProduct.name}
           </Link>
         </h3>
-        <p className="text-sm text-gray-600 mb-1">{formattedProduct.category}</p>
-        <p className="text-gray-500 text-sm mb-3 line-clamp-2">{formattedProduct.description}</p>
+        <p className="text-sm text-gray-600 mb-1">{formattedProduct.subCategories && formattedProduct.subCategories.length > 0 ? formattedProduct.subCategories[0] : ''}</p>
+        <p className="text-sm text-gray-600 mb-1">{formattedProduct.productType}</p>
+
         <div className="mt-auto flex justify-between items-center">
           <div className="flex items-baseline">
             {hasDiscount ? (
@@ -669,4 +670,4 @@ export default function ProductListing({
       <Footer />
     </>
   );
-} 
+}
