@@ -4,7 +4,7 @@ import OTP from '@/app/models/OTP';
 import { sendOTP } from '@/app/lib/2factor-utils';
 
 // Maximum OTP requests per 24 hours
-const MAX_OTP_REQUESTS = 5;
+const MAX_OTP_REQUESTS = 4;
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,6 +81,19 @@ export async function POST(request: NextRequest) {
     // Store session ID in database after successful sending
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 5); // OTP expires in 5 minutes
+    
+    // Check again to make sure we haven't exceeded the limit (in case of concurrent requests)
+    const currentOtpCount = await OTP.countDocuments({
+      phone,
+      createdAt: { $gte: last24Hours }
+    });
+    
+    if (currentOtpCount >= MAX_OTP_REQUESTS) {
+      return NextResponse.json(
+        { success: false, error: 'Maximum OTP requests exceeded. Please try again after 24 hours.' },
+        { status: 429 }
+      );
+    }
     
     await OTP.findOneAndUpdate(
       { phone },

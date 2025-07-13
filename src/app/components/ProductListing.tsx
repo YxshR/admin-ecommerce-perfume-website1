@@ -12,14 +12,12 @@ interface Product {
   _id: string;
   name: string;
   slug?: string;
-  description: string;
+  productType: string;
   price: number;
   comparePrice?: number;
   discountedPrice?: number;
   images?: string[] | { url: string }[];
   mainImage?: string;
-  category: string;
-  productType: string;
   subCategories?: string[];
   volume?: string;
   gender?: string;

@@ -4,6 +4,7 @@ import Order from '@/app/models/Order';
 import Product from '@/app/models/Product';
 import crypto from 'crypto';
 import { sendOrderConfirmationEmail } from '@/app/lib/email-utils';
+import { sendOrderConfirmationSMS } from '@/app/lib/sms-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,9 +140,21 @@ export async function POST(request: NextRequest) {
       };
 
       await sendOrderConfirmationEmail(emailData);
+      
+      // Send SMS notification
+      const trackingLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://avitoluxury.in'}/order-tracking?tracking_id=${order.trackingId}`;
+      
+      await sendOrderConfirmationSMS({
+        phone: order.shippingAddress.phone,
+        trackingId: order.trackingId,
+        transactionId: razorpay_payment_id,
+        totalAmount: order.totalPrice,
+        trackingLink
+      });
+      
     } catch (emailError) {
-      console.error('Failed to send order confirmation email:', emailError);
-      // Don't fail the request if email sending fails
+      console.error('Failed to send order confirmation email or SMS:', emailError);
+      // Don't fail the request if email/SMS sending fails
     }
     
     return NextResponse.json({

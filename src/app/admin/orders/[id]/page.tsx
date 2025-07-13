@@ -5,10 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiArrowLeft, FiPackage, FiUser, FiMap, FiCreditCard, FiTruck, FiCalendar, FiShoppingBag, FiRefreshCw } from 'react-icons/fi';
 
+interface ProductDetails {
+  category?: string;
+  subCategory?: string;
+  volume?: string;
+  [key: string]: any;
+}
+
 interface OrderItem {
   id?: string;
   _id?: string;
-  product?: string;
+  product?: string | ProductDetails;
   name: string;
   quantity: number;
   price: number;
@@ -111,7 +118,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         document.cookie = `isLoggedIn=true; path=/; max-age=3600; SameSite=Lax`;
       }
       
-      const response = await fetch(`/api/orders/${id}`, {
+      const response = await fetch(`/api/orders/${id}?include_product_details=true`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -173,6 +180,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       totalPrice = itemsTotal + shippingPrice;
     }
     
+    // Log items to help debug
+    console.log('Order items before processing:', JSON.stringify(items));
+    
     return {
       id: orderData._id || orderData.id,
       _id: orderData._id,
@@ -188,16 +198,21 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       date: orderData.createdAt || orderData.date || new Date().toISOString(),
       status: orderData.status || 'Processing',
       total: totalPrice,
-      items: items.map((item: any) => ({
-        id: item._id || item.id || item.product,
-        name: item.name || 'Unknown Product',
-        quantity: item.quantity || 1,
-        price: item.price || 0,
-        image: item.image || '/images/placeholder-product.jpg',
-        category: item.category || 'NA',
-        subCategory: item.subCategory || 'NA',
-        volume: item.volume || 'NA'
-      })),
+      items: items.map((item: any) => {
+        // Try to get product details from various possible locations in the API response
+        const productDetails = typeof item.product === 'object' ? item.product : {};
+        
+        return {
+          id: item._id || item.id || (typeof item.product === 'string' ? item.product : ''),
+          name: item.name || 'Unknown Product',
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+          image: item.image || '/images/placeholder-product.jpg',
+          category: item.category || productDetails?.category || 'NA',
+          subCategory: item.subCategory || productDetails?.subCategory || 'NA',
+          volume: item.volume || productDetails?.volume || 'NA'
+        };
+      }),
       shipping: {
         address: orderData.shippingAddress?.address || orderData.shippingAddress?.addressLine1 || '',
         city: orderData.shippingAddress?.city || '',
@@ -657,6 +672,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   Category
                 </th>
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                  Sub-Category
+                </th>
                 <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Volume
                 </th>
@@ -693,10 +711,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
-                    <div>
-                      <p>{item.category || 'NA'}</p>
-                      <p className="text-xs text-gray-400">{item.subCategory || 'NA'}</p>
-                    </div>
+                    <p>{item.category || 'NA'}</p>
+                  </td>
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                    <p>{item.subCategory || 'NA'}</p>
                   </td>
                   <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                     {item.volume || 'NA'}
@@ -715,7 +733,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             </tbody>
             <tfoot className="bg-gray-50">
               <tr>
-                <th scope="row" colSpan={3} className="px-3 sm:px-6 py-3 text-right text-sm font-medium text-gray-900 hidden md:table-cell">
+                <th scope="row" colSpan={4} className="px-3 sm:px-6 py-3 text-right text-sm font-medium text-gray-900 hidden md:table-cell">
                   Subtotal
                 </th>
                 <th scope="row" colSpan={1} className="px-3 sm:px-6 py-3 text-right text-sm font-medium text-gray-900 md:hidden">

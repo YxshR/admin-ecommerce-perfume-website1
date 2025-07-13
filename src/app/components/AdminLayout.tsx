@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiBox, FiShoppingBag, FiUsers, FiLogOut, FiSettings, FiMail, FiLayout, FiMenu, FiX } from 'react-icons/fi';
+import { FiBox, FiShoppingBag, FiUsers, FiLogOut, FiSettings, FiMail, FiLayout, FiMenu, FiX, FiMessageSquare } from 'react-icons/fi';
 import { useAdminAuth, adminLogout } from '@/app/lib/admin-auth';
 
 interface AdminLayoutProps {
@@ -169,6 +169,17 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
           >
             <div className="flex items-center">
               <FiMail className="mr-3" /> Contacts
+            </div>
+          </Link>
+          <Link 
+            href="/admin/test-sms" 
+            className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
+              activeRoute === '/admin/test-sms' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
+            }`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className="flex items-center">
+              <FiMessageSquare className="mr-3" /> Test SMS
             </div>
           </Link>
         </nav>

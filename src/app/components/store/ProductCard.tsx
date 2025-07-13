@@ -20,6 +20,7 @@ interface Product {
   price: number;
   discountedPrice: number;
   category: string;
+  subCategory?: string;
   images: { url: string }[];
   rating?: number;
   mainImage?: string;
@@ -334,9 +335,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       
       {/* Product Info */}
       <div className="p-4 flex-grow flex flex-col">
-        {/* Category */}
+        {/* Sub-Category */}
         <div className="text-xs text-gray-500 uppercase mb-1">
-          {product.category}
+          {product.subCategory || product.category}
         </div>
         
         {/* Title - Link wrapper */}
@@ -348,7 +349,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* Product Type */}
         <p className="text-xs text-gray-500 mb-2 line-clamp-1">
-          {product.category} | Perfume
+          {product.subCategory || product.category} | Perfume
         </p>
         
         {/* Price */}
