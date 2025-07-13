@@ -190,10 +190,12 @@ export const send2FactorSMS = async (
 export const sendOrderConfirmationSMS = async (
   orderData: {
     phone: string;
+    customerName?: string;
     trackingId: string;
     transactionId: string;
     totalAmount: number;
     trackingLink?: string;
+    invoiceLink?: string;
   }
 ): Promise<boolean> => {
   try {
@@ -203,13 +205,60 @@ export const sendOrderConfirmationSMS = async (
     const trackingLink = orderData.trackingLink || 
       `${process.env.NEXT_PUBLIC_BASE_URL || 'https://avitoluxury.in'}/order-tracking?tracking_id=${trackingId}`;
     
-    // Use the template with the correct variables
-    return await send2FactorSMS(phone, "", {
-      transactionId,
-      amount: totalAmount,
-      trackingId,
-      trackingLink
+    // Get customer name or use default
+    const customerName = orderData.customerName || 'Customer';
+    
+    // Create invoice link if provided
+    const invoiceLink = orderData.invoiceLink || '';
+    
+    // Create message based on whether this is a delivery notification or payment confirmation
+    let message = '';
+    
+    if (invoiceLink) {
+      // This is a delivery notification
+      message = `Hi ${customerName}, your order has been delivered!\nView your invoice: ${invoiceLink}\nThank you for shopping with AvitoLuxury!\nWe look forward to seeing you again.`;
+    } else {
+      // This is a payment confirmation (original behavior)
+      message = `Thank you for your order with Avito Luxury! Payment of Rs.${totalAmount} confirmed. TxnID: ${transactionId}. TrackingID: ${trackingId}.`;
+    }
+    
+    // Use 2Factor.in API to send SMS
+    const apiKey = process.env.TWO_FACTOR_API_KEY || "d4b37114-5f02-11f0-a562-0200cd936042";
+    const sender = process.env.TWO_FACTOR_SENDER_ID || 'AVTLUX';
+    
+    // Format phone number (remove country code if present)
+    const formattedPhone = phone.startsWith('+91') ? phone.substring(3) : phone;
+    
+    console.log('Sending SMS to:', formattedPhone);
+    console.log('Message:', message);
+    
+    // Prepare the data for direct message sending
+    const formData = new URLSearchParams();
+    formData.append('module', 'TRANS_SMS');
+    formData.append('apikey', apiKey);
+    formData.append('to', formattedPhone);
+    formData.append('from', sender);
+    formData.append('msg', message);
+    
+    // Make the API call
+    const response = await fetch('https://2factor.in/API/R1/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
     });
+    
+    const data = await response.json();
+    console.log('SMS API response:', data);
+    
+    if (data && data.Status === 'Success') {
+      console.log('SMS sent successfully');
+      return true;
+    } else {
+      console.error('Failed to send SMS:', data);
+      return false;
+    }
   } catch (error) {
     console.error('Error sending order confirmation SMS:', error);
     return false;

@@ -262,7 +262,7 @@ export default function AdminUsers() {
               <FiUsers className="mr-3" /> Users
             </div>
           </Link>
-          <Link href="/admin/settings" className="block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900">
+          {/* <Link href="/admin/settings" className="block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900">
             <div className="flex items-center">
               <FiSettings className="mr-3" /> Settings
             </div>
@@ -271,7 +271,7 @@ export default function AdminUsers() {
             <div className="flex items-center">
               <FiSettings className="mr-3" /> System
             </div>
-          </Link>
+          </Link> */}
           <button 
             onClick={handleLogout}
             className="w-full text-left py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900"

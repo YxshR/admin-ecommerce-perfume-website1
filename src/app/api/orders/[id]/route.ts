@@ -230,7 +230,7 @@ export async function PUT(
         { _id: id },
         { orderId: id }
       ]
-    });
+    }).populate('user', 'name email phone');
     
     if (!order) {
       return NextResponse.json({ 
@@ -276,6 +276,37 @@ export async function PUT(
       { $set: updateData },
       { new: true }
     );
+    
+    // Send SMS notification if order is marked as delivered
+    if (status === 'Delivered' || isDelivered === true) {
+      try {
+        // Get customer phone number
+        const phone = order.shippingAddress.phone;
+        const customerName = order.shippingAddress.fullName.split(' ')[0]; // Get first name
+        
+        // Generate invoice link
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://avitoluxury.in';
+        const invoiceLink = `${baseUrl}/invoice/${order._id}`;
+        
+        // Import the SMS utility
+        const { sendOrderConfirmationSMS } = await import('@/app/lib/sms-utils');
+        
+        // Send the delivery confirmation SMS
+        await sendOrderConfirmationSMS({
+          phone,
+          customerName,
+          trackingId: order.trackingId,
+          transactionId: order.paymentResult?.id || order._id.toString(),
+          totalAmount: order.totalPrice,
+          invoiceLink
+        });
+        
+        console.log(`Delivery confirmation SMS sent to ${phone}`);
+      } catch (smsError) {
+        console.error('Failed to send delivery confirmation SMS:', smsError);
+        // Don't fail the request if SMS sending fails
+      }
+    }
     
     return NextResponse.json({ 
       success: true, 

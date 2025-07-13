@@ -433,19 +433,59 @@ export async function PATCH(request: Request) {
     
     console.log(`Updating order status for: ${JSON.stringify(query)} to ${status}`);
     
-    // Update order status
-    const order = await Order.findOneAndUpdate(
-      query,
-      { status },
-      { new: true }
-    );
+    // Find the order first to check if it's being marked as delivered
+    const existingOrder = await Order.findOne(query).populate('user', 'name email');
     
-    if (!order) {
+    if (!existingOrder) {
       console.error(`Order not found with query: ${JSON.stringify(query)}`);
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
     
+    const wasDelivered = existingOrder.status === 'Delivered';
+    const isBeingMarkedAsDelivered = status === 'Delivered' && !wasDelivered;
+    
+    // Update order status
+    const order = await Order.findOneAndUpdate(
+      query,
+      { 
+        status,
+        ...(isBeingMarkedAsDelivered ? { isDelivered: true, deliveredAt: new Date() } : {})
+      },
+      { new: true }
+    );
+    
     console.log(`Successfully updated order ${order._id} status to ${status}`);
+    
+    // Send SMS notification if order is being marked as delivered
+    if (isBeingMarkedAsDelivered) {
+      try {
+        // Get customer phone number from shipping address
+        const phone = existingOrder.shippingAddress.phone;
+        const customerName = existingOrder.shippingAddress.fullName.split(' ')[0]; // Get first name
+        
+        // Generate invoice link
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://avitoluxury.in';
+        const invoiceLink = `${baseUrl}/invoice/${order._id}`;
+        
+        // Import the SMS utility
+        const { sendOrderConfirmationSMS } = await import('@/app/lib/sms-utils');
+        
+        // Send the delivery confirmation SMS
+        await sendOrderConfirmationSMS({
+          phone,
+          customerName,
+          trackingId: existingOrder.trackingId,
+          transactionId: existingOrder.paymentResult?.id || existingOrder._id.toString(),
+          totalAmount: existingOrder.totalPrice,
+          invoiceLink
+        });
+        
+        console.log(`Delivery confirmation SMS sent to ${phone}`);
+      } catch (smsError) {
+        console.error('Failed to send delivery confirmation SMS:', smsError);
+        // Don't fail the request if SMS sending fails
+      }
+    }
     
     return NextResponse.json({ 
       success: true, 

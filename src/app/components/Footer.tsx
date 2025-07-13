@@ -83,11 +83,11 @@ export default function Footer() {
                   Unisex
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/discovery-set" className="text-gray-600 hover:text-black text-sm">
                   Discovery Sets
                 </Link>
-              </li>
+              </li> */}
               {/* <li>
                 <Link href="/gifting" className="text-gray-600 hover:text-black text-sm">
                   Gift Cards
