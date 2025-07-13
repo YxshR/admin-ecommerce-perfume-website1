@@ -253,12 +253,6 @@ export default function Nav() {
       id: 'home',
       name: 'Home',
       path: '/',
-      hasDropdown: false
-    },
-    {
-      id: 'collection',
-      name: 'Collection',
-      path: '/collection',
       hasDropdown: true,
       dropdownItems: [
         { name: 'Best Selling', path: '/best-selling' },
@@ -266,6 +260,13 @@ export default function Nav() {
         { name: 'Best Buy', path: '/best-buy' }
       ]
     },
+    // {
+    //   id: 'collection',
+    //   name: 'Collection',
+    //   path: '/collection',
+    //   hasDropdown: false,
+
+    // },
     {
       id: 'perfumes',
       name: 'Perfumes',
