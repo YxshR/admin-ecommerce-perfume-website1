@@ -17,6 +17,7 @@ interface Product {
   featured: boolean;
   new_arrival: boolean;
   best_seller: boolean;
+  productType: string; // Add productType to fix the linter error
 }
 
 // Add this helper function to convert prices from USD to INR
@@ -62,15 +63,16 @@ export default function HomePage() {
           discountedPrice: product.comparePrice ? convertToRupees(product.comparePrice) : 0,
           // Map MongoDB fields to store-expected fields
           featured: product.featured || false,
-          new_arrival: product.isNewProduct || false, // Use isNewProduct from MongoDB
-          best_seller: product.category.includes('Bestseller') || false,
+          new_arrival: product.isNewArrival || false, // Use isNewArrival from MongoDB
+          best_seller: product.isBestSelling || false, // Use isBestSelling field directly
+          productType: product.productType || 'perfume', // Add productType with default value
           images: [{ url: getProductImage(product) }]
         }));
         
         // Filter products correctly by their flags - ensure boolean comparison
         const featured = products.filter((p: any) => p.featured === true);
-        const newArrival = products.filter((p: any) => p.new_arrival === true || p.category.includes('New Arrival'));
-        const bestSeller = products.filter((p: any) => p.best_seller === true || p.category.includes('Bestseller'));
+        const newArrival = products.filter((p: any) => p.new_arrival === true || p.category?.includes('New Arrival'));
+        const bestSeller = products.filter((p: any) => p.best_seller === true || p.category?.includes('Bestseller'));
         
         // Set products for each section
         setFeaturedProducts(featured);
@@ -78,6 +80,7 @@ export default function HomePage() {
         setTopSelling(bestSeller);
         
       } catch (error) {
+        console.error('Error fetching products:', error);
         // Don't expose error details
         setFeaturedProducts([]);
         setNewArrivals([]);
@@ -168,6 +171,12 @@ export default function HomePage() {
             )}
           </div>
         )}
+        
+        <div className="text-center mt-8">
+          <Link href="/best-selling" className="inline-block border border-black px-6 py-2 hover:bg-black hover:text-white transition duration-300">
+            View All Best Sellers
+          </Link>
+        </div>
       </section>
       
       {/* About Section */}
