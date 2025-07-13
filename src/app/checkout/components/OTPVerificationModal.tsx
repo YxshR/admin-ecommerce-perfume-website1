@@ -19,7 +19,7 @@ export default function OTPVerificationModal({
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(300); // 5 minutes in seconds
   const [canResend, setCanResend] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   
@@ -28,7 +28,7 @@ export default function OTPVerificationModal({
     if (isOpen) {
       setOtp('');
       setError('');
-      setCountdown(60);
+      setCountdown(300); // 5 minutes in seconds
       setCanResend(false);
       
       const timer = setInterval(() => {
@@ -126,7 +126,7 @@ export default function OTPVerificationModal({
       }
       
       // Reset countdown
-      setCountdown(60);
+      setCountdown(300); // 5 minutes in seconds
       setCanResend(false);
       
       // Start countdown again
@@ -210,9 +210,9 @@ export default function OTPVerificationModal({
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-gray-500">
                 {canResend ? (
-                  'Didn\'t receive the code?'
+                  'OTP expired. Request a new one?'
                 ) : (
-                  `Resend OTP in ${formatTime(countdown)}`
+                  `OTP expires in ${formatTime(countdown)}`
                 )}
               </p>
               
@@ -232,7 +232,7 @@ export default function OTPVerificationModal({
                     Sending...
                   </span>
                 ) : (
-                  'Resend OTP'
+                  canResend ? 'Request New OTP' : 'Wait for OTP expiry'
                 )}
               </button>
             </div>

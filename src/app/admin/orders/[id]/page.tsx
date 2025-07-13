@@ -13,6 +13,9 @@ interface OrderItem {
   quantity: number;
   price: number;
   image: string;
+  category?: string;
+  subCategory?: string;
+  volume?: string;
 }
 
 interface ShippingAddress {
@@ -38,6 +41,7 @@ interface Order {
     name: string;
     email: string;
     phone?: string;
+    alternatePhone?: string;
   };
   user?: string;
   date?: string;
@@ -49,6 +53,7 @@ interface Order {
   orderItems?: OrderItem[];
   shipping?: ShippingAddress;
   shippingAddress?: ShippingAddress;
+  alternatePhone?: string;
   payment?: {
     method?: string;
     transactionId?: string;
@@ -153,6 +158,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                         
     const customerEmail = orderData.user?.email || 'No email provided';
     const customerPhone = orderData.shippingAddress?.phone || 'No phone provided';
+    const alternatePhone = orderData.alternatePhone || 'NA';
     
     // Format items consistently
     const items = orderData.items || orderData.orderItems || [];
@@ -175,8 +181,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         id: orderData.user?._id || 'unknown',
         name: customerName,
         email: customerEmail,
-        phone: customerPhone
+        phone: customerPhone,
+        alternatePhone: alternatePhone
       },
+      alternatePhone: alternatePhone,
       date: orderData.createdAt || orderData.date || new Date().toISOString(),
       status: orderData.status || 'Processing',
       total: totalPrice,
@@ -185,7 +193,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         name: item.name || 'Unknown Product',
         quantity: item.quantity || 1,
         price: item.price || 0,
-        image: item.image || '/images/placeholder-product.jpg'
+        image: item.image || '/images/placeholder-product.jpg',
+        category: item.category || 'NA',
+        subCategory: item.subCategory || 'NA',
+        volume: item.volume || 'NA'
       })),
       shipping: {
         address: orderData.shippingAddress?.address || orderData.shippingAddress?.addressLine1 || '',
@@ -212,7 +223,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           id: '101',
           name: 'John Smith',
           email: 'john@example.com',
-          phone: '+91 98765 43210'
+          phone: '+91 98765 43210',
+          alternatePhone: '+91 87654 32109'
         },
         date: new Date().toISOString(),
         status: 'Pending',
@@ -223,7 +235,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             name: 'Wild Escape 50ML',
             quantity: 1,
             price: 1299.00,
-            image: 'https://placehold.co/80x80/eee/000?text=Wild+Escape'
+            image: 'https://placehold.co/80x80/eee/000?text=Wild+Escape',
+            category: 'Perfumes',
+            subCategory: 'Premium',
+            volume: '50ML'
           }
         ],
         shipping: {
@@ -246,7 +261,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           id: '102',
           name: 'Priya Sharma',
           email: 'priya@example.com',
-          phone: '+91 87654 32109'
+          phone: '+91 87654 32109',
+          alternatePhone: '+91 76543 21098'
         },
         date: new Date(Date.now() - 86400000).toISOString(),
         status: 'Processing',
@@ -257,14 +273,20 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             name: 'Baked Vanilla 50ML',
             quantity: 1,
             price: 1299.00,
-            image: 'https://placehold.co/80x80/eee/000?text=Baked+Vanilla'
+            image: 'https://placehold.co/80x80/eee/000?text=Baked+Vanilla',
+            category: 'Perfumes',
+            subCategory: 'Luxury',
+            volume: '50ML'
           },
           {
             id: 'p3',
             name: 'Apple Lily 50ML',
             quantity: 1,
             price: 1299.00,
-            image: 'https://placehold.co/80x80/eee/000?text=Apple+Lily'
+            image: 'https://placehold.co/80x80/eee/000?text=Apple+Lily',
+            category: 'Perfumes',
+            subCategory: 'Premium',
+            volume: '50ML'
           }
         ],
         shipping: {
@@ -287,7 +309,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           id: '103',
           name: 'Alex Johnson',
           email: 'alex@example.com',
-          phone: '+91 76543 21098'
+          phone: '+91 76543 21098',
+          alternatePhone: '+91 65432 10987'
         },
         date: new Date(Date.now() - 172800000).toISOString(),
         status: 'Shipped',
@@ -298,7 +321,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             name: 'Lavender Dreams 100ML',
             quantity: 3,
             price: 1299.00,
-            image: 'https://placehold.co/80x80/eee/000?text=Lavender+Dreams'
+            image: 'https://placehold.co/80x80/eee/000?text=Lavender+Dreams',
+            category: 'Perfumes',
+            subCategory: 'Luxury',
+            volume: '100ML'
           }
         ],
         shipping: {
@@ -494,15 +520,15 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header with back button */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div className="flex items-center">
           <Link href="/admin/orders" className="mr-4 text-blue-600 hover:text-blue-800 flex items-center">
             <FiArrowLeft className="mr-1" />
             Back
           </Link>
-          <h1 className="text-2xl font-bold">Order #{order.orderNumber || order.id?.slice(0, 8).toUpperCase()}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Order #{order.orderNumber || order.id?.slice(0, 8).toUpperCase()}</h1>
         </div>
         <button 
           onClick={fetchOrder}
@@ -515,9 +541,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
 
       {/* Order status and actions */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-          <div className="flex items-center mb-4 md:mb-0">
+      <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="flex items-center">
             <FiPackage className="text-gray-500 mr-2" />
             <h2 className="text-lg font-medium">Status:</h2>
             <span className={`ml-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status || '')}`}>
@@ -552,7 +578,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       {/* Order information grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Customer information */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center mb-4">
             <FiUser className="text-blue-500 mr-2" />
             <h2 className="text-lg font-medium">Customer Information</h2>
@@ -561,6 +587,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <p className="text-gray-700"><strong>Name:</strong> {order.customer?.name}</p>
             <p className="text-gray-700"><strong>Email:</strong> {order.customer?.email}</p>
             <p className="text-gray-700"><strong>Phone:</strong> {order.customer?.phone || 'N/A'}</p>
+            <p className="text-gray-700"><strong>Alternate Phone:</strong> {order.customer?.alternatePhone || 'NA'}</p>
             <Link 
               href={`/admin/users/${order.customer?.id}`} 
               className="text-blue-600 hover:text-blue-800 inline-flex items-center mt-2"
@@ -571,7 +598,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* Shipping information */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center mb-4">
             <FiMap className="text-green-500 mr-2" />
             <h2 className="text-lg font-medium">Shipping Information</h2>
@@ -586,7 +613,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* Payment information */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center mb-4">
             <FiCreditCard className="text-purple-500 mr-2" />
             <h2 className="text-lg font-medium">Payment Information</h2>
@@ -600,7 +627,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* Order details */}
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center mb-4">
             <FiCalendar className="text-orange-500 mr-2" />
             <h2 className="text-lg font-medium">Order Details</h2>
@@ -615,7 +642,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
 
       {/* Order items */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white shadow rounded-lg p-4 sm:p-6">
         <div className="flex items-center mb-4">
           <FiShoppingBag className="text-indigo-500 mr-2" />
           <h2 className="text-lg font-medium">Order Items</h2>
@@ -624,16 +651,22 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Product
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                  Category
+                </th>
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                  Volume
+                </th>
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Price
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quantity
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Qty
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Total
                 </th>
               </tr>
@@ -641,39 +674,57 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             <tbody className="bg-white divide-y divide-gray-200">
               {order.items?.map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {item.image && (
                         <img 
                           src={item.image} 
                           alt={item.name} 
-                          className="h-10 w-10 rounded-md object-cover mr-3"
+                          className="h-8 w-8 sm:h-10 sm:w-10 rounded-md object-cover mr-2 sm:mr-3"
                         />
                       )}
-                      <div>
+                      <div className="hidden sm:block">
                         <div className="text-sm font-medium text-gray-900">{item.name || 'Unknown Product'}</div>
-                        <div className="text-sm text-gray-500">SKU: {item.id?.slice(0, 8) || 'N/A'}</div>
+                        <div className="text-xs text-gray-500">SKU: {item.id?.slice(0, 8) || 'N/A'}</div>
+                      </div>
+                      <div className="sm:hidden">
+                        <div className="text-xs font-medium text-gray-900">{item.name || 'Unknown'}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                    <div>
+                      <p>{item.category || 'NA'}</p>
+                      <p className="text-xs text-gray-400">{item.subCategory || 'NA'}</p>
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                    {item.volume || 'NA'}
+                  </td>
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">
                     ₹{item.price?.toFixed(2) || 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.quantity || 1}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                    ₹{(item.price || 0 * item.quantity || 0).toFixed(2) || 'N/A'}
+                  <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                    ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2) || 'N/A'}
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot className="bg-gray-50">
               <tr>
-                <th scope="row" colSpan={3} className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                <th scope="row" colSpan={3} className="px-3 sm:px-6 py-3 text-right text-sm font-medium text-gray-900 hidden md:table-cell">
                   Subtotal
                 </th>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 font-medium">
+                <th scope="row" colSpan={1} className="px-3 sm:px-6 py-3 text-right text-sm font-medium text-gray-900 md:hidden">
+                  Subtotal
+                </th>
+                <td colSpan={2} className="px-3 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900 font-medium md:hidden">
+                  ₹{order.total?.toFixed(2) || 'N/A'}
+                </td>
+                <td className="px-3 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900 font-medium hidden md:table-cell">
                   ₹{order.total?.toFixed(2) || 'N/A'}
                 </td>
               </tr>
@@ -683,7 +734,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
 
       {/* Order Timeline/Activity Log - Placeholder for future implementation */}
-      <div className="bg-white shadow rounded-lg p-6 mt-6">
+      <div className="bg-white shadow rounded-lg p-4 sm:p-6 mt-6">
         <div className="flex items-center mb-4">
           <FiTruck className="text-blue-500 mr-2" />
           <h2 className="text-lg font-medium">Order Timeline</h2>

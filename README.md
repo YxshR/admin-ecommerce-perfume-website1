@@ -4,18 +4,25 @@
 This is an e-commerce website for Avito Scent, a premium perfume brand. The website allows users to browse products, add them to cart, and complete purchases without requiring login or signup.
 
 ## Features
-- Product browsing and searching
-- Cart functionality (add, remove, update quantity)
-- OTP-based checkout flow using Twilio
+
+- Full-featured admin dashboard
+- Product management with image uploads
+- Order management and tracking
+- Customer database
+- OTP-based checkout flow using 2Factor SMS
+- Secure admin authentication
 - Responsive design for all devices
-- Admin panel for order management
 
 ## Tech Stack
-- Next.js
-- React
-- MongoDB
+
+- Next.js 15 with App Router
+- React 19
+- TypeScript
+- MongoDB with Mongoose
 - Tailwind CSS
-- Twilio for SMS OTP
+- Google Cloud Storage for image uploads
+- Cloudinary for image optimization
+- 2Factor for SMS OTP
 - Razorpay for payments
 
 ## Checkout Flow
@@ -27,26 +34,29 @@ The website implements a guest checkout flow with the following steps:
 5. Payment processing with Razorpay
 6. Order confirmation
 
-## Setup Instructions
+## Key User Flows
 
-### Prerequisites
-- Node.js 14.x or higher
+1. Admin authentication with secure login
+2. Product management (add, edit, delete)
+3. Phone number verification with 2Factor OTP
+4. Order management and fulfillment
+
+## Prerequisites
+
+- Node.js 20.x or higher
 - MongoDB database
-- Twilio account for SMS OTP
+- Google Cloud Storage account
+- Cloudinary account
+- 2Factor account for SMS OTP
 - Razorpay account for payments
 
-### Installation
+## Setup
+
 1. Clone the repository
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Create a `.env.local` file with the required environment variables (see `.env.local.example`)
-4. Set up Twilio credentials (see TWILIO-ENV-SETUP.md)
-5. Run the development server:
-   ```
-   npm run dev
-   ```
+2. Install dependencies with `npm install`
+3. Create a `.env.local` file with required environment variables
+4. Set up 2Factor credentials (see 2FACTOR-ENV-SETUP.md)
+5. Run the development server with `npm run dev`
 
 ### Environment Variables
 See `.env.local.example` for the required environment variables.

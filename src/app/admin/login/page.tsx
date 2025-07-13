@@ -274,19 +274,19 @@ export default function AdminLoginPage() {
   return (
           <div className="space-y-6">
             <p className="text-center text-gray-700 mb-4">Select verification method</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 onClick={() => handleMethodSelect('email')}
                 className="flex flex-col items-center justify-center p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FiMail className="h-8 w-8 text-blue-500 mb-2" />
+                <FiMail className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mb-2" />
                 <span className="font-medium">Email OTP</span>
               </button>
               <button
                 onClick={() => handleMethodSelect('sms')}
                 className="flex flex-col items-center justify-center p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <FiMessageSquare className="h-8 w-8 text-green-500 mb-2" />
+                <FiMessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mb-2" />
                 <span className="font-medium">SMS OTP</span>
               </button>
             </div>
@@ -478,20 +478,20 @@ export default function AdminLoginPage() {
   };
   
   return (
-    <div className="min-h-screen flex items-center bg-gradient-to-br from-gray-800 to-gray-900">
-      <div className="w-full max-w-md mx-auto p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 px-4 py-8">
+      <div className="w-full max-w-md mx-auto">
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-6">
+          <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 sm:p-6">
             <div className="flex items-center justify-center">
-              <FiShield className="text-white h-10 w-10" />
-              <h1 className="text-white text-2xl font-bold ml-2">Admin Portal</h1>
+              <FiShield className="text-white h-8 w-8 sm:h-10 sm:w-10" />
+              <h1 className="text-white text-xl sm:text-2xl font-bold ml-2">Admin Portal</h1>
             </div>
           </div>
           
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Administrator Login</h2>
-              <p className="text-gray-600">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Administrator Login</h2>
+              <p className="text-gray-600 text-sm sm:text-base">
                 {step === 'method' && 'Choose your verification method'}
                 {step === 'email' && 'Enter your admin email to receive an OTP'}
                 {step === 'phone' && 'Enter your admin phone to receive an SMS OTP'}
@@ -504,7 +504,7 @@ export default function AdminLoginPage() {
                 <FiKey className="mr-1" />
                 {usingBypass ? "Use Regular Login" : "Use Direct Access"}
               </button>
-        </div>
+            </div>
         
             {usingBypass && (
               <div className="mb-4 p-3 bg-yellow-50 text-yellow-800 text-sm rounded-md border border-yellow-200">

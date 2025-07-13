@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/lib/db-connect';
 import OTP from '@/app/models/OTP';
-import twilio from 'twilio';
+import { sendOTP } from '@/app/lib/2factor-utils';
 
-// Generate a random 6-digit OTP
-function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
+// Maximum OTP requests per 24 hours
+const MAX_OTP_REQUESTS = 5;
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,56 +22,83 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
     
-    // Generate OTP
-    const otp = generateOTP();
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // OTP expires in 10 minutes
+    // Check if user has exceeded the maximum number of OTP requests in 24 hours
+    const last24Hours = new Date();
+    last24Hours.setHours(last24Hours.getHours() - 24);
     
-    // Store OTP in database
-    await OTP.findOneAndUpdate(
-      { phone },
-      { 
-        phone,
-        otp,
-        expiresAt,
-        verified: false
-      },
-      { upsert: true, new: true }
-    );
+    const otpRequests = await OTP.countDocuments({
+      phone,
+      createdAt: { $gte: last24Hours }
+    });
     
-    // Send OTP via Twilio
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+    if (otpRequests >= MAX_OTP_REQUESTS) {
+      return NextResponse.json(
+        { success: false, error: 'Maximum OTP requests exceeded. Please try again after 24 hours.' },
+        { status: 429 }
+      );
+    }
     
-    if (!accountSid || !authToken || !twilioPhone) {
-      console.error('Twilio credentials not configured');
+    // Check if there's an active OTP that's not expired yet
+    const activeOTP = await OTP.findOne({
+      phone,
+      expiresAt: { $gt: new Date() }
+    });
+    
+    if (activeOTP) {
+      // Calculate remaining time in minutes
+      const remainingTime = Math.ceil((activeOTP.expiresAt.getTime() - Date.now()) / (1000 * 60));
       
-      // For development, log the OTP instead of sending it
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[DEV MODE] OTP for ${phone}: ${otp}`);
-        return NextResponse.json({ success: true });
-      }
-      
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Please wait ${remainingTime} minute${remainingTime > 1 ? 's' : ''} before requesting a new OTP.` 
+        },
+        { status: 429 }
+      );
+    }
+    
+    // Check if 2Factor API key is configured
+    const apiKey = process.env.TWOFACTOR_API_KEY;
+    
+    if (!apiKey) {
+      console.error('2Factor API key not configured');
       return NextResponse.json(
         { success: false, error: 'SMS service not configured' },
         { status: 500 }
       );
     }
     
-    // For development or if the phone number matches Twilio number, just log the OTP
-    if (process.env.NODE_ENV === 'development' || `+91${phone}` === twilioPhone) {
-      console.log(`[DEV MODE] OTP for ${phone}: ${otp}`);
-      return NextResponse.json({ success: true });
+    // Send OTP via 2Factor
+    const result = await sendOTP(phone);
+    
+    if (!result.success || !result.sessionId) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to send OTP. Please try again later.' },
+        { status: 500 }
+      );
     }
     
-    const client = twilio(accountSid, authToken);
+    // Store session ID in database after successful sending
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5); // OTP expires in 5 minutes
     
-    await client.messages.create({
-      body: `Your Avito Scent verification code is: ${otp}. Valid for 10 minutes.`,
-      from: twilioPhone, // Should already include the + country code prefix
-      to: `+91${phone}`
-    });
+    await OTP.findOneAndUpdate(
+      { phone },
+      { 
+        phone,
+        sessionId: result.sessionId,
+        otp: result.otp || '', // Store OTP if available (for development)
+        expiresAt,
+        verified: false,
+        createdAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+    
+    // For development, log the OTP if it was extracted
+    if (result.otp) {
+      console.log(`[DEV] OTP for ${phone}: ${result.otp}`);
+    }
     
     return NextResponse.json({ success: true });
     

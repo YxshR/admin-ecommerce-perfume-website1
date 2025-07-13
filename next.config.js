@@ -44,7 +44,9 @@ const nextConfig = {
     CLOUDINARY_API_SECRET: 'cloudinary://992368173733427:kQuf9IxR7a503I0y-J_QVzx4RI8@dzzxpyqif', // Replace with your actual API secret
     RAZORPAY_KEY_ID: 'rzp_live_ZhhzXPVJwyHfxu',
     RAZORPAY_KEY_SECRET: 'OQmkoO5AB107WZw0oLt3dyrO',
-    // Twilio configuration
+    // 2Factor configuration
+    TWOFACTOR_API_KEY: 'd4b37114-5f02-11f0-a562-0200cd936042', // Replace with your actual 2Factor API key
+    // Legacy Twilio configuration (can be removed after migration)
     TWILIO_ACCOUNT_SID: '',
     TWILIO_AUTH_TOKEN: '8d7cf3fb4202832be671f6ff6db65202',
     TWILIO_PHONE_NUMBER: '+918126518755',

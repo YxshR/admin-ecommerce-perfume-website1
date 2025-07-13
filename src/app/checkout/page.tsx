@@ -116,7 +116,7 @@ export default function CheckoutPage() {
       setIsLoading(true);
       
       try {
-        // Send OTP via Twilio
+        // Send OTP via 2Factor
         const response = await fetch('/api/checkout/send-otp', {
           method: 'POST',
           headers: {

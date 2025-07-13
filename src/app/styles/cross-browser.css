@@ -1,142 +1,173 @@
-/* Cross-browser compatibility fixes */
+/* Cross-browser compatibility styles */
 
-/* Normalize box sizing */
+/* Box sizing for all elements */
 *, *::before, *::after {
   box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
 }
 
-/* Fix for iOS text size adjustment */
+/* Remove default margin and padding */
+html, body, div, span, h1, h2, h3, h4, h5, h6, p, 
+blockquote, pre, a, abbr, address, cite, code, 
+del, em, img, ins, kbd, q, s, samp, small, strike, 
+strong, sub, sup, tt, var, b, u, i, dl, dt, dd, ol, ul, li, 
+fieldset, form, label, legend, table, caption, tbody, tfoot, 
+thead, tr, th, td, article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, menu, nav, 
+output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, menu, nav, section {
+  display: block;
+}
+
+/* Set base font size and smooth scrolling */
 html {
+  font-size: 16px;
+  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
 }
 
-/* Fix for IE11 flexbox issues */
-.flex-container {
-  display: -ms-flexbox;
-  display: flex;
+/* Responsive body */
+body {
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+  width: 100%;
 }
 
-.flex-column {
-  -ms-flex-direction: column;
-  flex-direction: column;
+/* Responsive images */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
-.flex-row {
-  -ms-flex-direction: row;
-  flex-direction: row;
+/* Remove outline for non-keyboard focus */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
-/* Fix for Safari flexbox gap issue */
-@supports not (gap: 1rem) {
-  .flex-gap > * + * {
-    margin-left: 1rem;
-  }
-  
-  .flex-column.flex-gap > * + * {
-    margin-left: 0;
-    margin-top: 1rem;
-  }
+/* Preserve focus outline for keyboard users */
+:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
 }
 
-/* Fix for Firefox input fields */
-input, textarea, select, button {
-  font-family: inherit;
-}
-
-/* Fix for Firefox button styling */
+/* Improve button styling across browsers */
 button {
-  text-align: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
 }
 
-/* Fix for Safari button styling */
-button::-moz-focus-inner {
-  border: 0;
+/* Improve form element styling */
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
 }
 
-/* Fix for IE11 SVG scaling */
-svg {
-  max-width: 100%;
-  height: auto;
+/* Fix for iOS button styling */
+button, [type="button"], [type="reset"], [type="submit"] {
+  -webkit-appearance: button;
 }
 
-/* Fix for IE11 image scaling */
-img {
-  max-width: 100%;
-  height: auto;
-  -ms-interpolation-mode: bicubic;
+/* Responsive tables */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
 }
 
-/* Fix for Safari overflow scrolling */
-.overflow-scroll {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Fix for Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
-}
-
-/* Fix for Chrome/Safari scrollbar */
+/* Scrollbar styling for WebKit browsers */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.3);
+  background: #f1f1f1;
   border-radius: 4px;
 }
 
-/* Fix for Safari border-radius overflow */
-.overflow-hidden {
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
 }
 
-/* Fix for IE11 object-fit */
-.object-fit-cover {
-  object-fit: cover;
-  font-family: 'object-fit: cover';
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
-.object-fit-contain {
-  object-fit: contain;
-  font-family: 'object-fit: contain';
+/* Media query for mobile devices */
+@media screen and (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+  
+  /* Improve touch targets on mobile */
+  button, 
+  input[type="button"], 
+  input[type="submit"],
+  input[type="reset"],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
-/* Fix for iOS tap highlight */
-a, button {
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+/* Media query for large screens */
+@media screen and (min-width: 1920px) {
+  html {
+    font-size: 18px;
+  }
 }
 
-/* Fix for IE11 grid support */
-@supports not (display: grid) {
-  .grid-fallback {
+/* Media query for print */
+@media print {
+  body {
+    background: white;
+    font-size: 12pt;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+}
+
+/* Fix for iOS input zoom */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* Fix for Firefox focus rings */
+::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* Fix for Safari overflow */
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for IE11 */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  body {
     display: flex;
-    flex-wrap: wrap;
-  }
-  
-  .grid-fallback > * {
-    flex: 0 0 calc(33.333% - 20px);
-    margin: 10px;
-  }
-  
-  @media (max-width: 768px) {
-    .grid-fallback > * {
-      flex: 0 0 calc(50% - 20px);
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .grid-fallback > * {
-      flex: 0 0 calc(100% - 20px);
-    }
+    flex-direction: column;
   }
 } 

@@ -23,6 +23,7 @@ type OrderDocument = {
     country: string;
     phone?: string;
   };
+  alternatePhone?: string;
   items?: Array<{
     _id?: mongoose.Types.ObjectId;
     product?: {
@@ -30,11 +31,17 @@ type OrderDocument = {
       name: string;
       price: number;
       images?: string[];
+      category?: string;
+      subCategory?: string;
+      volume?: string;
     };
     name?: string;
     price: number;
     quantity: number;
     image?: string;
+    category?: string;
+    subCategory?: string;
+    volume?: string;
   }>;
   status?: string;
   totalPrice?: number;
@@ -102,6 +109,18 @@ export async function GET(
     
     console.log('Order API: Order found:', order._id);
     
+    // Format order items with product details
+    const formattedItems = (order.items || []).map((item: any) => ({
+      id: item.product?.toString() || 'unknown',
+      name: item.name || 'Unknown Product',
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      image: item.image || '/images/placeholder-product.jpg',
+      category: item.category || 'NA',
+      subCategory: item.subCategory || 'NA',
+      volume: item.volume || 'NA'
+    }));
+    
     // Prepare the response in the expected format
     const orderResponse = {
       _id: order._id.toString(),
@@ -109,9 +128,10 @@ export async function GET(
       orderId: order.orderId,
       orderNumber: order.orderId || `ORD-${order._id.toString().slice(-8)}`,
       user: order.user,
-      orderItems: order.items || order.orderItems || [],
-      items: order.items || order.orderItems || [],
+      orderItems: formattedItems,
+      items: formattedItems,
       shippingAddress: order.shippingAddress,
+      alternatePhone: order.alternatePhone || 'NA',
       paymentMethod: order.paymentMethod,
       paymentResult: order.paymentResult || {},
       itemsPrice: order.itemsPrice,
@@ -129,15 +149,9 @@ export async function GET(
         id: order.user?._id?.toString() || 'unknown',
         name: order.user?.name || order.shippingAddress?.fullName || 'Unknown Customer',
         email: order.user?.email || 'No Email',
-        phone: order.shippingAddress?.phone || 'No Phone'
+        phone: order.shippingAddress?.phone || 'No Phone',
+        alternatePhone: order.alternatePhone || 'NA'
       },
-      items: (order.items || order.orderItems || []).map((item: any) => ({
-        id: item.product?.toString() || 'unknown',
-        name: item.name || 'Unknown Product',
-        quantity: item.quantity || 1,
-        price: item.price || 0,
-        image: item.image || '/images/placeholder-product.jpg'
-      })),
       shipping: {
         address: order.shippingAddress?.address || order.shippingAddress?.addressLine1 || '',
         city: order.shippingAddress?.city || '',

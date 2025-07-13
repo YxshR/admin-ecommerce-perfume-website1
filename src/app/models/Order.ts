@@ -22,6 +22,19 @@ const OrderItemSchema = new Schema({
   image: {
     type: String,
     required: false
+  },
+  // Add product details fields
+  category: {
+    type: String,
+    required: false
+  },
+  subCategory: {
+    type: String,
+    required: false
+  },
+  volume: {
+    type: String,
+    required: false
   }
 });
 

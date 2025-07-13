@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiBox, FiShoppingBag, FiUsers, FiLogOut, FiSettings, FiMail, FiLayout } from 'react-icons/fi';
+import { FiBox, FiShoppingBag, FiUsers, FiLogOut, FiSettings, FiMail, FiLayout, FiMenu, FiX } from 'react-icons/fi';
 import { useAdminAuth, adminLogout } from '@/app/lib/admin-auth';
 
 interface AdminLayoutProps {
@@ -41,6 +41,7 @@ function checkAdminAuthState() {
 export default function AdminLayout({ children, activeRoute = '/admin/dashboard' }: AdminLayoutProps) {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAdminAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   useEffect(() => {
     checkAdminAuthState();
@@ -48,6 +49,10 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
   
   const handleLogout = () => {
     adminLogout(router);
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
   
   if (loading) {
@@ -61,9 +66,40 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
   // useAdminAuth hook will automatically redirect if not authenticated
   
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white shadow-md p-4 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-full flex items-center justify-center">
+            <FiShoppingBag className="text-white" />
+          </div>
+          <h2 className="text-lg font-bold">Avito Admin</h2>
+        </div>
+        <button 
+          onClick={toggleSidebar}
+          className="p-2 rounded-md hover:bg-gray-100"
+        >
+          {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+      </div>
+      
+      {/* Sidebar - Mobile (overlay) */}
+      <div 
+        className={`fixed inset-0 bg-gray-800 bg-opacity-75 z-40 md:hidden transition-opacity duration-300 ${
+          sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={toggleSidebar}
+      ></div>
+      
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
+      <div 
+        className={`
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+          md:translate-x-0 fixed md:static inset-y-0 left-0 z-50
+          w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out
+          flex flex-col
+        `}
+      >
         <div className="p-6 bg-gradient-to-r from-blue-700 to-indigo-800">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
@@ -72,12 +108,20 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             <h2 className="text-xl font-bold text-white">Avito Scent Admin</h2>
           </div>
         </div>
-        <nav className="mt-6">
+        
+        <div className="md:hidden p-4 border-b">
+          <h3 className="text-sm font-medium text-gray-500">Logged in as:</h3>
+          <p className="font-medium">{user?.name || 'Admin'}</p>
+          <p className="text-xs text-gray-500">{user?.email || 'admin@example.com'}</p>
+        </div>
+        
+        <nav className="mt-6 flex-1 overflow-y-auto">
           <Link 
             href="/admin/dashboard" 
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/dashboard' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
             }`}
+            onClick={() => setSidebarOpen(false)}
           >
             <div className="flex items-center">
               <FiBox className="mr-3" /> Dashboard
@@ -88,6 +132,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/products' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
             }`}
+            onClick={() => setSidebarOpen(false)}
           >
             <div className="flex items-center">
               <FiShoppingBag className="mr-3" /> Products
@@ -98,26 +143,18 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/orders' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
             }`}
+            onClick={() => setSidebarOpen(false)}
           >
             <div className="flex items-center">
               <FiShoppingBag className="mr-3" /> Orders
             </div>
           </Link>
-          {/* <Link 
-            href="/admin/layout" 
-            className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
-              activeRoute === '/admin/layout' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
-            }`}
-          >
-            <div className="flex items-center">
-              <FiLayout className="mr-3" /> Layout
-            </div>
-          </Link> */}
           <Link 
             href="/admin/users" 
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/users' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
             }`}
+            onClick={() => setSidebarOpen(false)}
           >
             <div className="flex items-center">
               <FiUsers className="mr-3" /> Users
@@ -128,52 +165,38 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
               activeRoute === '/admin/contacts' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
             }`}
+            onClick={() => setSidebarOpen(false)}
           >
             <div className="flex items-center">
               <FiMail className="mr-3" /> Contacts
             </div>
           </Link>
-          {/* <Link 
-            href="/admin/settings" 
-            className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
-              activeRoute === '/admin/settings' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
-            }`}
-          >
-            <div className="flex items-center">
-              <FiSettings className="mr-3" /> Settings
-            </div>
-          </Link>
-          <Link 
-            href="/admin/system" 
-            className={`block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 ${
-              activeRoute === '/admin/system' ? 'bg-gray-100 text-gray-900 border-l-4 border-blue-600' : ''
-            }`}
-          >
-            <div className="flex items-center">
-              <FiSettings className="mr-3" /> System
-            </div>
-          </Link> */}
+        </nav>
+        
+        <div className="p-4 border-t">
           <button 
             onClick={handleLogout}
-            className="w-full text-left py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900"
+            className="w-full text-left py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900 rounded-md"
           >
             <div className="flex items-center">
               <FiLogOut className="mr-3" /> Logout
             </div>
           </button>
-        </nav>
+        </div>
       </div>
       
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-4 md:p-8 overflow-x-hidden">
         {/* Header with user info */}
-        <div className="mb-6">
+        <div className="hidden md:block mb-6">
           <h1 className="text-xl font-bold text-gray-900">Welcome, {user?.name || 'Admin'}</h1>
           <p className="text-gray-600 text-sm">Logged in as {user?.email || 'admin'}</p>
         </div>
         
         {/* Page content */}
-        {children}
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          {children}
+        </div>
       </div>
     </div>
   );

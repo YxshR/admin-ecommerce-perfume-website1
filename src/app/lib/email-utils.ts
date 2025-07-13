@@ -3,11 +3,11 @@ import nodemailer from 'nodemailer';
 // Create a transporter object using SMTP transport
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || '587'),
+    host: process.env.EMAIL_HOST || 'smtp.hostinger.com',
+    port: parseInt(process.env.EMAIL_PORT || '465'),
     secure: process.env.EMAIL_PORT === '465',
     auth: {
-      user: process.env.EMAIL_USER || 'avitoluxury@gmail.com',
+      user: process.env.EMAIL_USER || 'info@avitoluxury.in',
       pass: process.env.EMAIL_PASSWORD
     }
   });

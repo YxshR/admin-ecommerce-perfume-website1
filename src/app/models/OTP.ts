@@ -8,14 +8,22 @@ const OTPSchema = new Schema({
   },
   otp: {
     type: String,
+    required: false, // Not required since we'll use sessionId for verification
+  },
+  sessionId: {
+    type: String,
     required: true,
   },
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 600, // OTP expires after 10 minutes (600 seconds)
+    expires: 300, // OTP expires after 5 minutes (300 seconds)
   },
-  isVerified: {
+  expiresAt: {
+    type: Date,
+    required: true,
+  },
+  verified: {
     type: Boolean,
     default: false,
   }
