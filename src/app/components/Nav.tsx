@@ -41,6 +41,9 @@ interface NavItems {
   home: boolean;
   collection: boolean;
   perfumes: boolean;
+  him: boolean;
+  her: boolean;
+  unisex: boolean;
   attars: boolean;
   fresheners: boolean;
   waxfume: boolean;
@@ -76,6 +79,9 @@ export default function Nav() {
     home: true,
     collection: true,
     perfumes: true,
+    him: true,
+    her: true,
+    unisex: true,
     attars: true,
     fresheners: true,
     waxfume: true,
@@ -270,6 +276,7 @@ export default function Nav() {
           name: 'All Perfumes',
           path: '/perfumes'
         },
+ 
         {
           name: 'Luxury Collection',
           path: '/perfumes/luxury'

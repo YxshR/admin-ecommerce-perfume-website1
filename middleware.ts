@@ -15,8 +15,7 @@ const adminPaths = [
   '/admin/orders',
   '/admin/users',
   '/admin/contacts',
-  // '/admin/settings',
-  // '/admin/system'
+
 ];
 
 // Paths that should always be accessible

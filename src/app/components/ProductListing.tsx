@@ -161,6 +161,7 @@ interface ProductListingProps {
   productType?: string;
   subCategory?: string;
   tag?: string;
+  gender?: string;
   title: string;
   description?: string;
 }
@@ -170,6 +171,7 @@ export default function ProductListing({
   productType,
   subCategory,
   tag,
+  gender,
   title,
   description
 }: ProductListingProps) {
@@ -215,6 +217,7 @@ export default function ProductListing({
         if (productType) params.append('productType', productType);
         if (subCategory) params.append('subCategory', subCategory);
         if (tag) params.append('tag', tag);
+        if (gender) params.append('gender', gender);
         
         console.log('Fetching products with params:', Object.fromEntries(params.entries()));
         
@@ -245,13 +248,13 @@ export default function ProductListing({
     };
     
     fetchProducts();
-  }, [category, productType, subCategory, tag]);
+  }, [category, productType, subCategory, tag, gender]);
   
   // Helper function to extract filter options
   const extractFilterOptions = (products: Product[]) => {
     // Extract categories
-    const categories = [...new Set(products.map(p => p.category))];
-    setAvailableCategories(categories);
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    setAvailableCategories(categories as string[]);
     
     // Extract gender values, filtering out undefined/null
     const genderValues = products.map(p => p.gender).filter(Boolean) as string[];
@@ -281,7 +284,7 @@ export default function ProductListing({
   const filteredProducts = products.filter(product => {
     // Filter by search term
     if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !product.description.toLowerCase().includes(searchTerm.toLowerCase())) {
+        !(product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))) {
       return false;
     }
     
@@ -293,7 +296,7 @@ export default function ProductListing({
     
     // Filter by categories
     if (selectedCategories.length > 0 && 
-        !selectedCategories.includes(product.category)) {
+        !(product.category && selectedCategories.includes(product.category))) {
       return false;
     }
     

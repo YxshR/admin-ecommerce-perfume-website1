@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const category = url.searchParams.get('category');
     const productType = url.searchParams.get('productType');
     const tag = url.searchParams.get('tag');
+    const gender = url.searchParams.get('gender');
     
     // Build filter object
     const filter: any = {};
@@ -34,6 +35,10 @@ export async function GET(request: NextRequest) {
     
     if (productType) {
       filter.productType = productType;
+    }
+    
+    if (gender) {
+      filter.gender = gender;
     }
     
     // Handle special tag filters
