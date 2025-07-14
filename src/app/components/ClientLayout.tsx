@@ -9,13 +9,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
   const pathname = usePathname();
   
-  // Check if current page is checkout or cart related
-  const isCheckoutOrCartPage = pathname?.includes('/checkout') || 
-                              pathname?.includes('/cart') ||
-                              pathname?.includes('/payment') ||
-                              pathname?.includes('/order-confirmation');
+  // Only show on home page
+  const isHomePage = pathname === '/store-routes/store';
   
   // Check if device is mobile
   useEffect(() => {
@@ -28,10 +26,36 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
+  // Listen for mini cart open/close events
+  useEffect(() => {
+    const checkMiniCart = () => {
+      // Check for mini cart element visibility
+      const miniCartElement = document.querySelector('[data-mini-cart="true"]');
+      setMiniCartOpen(!!miniCartElement && window.getComputedStyle(miniCartElement).display !== 'none');
+    };
+    
+    // Initial check
+    checkMiniCart();
+    
+    // Set up mutation observer to detect mini cart changes
+    const observer = new MutationObserver(checkMiniCart);
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true, 
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+  
   // Show the button after scrolling down
   useEffect(() => {
+    // Check if tooltip was closed
+    const tooltipClosed = localStorage.getItem('whatsapp_tooltip_closed');
+    
     const handleScroll = () => {
-      if (window.scrollY > 300 && !isCheckoutOrCartPage) {
+      if (window.scrollY > 300 && isHomePage && !miniCartOpen && !tooltipClosed) {
         setShowWhatsApp(true);
       } else {
         setShowWhatsApp(false);
@@ -41,7 +65,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isCheckoutOrCartPage]);
+  }, [isHomePage, miniCartOpen]);
   
   // Auto-hide tooltip after some time
   useEffect(() => {
@@ -68,17 +92,23 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     window.open('https://wa.me/919928200900', '_blank');
   };
   
+  const closeTooltip = () => {
+    setShowTooltip(false);
+    // Store in localStorage that tooltip was closed (persists until page refresh)
+    localStorage.setItem('whatsapp_tooltip_closed', 'true');
+  };
+  
   return (
     <>
       {children}
       
-      {/* WhatsApp Button - Only show on non-checkout/cart pages */}
-      {showWhatsApp && !isCheckoutOrCartPage && (
+      {/* WhatsApp Button - Only show on home page and when mini cart is closed */}
+      {showWhatsApp && isHomePage && !miniCartOpen && (
         <div className={`fixed ${isMobile ? 'bottom-4 right-4' : 'bottom-6 right-6'} z-50`}>
           {showTooltip && (
             <div className={`absolute bottom-16 ${isMobile ? 'right-0 w-56' : 'right-0 w-64'} bg-white rounded-lg shadow-lg p-3 mb-2 animate-fade-in`}>
               <button 
-                onClick={() => setShowTooltip(false)}
+                onClick={closeTooltip}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                 aria-label="Close tooltip"
               >

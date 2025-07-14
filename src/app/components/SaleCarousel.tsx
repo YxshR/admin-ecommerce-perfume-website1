@@ -198,7 +198,7 @@ export default function SaleCarousel() {
                   <div className="bg-red-600 text-white inline-block px-2 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
                     {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
                   </div>
-                  <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold line-clamp-2">
+                  <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl text-[#FFD700] font-bold line-clamp-2">
                     {displayProducts[currentIndex].name}
                   </h2>
                   <p className="text-xs xs:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">

@@ -3,100 +3,75 @@
 import Link from 'next/link';
 import { useAuth } from './AuthProvider';
 import { FaInstagram, FaFacebook, FaWhatsapp } from 'react-icons/fa';
+import Image from 'next/image';
 
 export default function Footer() {
   const { isAuthenticated } = useAuth();
   
   return (
-    <footer className="bg-white border-t border-gray-200 pt-12 pb-8">
+    <footer className="bg-white border-t border-gray-200 pt-4 pb-8">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-lg font-medium mb-4">Customer Service</h3>
-            <ul className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8  items-start">
+          {/* Logo and Story Section */}
+          <div className="col-span-1 flex flex-col items-start">
+            <div className="mb-6 w-full">
+              {/* Logo */}
+              <Image 
+                src="/avito3-13.png" 
+                alt="AVITO Scent Logo" 
+                width={150}
+                height={60}
+                className="mb-4"
+                style={{ width: '80%', height: 'auto' }}
+              />
+              {/* Our Story */}
+              <h3 className="text-lg font-medium mb-2">Our Story</h3>
+              <p className="text-sm text-gray-600">
+                AVITO Perfume was created to make luxury fragrances accessible to everyone in India. 
+                The goal was simple—high-quality, long-lasting scents at a fair price.
+              </p>
+
+              <p className="text-sm text-gray-600 mt-2">
+                Today, AVITO offers a diverse range of perfumes for all genders—crafted with care, 
+                inspired by the world, and made for everyday elegance.
+              </p>
+            </div>
+          </div>
+          
+          {/* Policies Section - Centered */}
+          <div className="col-span-1 flex flex-col items-center">
+            <h3 className="text-lg font-medium mb-4">Policies</h3>
+            <ul className="space-y-2 text-center">
               <li>
                 <Link href="/contact" className="text-gray-600 hover:text-black text-sm">
-                  Contact Us
+                  Contact Information
                 </Link>
               </li>
-              {/* {isAuthenticated && (
-                <li>
-                  <Link href="/track-order" className="text-gray-600 hover:text-black text-sm">
-                    Track Order
-                  </Link>
-                </li>
-              )}
+              <li>
+                <Link href="/refund-policy" className="text-gray-600 hover:text-black text-sm">
+                  Refund Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="text-gray-600 hover:text-black text-sm">
+                  Privacy Policy
+                </Link>
+              </li>
               <li>
                 <Link href="/shipping-policy" className="text-gray-600 hover:text-black text-sm">
-                  Shipping & Delivery
+                  Shipping Policy
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-600 hover:text-black text-sm">
-                  Returns & Exchanges
+                <Link href="/terms-of-service" className="text-gray-600 hover:text-black text-sm">
+                  Terms of Service
                 </Link>
-              </li> */}
+              </li>
             </ul>
           </div>
           
-          <div>
-            <h3 className="text-lg font-medium mb-4">About</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/about-us" className="text-gray-600 hover:text-black text-sm">
-                  Our Story
-                </Link>
-              </li>
-              {/* <li>
-                <Link href="/sustainability" className="text-gray-600 hover:text-black text-sm">
-                  Sustainability
-                </Link>
-              </li> */}
-              {/* <li>
-                <Link href="/careers" className="text-gray-600 hover:text-black text-sm">
-                  Careers
-                </Link>
-              </li> */}
-              {/* <li>
-                <Link href="/store-locator" className="text-gray-600 hover:text-black text-sm">
-                  Store Locator
-                </Link>
-              </li> */}
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-medium mb-4">Shop</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/him" className="text-gray-600 hover:text-black text-sm">
-                  For Him
-                </Link>
-              </li>
-              <li>
-                <Link href="/her" className="text-gray-600 hover:text-black text-sm">
-                  For Her
-                </Link>
-              </li>
-              <li>
-                <Link href="/unisex" className="text-gray-600 hover:text-black text-sm">
-                  Unisex
-                </Link>
-              </li>
-              {/* <li>
-                <Link href="/discovery-set" className="text-gray-600 hover:text-black text-sm">
-                  Discovery Sets
-                </Link>
-              </li> */}
-              {/* <li>
-                <Link href="/gifting" className="text-gray-600 hover:text-black text-sm">
-                  Gift Cards
-                </Link>
-              </li> */}
-            </ul>
-          </div>
-          
-          <div>
+          {/* Stay Connected Section - Kept unchanged */}
+          <div className="col-span-1">
             <h3 className="text-lg font-medium mb-4">Stay Connected</h3>
             <p className="text-sm text-gray-600 mb-4">
               Subscribe to receive updates, access to exclusive deals, and more.
@@ -146,25 +121,12 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-sm text-gray-500">
-                &copy; {new Date().getFullYear()} Avito Scent. All rights reserved.
-              </p>
-              
-            </div>
-            <div className="flex space-x-6">
-              <Link href="/privacy-policy" className="text-sm text-gray-500 hover:text-black">
-                Privacy Policy
-              </Link>
-              {/* <Link href="/terms-of-service" className="text-sm text-gray-500 hover:text-black">
-                Terms of Service
-              </Link>
-              <Link href="/cookie-policy" className="text-sm text-gray-500 hover:text-black">
-                Cookie Policy
-              </Link> */}
-            </div>
+        {/* Copyright at the bottom center */}
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <div className="flex justify-center items-center">
+            <p className="text-sm text-gray-500">
+              &copy; {new Date().getFullYear()} Avito Scent. All rights reserved.
+            </p>
           </div>
         </div>
       </div>

@@ -273,10 +273,7 @@ export default function Nav() {
       path: '/perfumes',
       hasDropdown: true,
       dropdownItems: [
-        {
-          name: 'All Perfumes',
-          path: '/perfumes'
-        },
+
  
         {
           name: 'Luxury Collection',
@@ -302,10 +299,7 @@ export default function Nav() {
       path: '/aesthetic-attars',
       hasDropdown: true,
       dropdownItems: [
-        {
-          name: 'All Attars',
-          path: '/aesthetic-attars'
-        },
+
         {
           name: 'Premium Attars',
           path: '/aesthetic-attars/premium'
@@ -326,10 +320,7 @@ export default function Nav() {
       path: '/air-fresheners',
       hasDropdown: true,
       dropdownItems: [
-        {
-          name: 'All Fresheners',
-          path: '/air-fresheners'
-        },
+
         {
           name: 'Car Fresheners',
           path: '/air-fresheners/car'
@@ -348,7 +339,7 @@ export default function Nav() {
     },
     {
       id: 'about',
-      name: 'About Us',
+      name: 'Our Story',
       path: '/about-us',
       hasDropdown: false
     },
@@ -370,79 +361,11 @@ export default function Nav() {
       )}
       
       <header className="bg-white shadow-sm sticky top-0 z-30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            {/* Logo */}
-            <Link href="/" className="flex-shrink-0 flex gap-2 items-center">
-              <img
-                src="/avitologo.png"
-                alt="Avito Scent"
-                className="h-16 w-auto"
-              />
-              
-             
-            </Link>
-            
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
-              {navigationItems.map((item) => 
-                navItems[item.id] ? (
-                  <div 
-                    key={item.id}
-                    className="relative group"
-                    ref={(el) => {
-                      dropdownRefs.current[item.id] = el;
-                    }}
-                    onMouseEnter={() => item.hasDropdown && handleDropdownHover(item.id)}
-                    onMouseLeave={handleDropdownLeave}
-                  >
-                    <div 
-                      className={`flex items-center font-medium cursor-pointer relative 
-                        ${pathname === item.path || pathname?.startsWith(item.path + '/') 
-                          ? 'text-black' 
-                          : 'text-gray-700 hover:text-black'}
-                        ${pathname === item.path || pathname?.startsWith(item.path + '/') 
-                          ? 'after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-black' 
-                          : 'after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-black after:transition-all after:duration-300 hover:after:w-full'
-                        }`}
-                      onClick={() => {
-                        if (item.hasDropdown) {
-                          toggleDropdown(item.id);
-                          router.push(item.path);
-                        } else {
-                          router.push(item.path);
-                        }
-                      }}
-                    >
-                      {item.name}
-                      {item.hasDropdown && <FiChevronDown className="ml-1 transition-transform duration-300 group-hover:rotate-180" size={16} />}
-                    </div>
-                    
-                    {item.hasDropdown && activeDropdown === item.id && (
-                      <div className="absolute top-full left-0 mt-1 w-56 bg-white shadow-lg rounded-md overflow-hidden z-20 transition-all duration-300 ease-in-out transform origin-top-left animate-fadeIn">
-                        <div className="py-2">
-                          {item.dropdownItems?.map((dropdownItem) => (
-                            <Link
-                              key={dropdownItem.path}
-                              href={dropdownItem.path}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 hover:pl-6 border-l-0 hover:border-l-4 hover:border-black flex items-center"
-                              onClick={() => setActiveDropdown(null)}
-                            >
-                              <span className="w-2 h-2 rounded-full bg-black mr-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"></span>
-                              {dropdownItem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : null
-              )}
-            </nav>
-            
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Search */}
+        <div className="container mx-auto px-4 flex flex-col items-center">
+          {/* Top Row: Search | Logo | Cart */}
+          <div className="w-full flex items-center justify-between py-4">
+            {/* Search Bar (left) */}
+            <div className="flex-1 flex justify-start">
               {componentSettings.search && (
                 <button
                   onClick={toggleSearch}
@@ -452,8 +375,19 @@ export default function Nav() {
                   <FiSearch size={20} />
                 </button>
               )}
-              
-              {/* Cart */}
+            </div>
+            {/* Logo (center) */}
+            <div className="flex-shrink-0 flex flex-col items-center">
+              <Link href="/" className="flex gap-2 items-center">
+                <img
+                  src="/logoo1.png"
+                  alt="Avito Scent"
+                  className="h-20 w-auto"
+                />
+              </Link>
+            </div>
+            {/* Cart (right) */}
+            <div className="flex-1 flex justify-end items-center space-x-4">
               {componentSettings.miniCart && (
                 <button
                   onClick={toggleMiniCart}
@@ -468,7 +402,6 @@ export default function Nav() {
                   )}
                 </button>
               )}
-              
               {/* Mobile menu button */}
               <button
                 onClick={toggleMobileMenu}
@@ -479,9 +412,64 @@ export default function Nav() {
               </button>
             </div>
           </div>
+
+          {/* Navigation Bar (below logo row) */}
+          <nav className="hidden md:flex items-center space-x-6 justify-center w-full pb-2">
+            {navigationItems.map((item) => 
+              navItems[item.id] ? (
+                <div 
+                  key={item.id}
+                  className="relative group"
+                  ref={(el) => {
+                    dropdownRefs.current[item.id] = el;
+                  }}
+                  onMouseEnter={() => item.hasDropdown && handleDropdownHover(item.id)}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <div 
+                    className={`flex items-center font-medium cursor-pointer relative 
+                      ${pathname === item.path || pathname?.startsWith(item.path + '/') 
+                        ? 'text-black' 
+                        : 'text-gray-700 hover:text-black'}
+                      ${pathname === item.path || pathname?.startsWith(item.path + '/') 
+                        ? 'after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-black' 
+                        : 'after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-black after:transition-all after:duration-300 hover:after:w-full'
+                      }`}
+                    onClick={() => {
+                      if (item.hasDropdown) {
+                        toggleDropdown(item.id);
+                        router.push(item.path);
+                      } else {
+                        router.push(item.path);
+                      }
+                    }}
+                  >
+                    {item.name}
+                    {item.hasDropdown && <FiChevronDown className="ml-1 transition-transform duration-300 group-hover:rotate-180" size={16} />}
+                  </div>
+                  {item.hasDropdown && activeDropdown === item.id && (
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-white shadow-lg rounded-md overflow-hidden z-20 transition-all duration-300 ease-in-out transform origin-top-left animate-fadeIn">
+                      <div className="py-2">
+                        {item.dropdownItems?.map((dropdownItem) => (
+                          <Link
+                            key={dropdownItem.path}
+                            href={dropdownItem.path}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-all duration-200 hover:pl-6 border-l-0 hover:border-l-4 hover:border-black flex items-center"
+                            onClick={() => setActiveDropdown(null)}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-black mr-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100"></span>
+                            {dropdownItem.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null
+            )}
+          </nav>
         </div>
-        
-        {/* Search Bar */}
+        {/* Search Bar (expanded) */}
         {searchOpen && (
           <div className="border-t border-gray-200 py-4 px-4">
             <div className="container mx-auto">

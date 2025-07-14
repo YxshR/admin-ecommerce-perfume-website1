@@ -12,23 +12,44 @@ interface WhatsAppPopupProps {
 
 export default function WhatsAppPopup({ phoneNumber, message = 'Hello, I have a question about your products.' }: WhatsAppPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
   const pathname = usePathname();
   
-  // Don't show on checkout, cart, payment or order confirmation pages
-  const isCheckoutOrCartPage = pathname?.includes('/checkout') || 
-                              pathname?.includes('/cart') ||
-                              pathname?.includes('/payment') ||
-                              pathname?.includes('/order-confirmation');
+  // Only show on store page
+  const isStorePage = pathname === '/store-routes/store';
+  
+  // Listen for mini cart open/close events
+  useEffect(() => {
+    const checkMiniCart = () => {
+      // Check for mini cart element visibility
+      const miniCartElement = document.querySelector('[data-mini-cart="true"]');
+      setMiniCartOpen(!!miniCartElement && window.getComputedStyle(miniCartElement).display !== 'none');
+    };
+    
+    // Initial check
+    checkMiniCart();
+    
+    // Set up mutation observer to detect mini cart changes
+    const observer = new MutationObserver(checkMiniCart);
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true, 
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
   
   useEffect(() => {
-    // Don't show on checkout/cart pages
-    if (isCheckoutOrCartPage) {
+    // Don't show if not on store page or mini cart is open
+    if (!isStorePage || miniCartOpen) {
       setIsVisible(false);
       return;
     }
     
     // Check if the popup has been closed in this session
-    const popupClosed = sessionStorage.getItem('whatsapp_popup_closed');
+    const popupClosed = localStorage.getItem('whatsapp_popup_closed');
     
     if (!popupClosed) {
       // Show popup after 5 seconds
@@ -38,12 +59,12 @@ export default function WhatsAppPopup({ phoneNumber, message = 'Hello, I have a 
       
       return () => clearTimeout(timer);
     }
-  }, [isCheckoutOrCartPage]); // Re-run if pathname changes
+  }, [isStorePage, miniCartOpen]); // Re-run if pathname or mini cart state changes
   
   const closePopup = () => {
     setIsVisible(false);
-    // Store in session storage that popup was closed
-    sessionStorage.setItem('whatsapp_popup_closed', 'true');
+    // Store in localStorage that popup was closed (persists until browser is closed)
+    localStorage.setItem('whatsapp_popup_closed', 'true');
   };
   
   const openWhatsApp = () => {
@@ -52,7 +73,7 @@ export default function WhatsAppPopup({ phoneNumber, message = 'Hello, I have a 
     closePopup();
   };
   
-  if (!isVisible || isCheckoutOrCartPage) return null;
+  if (!isVisible || !isStorePage || miniCartOpen) return null;
   
   return (
     // <div 
