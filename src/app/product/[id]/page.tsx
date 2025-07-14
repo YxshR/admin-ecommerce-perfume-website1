@@ -269,7 +269,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <div>
             <h1 className="text-3xl font-medium text-black">{product.name}</h1>
             <div className="text-sm text-gray-500 mt-1">
-              {product.brand || 'Avito Scent'} | {product.volume ? `${product.volume} ${product.productType === 'Waxfume' ? 'gms' : 'ml'}` : '50ml'} | {product.gender || 'Unisex'}
+              {product.brand || 'Avito Scent'} | {product.volume || '50ml'} | {product.gender || 'Unisex'}
             </div>
           </div>
           
@@ -359,7 +359,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 text-gray-500">Volume</td>
-                  <td className="py-2">{product.volume ? `${product.volume} ${product.productType === 'Waxfume' ? 'gms' : 'ml'}` : '50ml'}</td>
+                  <td className="py-2">{product.volume || '50ml'}</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 text-gray-500">Gender</td>

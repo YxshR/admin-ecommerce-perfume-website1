@@ -25,7 +25,6 @@ interface Product {
   images: { url: string }[];
   rating?: number;
   mainImage?: string;
-  volume?: string;
 }
 
 interface ProductCardProps {
@@ -352,11 +351,6 @@ export default function ProductCard({ product }: ProductCardProps) {
 {/* Sub-Category */}
 <p className="text-xs text-gray-500 mb-2 line-clamp-1">
   {product.subCategory}
-  {product.volume && (
-    <span className="ml-1">
-      ({product.productType === 'Waxfume' ? `${product.volume} gms` : `${product.volume} ml`})
-    </span>
-  )}
 </p>
         
         {/* Price */}
