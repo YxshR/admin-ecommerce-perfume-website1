@@ -41,7 +41,7 @@ img, video {
 }
 
 :root {
-  --background: #ffffff;
+  --background: #C1E899;
   --foreground: #272420;
   --primary: #000000; /* Black */
   --primary-hover: #333333; /* Darker Black */
@@ -55,7 +55,7 @@ img, video {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ffffff;
+    --background: #C1E899;
     --foreground: #272420;
     --border-color: #e5e0d5;
     --card-bg: #ffffff;

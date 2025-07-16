@@ -158,14 +158,14 @@ export default function SaleCarousel() {
   
   if (loading && displayProducts.length === 0) {
     return (
-      <div className="w-full h-96 bg-gray-100 flex items-center justify-center">
+      <div className="w-full h-96 bg-[#C1E899] flex items-center justify-center">
         <div className="animate-pulse text-gray-500 text-lg">Loading fragrances...</div>
       </div>
     );
   }
   
   return (
-    <div className="relative w-full h-[300px] xs:h-[350px] sm:h-[400px] md:h-[500px] overflow-hidden bg-gray-50">
+    <div className="relative w-full h-[300px] xs:h-[350px] sm:h-[400px] md:h-[500px] overflow-hidden bg-[#C1E870] my-4 md:my-8 mx-auto max-w-[98%] md:max-w-[95%] rounded-lg">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -178,7 +178,7 @@ export default function SaleCarousel() {
           {displayProducts[currentIndex] && (
             <div className="grid grid-cols-1 md:grid-cols-2 h-full">
               {/* Image - Mobile: Top, Desktop: Left */}
-              <div className="order-1 md:order-1 flex items-center justify-center h-[180px] xs:h-[200px] sm:h-[220px] md:h-full bg-gray-100">
+              <div className="order-1 md:order-1 flex items-center justify-center h-[180px] xs:h-[200px] sm:h-[220px] md:h-full bg-[#C1E870]">
                 <img
                   src={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'}
                   alt={displayProducts[currentIndex].name || "Perfume product"}
@@ -193,29 +193,29 @@ export default function SaleCarousel() {
               </div>
               
               {/* Content - Mobile: Bottom, Desktop: Right */}
-              <div className="order-2 md:order-2 flex flex-col items-center justify-center p-3 xs:p-4 md:p-6 lg:p-8">
-                <div className="text-center space-y-1 xs:space-y-2 md:space-y-4 max-w-sm mx-auto">
-                  <div className="bg-red-600 text-white inline-block px-2 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
-                    {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
-                  </div>
-                  <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl text-[#FFD700] font-bold line-clamp-2">
-                    {displayProducts[currentIndex].name}
-                  </h2>
-                  <p className="text-xs xs:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">
-                    {displayProducts[currentIndex].description}
-                  </p>
-                  
-                  <div className="flex items-center justify-center mt-1 xs:mt-2 md:mt-4 space-x-2 md:space-x-4">
-                    <span className="text-base xs:text-lg md:text-xl font-bold">
-                      ₹{displayProducts[currentIndex].discountedPrice.toFixed(0)}
-                    </span>
-                    <span className="text-xs xs:text-sm text-gray-500 line-through">
-                      MRP ₹{displayProducts[currentIndex].price.toFixed(0)}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-2 md:mt-4">
-                    <ShopNowButton href={`/product/${displayProducts[currentIndex]._id}`} />
+              <div className="order-2 md:order-2 bg-[#C1E870] flex items-center justify-start p-3 xs:p-4 md:p-6 lg:p-8">
+                <div className="w-full max-w-[90%] md:max-w-[85%] h-full bg-white flex flex-col items-center justify-center rounded-lg shadow-md">
+                  <div className="text-center space-y-1 xs:space-y-2 md:space-y-4 max-w-sm mx-auto">
+                    <div className="bg-red-600 text-white inline-block px-2 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
+                      {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
+                    </div>
+                    <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl text-[#FFD700] font-bold line-clamp-2">
+                      {displayProducts[currentIndex].name}
+                    </h2>
+                    <p className="text-xs xs:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">
+                      {displayProducts[currentIndex].description}
+                    </p>
+                    <div className="flex items-center justify-center mt-1 xs:mt-2 md:mt-4 space-x-2 md:space-x-4">
+                      <span className="text-base xs:text-lg md:text-xl font-bold">
+                        ₹{displayProducts[currentIndex].discountedPrice.toFixed(0)}
+                      </span>
+                      <span className="text-xs xs:text-sm text-gray-500 line-through">
+                        MRP ₹{displayProducts[currentIndex].price.toFixed(0)}
+                      </span>
+                    </div>
+                    <div className="mt-2 md:mt-4">
+                      <ShopNowButton href={`/product/${displayProducts[currentIndex]._id}`} />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -94,9 +94,11 @@ export default function HomePage() {
   }, []);
   
   return (
-    <div className="pb-10 bg-white text-black">
+    <div className="pb-10 text-black">
       {/* Sale Carousel */}
-      <SaleCarousel />
+      <div className=" bg-[#C1E870] m-10">
+        <SaleCarousel />
+      </div>
       
       {/* Featured Products */}
       <section className="py-10 px-4 max-w-7xl mx-auto">
@@ -180,7 +182,7 @@ export default function HomePage() {
       </section>
       
       {/* About Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-[#C1E870]">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-medium mb-4">About Avito Scent</h2>
