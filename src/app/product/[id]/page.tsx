@@ -7,6 +7,7 @@ import Image from 'next/image';
 import AddToCartButton from '@/app/components/AddToCartButton';
 import MiniCartWithModal from '@/app/components/MiniCartWithModal';
 import { useAuth } from '@/app/components/AuthProvider';
+import Link from 'next/link';
 
 interface Product {
   _id: string;
@@ -39,6 +40,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [zoomImageUrl, setZoomImageUrl] = useState('');
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   // Fetch product data
   useEffect(() => {
@@ -56,7 +58,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         const data = await response.json();
         
         if (data.success && data.product) {
+          console.log("Product fetched successfully:", data.product._id, "Product Type:", data.product.productType);
           setProduct(data.product);
+          // Fetch related products after getting the product
+          fetchRelatedProducts(data.product.productType);
         } else {
           throw new Error('Product not found');
         }
@@ -70,6 +75,103 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     
     fetchProduct();
   }, [params.id]);
+
+  // Fetch related products
+  const fetchRelatedProducts = async (productType: string) => {
+    try {
+      console.log("Fetching related products for product type:", productType);
+      const response = await fetch(`/api/products?productType=${productType}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch related products');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        console.log("Related products API response:", data.products.length, "products found");
+        // Filter out the current product and limit to 8 products
+        const filtered = data.products
+          .filter((p: any) => p._id !== params.id)
+          .slice(0, 8);
+        
+        console.log("Filtered related products:", filtered.length, "products after filtering");
+        setRelatedProducts(filtered);
+        
+        // If no related products found by productType, try to fetch by category
+        if (filtered.length === 0 && product) {
+          fetchRelatedProductsByCategory(product.category);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+      // If error occurs, try to fetch by category as fallback
+      if (product) {
+        fetchRelatedProductsByCategory(product.category);
+      }
+    }
+  };
+
+  // Fallback: Fetch related products by category
+  const fetchRelatedProductsByCategory = async (category: string) => {
+    try {
+      console.log("Fallback: Fetching related products by category:", category);
+      const response = await fetch(`/api/products?category=${category}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch related products by category');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        console.log("Category related products API response:", data.products.length, "products found");
+        // Filter out the current product and limit to 8 products
+        const filtered = data.products
+          .filter((p: any) => p._id !== params.id)
+          .slice(0, 8);
+        
+        console.log("Filtered category related products:", filtered.length, "products after filtering");
+        setRelatedProducts(filtered);
+        
+        // If still no products, fetch random products as a last resort
+        if (filtered.length === 0) {
+          fetchRandomProducts();
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching related products by category:', error);
+      // Last resort: fetch random products
+      fetchRandomProducts();
+    }
+  };
+
+  // Last resort: Fetch random products
+  const fetchRandomProducts = async () => {
+    try {
+      console.log("Last resort: Fetching random products");
+      const response = await fetch('/api/products?limit=8');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch random products');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        console.log("Random products API response:", data.products.length, "products found");
+        // Filter out the current product and limit to 8 products
+        const filtered = data.products
+          .filter((p: any) => p._id !== params.id)
+          .slice(0, 8);
+        
+        console.log("Filtered random products:", filtered.length, "products after filtering");
+        setRelatedProducts(filtered);
+      }
+    } catch (error) {
+      console.error('Error fetching random products:', error);
+    }
+  };
 
   // Update zoom image URL when selected image changes
   useEffect(() => {
@@ -374,6 +476,52 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-16 pb-12 border-t border-gray-200 pt-12">
+          <h2 className="text-2xl font-medium text-center mb-8">Related Products</h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {relatedProducts.map((relatedProduct) => (
+              <div key={relatedProduct._id} className="group relative">
+                <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
+                  <Link href={`/product/${relatedProduct._id}`}>
+                    <Image
+                      src={relatedProduct.mainImage || (relatedProduct.images && relatedProduct.images.length > 0 ? relatedProduct.images[0] : '/images/placeholder-product.jpg')}
+                      alt={relatedProduct.name}
+                      width={300}
+                      height={300}
+                      className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </Link>
+                </div>
+                <div className="mt-4 flex justify-between">
+                  <div>
+                    <h3 className="text-sm text-gray-700">
+                      <Link href={`/product/${relatedProduct._id}`}>
+                        <span aria-hidden="true" className="absolute inset-0" />
+                        {relatedProduct.name}
+                      </Link>
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{relatedProduct.brand || 'Avito Scent'}</p>
+                  </div>
+                  <div>
+                    {relatedProduct.comparePrice && relatedProduct.comparePrice > relatedProduct.price ? (
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">₹{relatedProduct.price.toFixed(2)}</p>
+                        <p className="text-sm text-gray-500 line-through">₹{relatedProduct.comparePrice.toFixed(2)}</p>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900">₹{relatedProduct.price.toFixed(2)}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

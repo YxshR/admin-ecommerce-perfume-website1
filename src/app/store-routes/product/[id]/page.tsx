@@ -29,6 +29,7 @@ interface Product {
   concentration?: string;
   size?: number;
   gender?: string;
+  productType?: string;
 }
 
 export default function ProductDetailPage() {
@@ -43,6 +44,7 @@ export default function ProductDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { user } = useAuth();
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   
   // Check user login status
   useEffect(() => {
@@ -108,10 +110,14 @@ export default function ProductDetailPage() {
             },
             concentration: data.product.productType || 'Eau de Parfum',
             size: parseInt(data.product.volume?.replace(/[^0-9]/g, '') || '50'),
-            gender: data.product.gender || 'Unisex'
+            gender: data.product.gender || 'Unisex',
+            productType: data.product.productType || 'Eau de Parfum'
           };
           
           setProduct(productData);
+          
+          // Fetch related products of the same productType
+          fetchRelatedProducts(data.product.productType);
         } else {
           console.error('Product data invalid:', data);
           throw new Error('Product not found or data invalid');
@@ -143,7 +149,8 @@ export default function ProductDetailPage() {
           },
           concentration: 'Eau de Parfum',
           size: 50,
-          gender: 'Unisex'
+          gender: 'Unisex',
+          productType: 'Eau de Parfum'
         });
       } finally {
         setLoading(false);
@@ -297,6 +304,44 @@ export default function ProductDetailPage() {
     );
   };
   
+  // Fetch related products
+  const fetchRelatedProducts = async (productType: string) => {
+    try {
+      const response = await fetch(`/api/products?productType=${productType}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch related products');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        // Filter out the current product and limit to 8 products
+        const filtered = data.products
+          .filter((p: any) => p._id !== id)
+          .slice(0, 8)
+          .map((p: any) => ({
+            _id: p._id,
+            name: p.name,
+            description: p.description || "No description available",
+            price: p.price,
+            discountedPrice: p.comparePrice || 0,
+            category: p.category || "Perfume",
+            brand: p.brand || 'Avito Scent',
+            images: p.images ? 
+              p.images.map((img: string) => ({ url: img })) : 
+              [{ url: p.mainImage || 'https://placehold.co/600x800/222/fff?text=Product' }],
+            stock: p.quantity || 0,
+            productType: p.productType || 'Eau de Parfum'
+          }));
+        
+        setRelatedProducts(filtered);
+      }
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -510,6 +555,63 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-16 pb-20 border-t border-gray-200 pt-8">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl text-center font-medium text-black mb-8">
+              Related Products
+            </h2>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.slice(0, 8).map((relatedProduct) => (
+                <div key={relatedProduct._id} className="h-full flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+                  <div className="relative overflow-hidden group">
+                    <Link href={`/product/${relatedProduct._id}`}>
+                      <Image 
+                        src={relatedProduct.images[0]?.url || '/placeholder-image.jpg'} 
+                        alt={relatedProduct.name}
+                        width={300}
+                        height={400}
+                        className="w-full h-64 object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </Link>
+                    {relatedProduct.discountedPrice > 0 && (
+                      <div className="absolute top-2 left-2 bg-black text-white text-xs font-bold px-2 py-1 rounded">
+                        ON SALE
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 flex-grow flex flex-col">
+                    <h3 className="font-medium text-sm mb-1">
+                      <Link href={`/product/${relatedProduct._id}`} className="hover:text-gray-700">
+                        {relatedProduct.name}
+                      </Link>
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-1">{relatedProduct.productType}</p>
+                    
+                    <div className="mt-auto flex justify-between items-center">
+                      <div className="flex items-baseline">
+                        {relatedProduct.discountedPrice > 0 ? (
+                          <>
+                            <span className="text-sm font-bold text-red-600">₹{relatedProduct.discountedPrice.toFixed(2)}</span>
+                            <span className="text-xs text-gray-400 line-through ml-2">
+                              MRP ₹{relatedProduct.price.toFixed(2)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-sm font-bold">₹{relatedProduct.price.toFixed(2)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
