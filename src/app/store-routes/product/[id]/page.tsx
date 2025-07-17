@@ -30,6 +30,7 @@ interface Product {
   size?: number;
   gender?: string;
   productType?: string;
+  volumeRaw?: string; // Added for unit determination
 }
 
 export default function ProductDetailPage() {
@@ -111,7 +112,8 @@ export default function ProductDetailPage() {
             concentration: data.product.productType || 'Eau de Parfum',
             size: parseInt(data.product.volume?.replace(/[^0-9]/g, '') || '50'),
             gender: data.product.gender || 'Unisex',
-            productType: data.product.productType || 'Eau de Parfum'
+            productType: data.product.productType || 'Eau de Parfum',
+            volumeRaw: data.product.volume // Store original volume for unit determination
           };
           
           setProduct(productData);
@@ -150,7 +152,8 @@ export default function ProductDetailPage() {
           concentration: 'Eau de Parfum',
           size: 50,
           gender: 'Unisex',
-          productType: 'Eau de Parfum'
+          productType: 'Eau de Parfum',
+          volumeRaw: '50ml' // Mock data for unit
         });
       } finally {
         setLoading(false);
@@ -332,7 +335,8 @@ export default function ProductDetailPage() {
               p.images.map((img: string) => ({ url: img })) : 
               [{ url: p.mainImage || 'https://placehold.co/600x800/222/fff?text=Product' }],
             stock: p.quantity || 0,
-            productType: p.productType || 'Eau de Parfum'
+            productType: p.productType || 'Eau de Parfum',
+            volumeRaw: p.volume // Store original volume for unit determination
           }));
         
         setRelatedProducts(filtered);
@@ -531,7 +535,18 @@ export default function ProductDetailPage() {
                 <tbody>
                   <tr>
                     <td className="py-2 text-gray-500">Size</td>
-                    <td className="py-2">{product.size} ml</td>
+                    <td className="py-2">
+                      {product.size}
+                      {(() => {
+                        // Try to get the original unit from data.product.volume
+                        // We don't have direct access to data.product.volume here, but we can store it in the product object
+                        // So, let's add 'volumeRaw' to the product object in fetchProduct
+                        // For now, fallback to 'ml' if not available
+                        // @ts-ignore
+                        const unit = product.volumeRaw?.toLowerCase().includes('gm') ? ' Gm' : ' ml';
+                        return unit;
+                      })()}
+                    </td>
                   </tr>
                   <tr>
                     <td className="py-2 text-gray-500">Concentration</td>
@@ -566,7 +581,7 @@ export default function ProductDetailPage() {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.slice(0, 8).map((relatedProduct) => (
-                <div key={relatedProduct._id} className="h-full flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+                <div key={relatedProduct._id} className="h-full flex flex-col bg-gray-100 border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
                   <div className="relative overflow-hidden group">
                     <Link href={`/product/${relatedProduct._id}`}>
                       <Image 
@@ -584,11 +599,24 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div className="p-4 flex-grow flex flex-col">
-                    <h3 className="font-medium text-sm mb-1">
-                      <Link href={`/product/${relatedProduct._id}`} className="hover:text-gray-700">
-                        {relatedProduct.name}
-                      </Link>
-                    </h3>
+                    <div className="relative mb-1">
+                      <h3 className="font-medium text-sm">
+                        <Link href={`/product/${relatedProduct._id}`} className="hover:text-gray-700">
+                          {relatedProduct.name}
+                        </Link>
+                      </h3>
+                      {relatedProduct.volumeRaw && (
+                        <span className="absolute top-0 right-0 text-xs bg-white px-2 py-0.5 rounded shadow border border-gray-200 font-semibold">
+                          {relatedProduct.volumeRaw}
+                        </span>
+                      )}
+                      {!relatedProduct.volumeRaw && (
+                        <span className="absolute top-0 right-0 text-xs bg-white px-2 py-0.5 rounded shadow border border-gray-200 font-semibold">
+                          ml
+                        </span>
+                      )}
+                    </div>
+
                     <p className="text-xs text-gray-600 mb-1">{relatedProduct.productType}</p>
                     
                     <div className="mt-auto flex justify-between items-center">
@@ -604,9 +632,19 @@ export default function ProductDetailPage() {
                           <span className="text-sm font-bold">₹{relatedProduct.price.toFixed(2)}</span>
                         )}
                       </div>
+                      
                     </div>
                   </div>
+                  <AddToCartButton
+                      productId={relatedProduct._id}
+                      productName={relatedProduct.name}
+                      productPrice={relatedProduct.discountedPrice > 0 ? relatedProduct.discountedPrice : relatedProduct.price}
+                      productImage={relatedProduct.images[0]?.url || ''}
+                      className="w-full bg-black text-white py-2 px-4 rounded mb-2 hover:bg-gray-800 text-xs"
+                      showIcon={true}
+                    />
                 </div>
+                
               ))}
             </div>
           </div>

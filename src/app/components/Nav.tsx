@@ -360,7 +360,7 @@ export default function Nav() {
         </div>
       )}
       
-      <header className="shadow-sm sticky top-0 bg-[#C1E899] z-30">
+      <header className="bg-white shadow-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 flex flex-col items-center">
           {/* Top Row: Search | Logo | Cart */}
           <div className="w-full flex items-center justify-between py-4">
@@ -448,7 +448,7 @@ export default function Nav() {
                     {item.hasDropdown && <FiChevronDown className="ml-1 transition-transform duration-300 group-hover:rotate-180" size={16} />}
                   </div>
                   {item.hasDropdown && activeDropdown === item.id && (
-                    <div className="absolute top-full left-0 mt-1 w-56 shadow-lg rounded-md overflow-hidden z-20 transition-all duration-300 ease-in-out transform origin-top-left animate-fadeIn">
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-white shadow-lg rounded-md overflow-hidden z-20 transition-all duration-300 ease-in-out transform origin-top-left animate-fadeIn">
                       <div className="py-2">
                         {item.dropdownItems?.map((dropdownItem) => (
                           <Link
@@ -490,7 +490,7 @@ export default function Nav() {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 fixed inset-x-0 top-[60px] z-20 overflow-y-auto max-h-[calc(100vh-60px)]">
+        <div className="md:hidden bg-white border-t border-gray-200 fixed inset-x-0 top-[60px] z-20 overflow-y-auto max-h-[calc(100vh-60px)]">
           <div className="container mx-auto px-4 py-4">
             <nav className="space-y-4">
               {navigationItems.map((item) => 

@@ -29,13 +29,13 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
     }
 
     const mailOptions = {
-      from: `Avito Luxury Admin <${process.env.EMAIL_USER || 'avitoluxury@gmail.com'}>`,
+      from: `AVITO LUXURY Admin <${process.env.EMAIL_USER || 'avitoluxury@gmail.com'}>`,
       to: email,
       subject: 'Admin Login OTP Verification',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #1a202c; color: white; padding: 20px; text-align: center;">
-            <h1>Avito Luxury Admin Portal</h1>
+            <h1>AVITO LUXURY Admin Portal</h1>
           </div>
           <div style="padding: 20px; border: 1px solid #e2e8f0; border-top: none;">
             <p>Hello Admin,</p>
@@ -45,10 +45,10 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
             </div>
             <p>This OTP is valid for 10 minutes. Please do not share this with anyone.</p>
             <p>If you did not request this OTP, please ignore this email and ensure your account is secure.</p>
-            <p>Thank you,<br>Avito Luxury Team</p>
+            <p>Thank you,<br> Team</p>
           </div>
           <div style="background-color: #f7fafc; padding: 10px; text-align: center; font-size: 12px; color: #718096;">
-            &copy; ${new Date().getFullYear()} Avito Luxury. All rights reserved.
+            &copy; ${new Date().getFullYear()} AVITO LUXURY. All rights reserved.
           </div>
         </div>
       `
@@ -94,7 +94,7 @@ export const sendContactFormEmail = async (
     });
 
     const mailOptions = {
-      from: `Avito Luxury Website <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+      from: `AVITO LUXURY Website <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
       to: process.env.EMAIL_RECIPIENT || 'youngblood.yr@gmail.com',
       subject: `New Contact Form Submission: ${subject}`,
       html: `
@@ -161,7 +161,7 @@ export const sendContactFormEmail = async (
 
     <!-- Copyright -->
     <div style="text-align: center; font-size: 11px; color: #9ca3af; margin-top: 20px;">
-      &copy; ${currentYear} Avito Luxury. All rights reserved.
+      &copy; ${currentYear} AVITO LUXURY. All rights reserved.
     </div>
           </div>
         </body>
@@ -245,7 +245,7 @@ export const sendOrderConfirmationEmail = async (
     `).join('');
 
     const mailOptions = {
-      from: `Avito Luxury Order <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+      from: `AVITO LUXURY Order <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
       to: process.env.EMAIL_RECIPIENT || 'youngblood.yr@gmail.com',
       subject: `New Order Received - Payment Successful`,
       html: `<!DOCTYPE html>

@@ -49,7 +49,7 @@ export default function PublicInvoicePage() {
       try {
         await navigator.share({
           title: `Invoice #${invoice?.invoiceNumber}`,
-          text: `Your invoice from Avito Luxury`,
+          text: `Your invoice from AVITO LUXURY`,
           url: window.location.href,
         });
       } catch (err) {
@@ -230,7 +230,7 @@ export default function PublicInvoicePage() {
               <p className="text-gray-600">We appreciate your business and hope you enjoy your products.</p>
             </div>
             <div className="text-sm text-gray-500">
-              <p>Avito Luxury</p>
+              <p>AVITO LUXURY</p>
               <p>contact@avitoluxury.in</p>
             </div>
           </div>

@@ -13,7 +13,7 @@ export default function CollectionLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="text-black font-sans min-h-screen flex flex-col">
+    <div className="bg-white text-black font-sans min-h-screen flex flex-col">
       <Nav />
       <main className="flex-grow">
         {children}

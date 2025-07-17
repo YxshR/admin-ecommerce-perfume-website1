@@ -9,7 +9,7 @@ export default function Footer() {
   const { isAuthenticated } = useAuth();
   
   return (
-    <footer className="border-t border-gray-200 pt-4 pb-8">
+    <footer className="bg-white border-t border-gray-200 pt-4 pb-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8  items-start">
           {/* Logo and Story Section */}

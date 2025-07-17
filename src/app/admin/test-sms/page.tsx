@@ -7,7 +7,7 @@ import Link from 'next/link';
 export default function TestSMSPage() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('This is a test message from Avito Luxury.');
+  const [message, setMessage] = useState('This is a test message from AVITO LUXURY.');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
