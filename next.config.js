@@ -1,9 +1,4 @@
 /** @type {import('next').NextConfig} */
-// Load environment variables from .env.development in development mode
-if (process.env.NODE_ENV === 'development') {
-  require('dotenv').config({ path: '.env.development' });
-}
-
 const nextConfig = {
   eslint: {
     // Warning: This allows production builds to successfully complete even if
@@ -44,13 +39,6 @@ const nextConfig = {
     GOOGLE_STORAGE_BUCKET_NAME: process.env.GOOGLE_STORAGE_BUCKET_NAME || 'ecommerce-app-444531.appspot.com',
     GOOGLE_STORAGE_PROJECT_ID: process.env.GOOGLE_STORAGE_PROJECT_ID || 'ecommerce-app-444531',
     // Removed sensitive information - these should be loaded from .env.local only
-    IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
-    NEXT_PUBLIC_APP_ENV: process.env.NODE_ENV || 'production',
-    // Add JWT_SECRET and ADMIN_JWT_SECRET for development only
-    ...(process.env.NODE_ENV === 'development' ? {
-      JWT_SECRET: process.env.JWT_SECRET || 'development-jwt-secret-key-for-testing',
-      ADMIN_JWT_SECRET: process.env.ADMIN_JWT_SECRET || 'development-admin-jwt-secret-key-for-testing',
-    } : {}),
   },
   output: 'standalone',
   // Add experimental features to improve compatibility with Vercel deployments
@@ -73,11 +61,7 @@ const nextConfig = {
     return config;
   },
   async redirects() {
-    // Skip admin redirects in development mode
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
     return [
-      // Main domain redirects
       {
         source: '/:path*',
         has: [
@@ -100,34 +84,6 @@ const nextConfig = {
         destination: 'https://avitoluxury.in/:path*',
         permanent: true,
       },
-      
-      // Admin subdomain redirects (only in production)
-      ...(!isDevelopment ? [
-        {
-          source: '/admin/:path*',
-          has: [
-            {
-              type: 'host',
-              value: 'avitoluxury.in',
-            }
-          ],
-          destination: 'https://admin.avitoluxury.in/admin/:path*',
-          permanent: true,
-        },
-        {
-          source: '/admin/:path*',
-          has: [
-            {
-              type: 'host',
-              value: 'www.avitoluxury.in',
-            }
-          ],
-          destination: 'https://admin.avitoluxury.in/admin/:path*',
-          permanent: true,
-        }
-      ] : []),
-      
-      // Store route redirects
       {
         source: '/store',
         destination: '/store-routes/store',

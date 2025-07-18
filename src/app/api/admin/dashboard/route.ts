@@ -7,15 +7,11 @@ import Contact from '@/app/models/Contact';
 import { verifyAdminToken } from '@/app/lib/auth-utils';
 
 export async function GET(request: Request) {
-  // Subdomain restriction: Only allow requests from admin.avitoluxury.in in production
+  // Subdomain restriction: Only allow requests from admin.avitoluxury.in
   const host = request.headers.get('host');
-  const isLocalhost = host?.includes('localhost') || host?.includes('127.0.0.1');
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  if (isProduction && host !== 'admin.avitoluxury.in') {
+  if (host !== 'admin.avitoluxury.in') {
     return NextResponse.json({ error: 'Forbidden: Admin panel only accessible via admin.avitoluxury.in' }, { status: 403 });
   }
-  
   try {
     // Verify admin authorization
     const authHeader = request.headers.get('authorization');

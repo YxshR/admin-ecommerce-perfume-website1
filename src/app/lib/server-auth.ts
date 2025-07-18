@@ -9,7 +9,6 @@ const getSecret = () => {
   const secretKey = process.env.JWT_SECRET;
   
   if (!secretKey) {
-    console.warn('JWT_SECRET not found in environment variables, using fallback secret');
     // Fallback for development only - DO NOT use in production
     return new TextEncoder().encode('your_jwt_secret_key_should_be_very_long_and_random');
   }
@@ -40,7 +39,6 @@ export async function encrypt(payload: any) {
     
     return token;
   } catch (error) {
-    console.error('Failed to generate token:', error);
     throw new Error('Failed to generate token');
   }
 }
@@ -54,7 +52,6 @@ export async function decrypt(token: string) {
     const { payload } = await jose.jwtVerify(token, secret);
     return payload;
   } catch (error) {
-    console.error('Failed to decrypt token:', error);
     return null;
   }
 }
@@ -67,7 +64,6 @@ export async function isValidToken(token: string) {
     const decoded = await decrypt(token);
     return !!decoded;
   } catch (error) {
-    console.error('Error validating token:', error);
     return false;
   }
 }
@@ -87,7 +83,6 @@ export async function getUserFromToken(token: string) {
       role: decoded.role
     };
   } catch (error) {
-    console.error('Error getting user from token:', error);
     return null;
   }
 }
@@ -114,13 +109,11 @@ export async function verifyToken(token: string) {
     const user = await User.findById(decoded.id).select('-password');
     
     if (!user) {
-      console.warn('User not found for token ID:', decoded.id);
       return null;
     }
     
     return user;
   } catch (error) {
-    console.error('Error verifying user token:', error);
     return null;
   }
 }
@@ -128,26 +121,19 @@ export async function verifyToken(token: string) {
 // Verify admin token
 export async function verifyAdminToken(token: string): Promise<boolean> {
   try {
-    console.log('Verifying admin token...');
-    
     // First verify with jose
     const secret = getSecret();
     const { payload } = await jose.jwtVerify(token, secret);
     
-    if (!payload) {
-      console.error('Admin token verification failed: No payload');
+    if (!payload || payload.role !== 'admin') {
       return false;
     }
     
-    if (payload.role !== 'admin') {
-      console.error('Admin token verification failed: Not an admin role', payload);
-      return false;
-    }
+    // Connect to database if needed for additional verification
+    // This step could be added for extra security
     
-    console.log('Admin token verified successfully');
     return true;
   } catch (error) {
-    console.error('Admin token verification error:', error);
     return false;
   }
 }

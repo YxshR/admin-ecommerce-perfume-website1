@@ -17,9 +17,7 @@ import {
   FiUsers,
   FiSettings,
   FiLogOut,
-  FiGrid,
-  FiChevronLeft,
-  FiChevronRight as FiChevronRightIcon
+  FiGrid
 } from 'react-icons/fi';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAdminAuth, getAdminToken, getAdminUser } from '@/app/lib/admin-auth';
@@ -66,8 +64,6 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [ordersPerPage] = useState(10);
 
   // Fetch orders
   const fetchOrders = async () => {
@@ -312,17 +308,6 @@ export default function AdminOrdersPage() {
   const filteredOrders = statusFilter === 'All' 
     ? orders 
     : orders.filter(order => order.status === statusFilter);
-    
-  // Pagination logic
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-  
-  // Pagination function
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
 
   // Format date
   const formatDate = (dateString: string | undefined) => {
@@ -373,59 +358,6 @@ export default function AdminOrdersPage() {
     router.push('/admin/login');
   };
 
-  // Pagination component with responsive design
-  const PaginationNumbers = () => {
-    // Always show max 5 pages on desktop, 3 on mobile (handled by CSS)
-    const maxPagesToShow = 5;
-    let startPage = 1;
-    let endPage = totalPages;
-    
-    if (totalPages > maxPagesToShow) {
-      // Calculate start and end page
-      const halfWay = Math.ceil(maxPagesToShow / 2);
-      
-      if (currentPage <= halfWay) {
-        // Near the start
-        endPage = maxPagesToShow;
-      } else if (currentPage + halfWay - 1 >= totalPages) {
-        // Near the end
-        startPage = totalPages - maxPagesToShow + 1;
-      } else {
-        // Middle
-        startPage = currentPage - halfWay + 1;
-        endPage = currentPage + halfWay - 1;
-      }
-    }
-    
-    return (
-      <>
-        {Array.from({ length: endPage - startPage + 1 }).map((_, index) => {
-          const pageNum = startPage + index;
-          return (
-            <button
-              key={index}
-              onClick={() => paginate(pageNum)}
-              className={`relative hidden xs:inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                currentPage === pageNum
-                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              {pageNum}
-            </button>
-          );
-        })}
-        
-        {/* Always show current page on mobile */}
-        <button
-          className={`relative xs:hidden inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium z-10 bg-blue-50 border-blue-500 text-blue-600`}
-        >
-          {currentPage}
-        </button>
-      </>
-    );
-  };
-
   if (authLoading || (loading && orders.length === 0)) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -436,7 +368,7 @@ export default function AdminOrdersPage() {
 
   return (
     <AdminLayout activeRoute="/admin/orders">
-      <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
           <p className="text-gray-600">View and manage customer orders</p>
@@ -451,17 +383,14 @@ export default function AdminOrdersPage() {
       </div>
       
       {/* Filter bar */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex items-center space-x-4">
           <div className="font-medium text-gray-700 flex items-center">
             <FiFilter className="mr-2" /> Filter by status:
           </div>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => {
-                setStatusFilter('All');
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter('All')}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 statusFilter === 'All'
                   ? 'bg-blue-600 text-white'
@@ -471,10 +400,7 @@ export default function AdminOrdersPage() {
               All
             </button>
             <button
-              onClick={() => {
-                setStatusFilter('Pending');
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter('Pending')}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 statusFilter === 'Pending'
                   ? 'bg-yellow-500 text-white'
@@ -484,10 +410,7 @@ export default function AdminOrdersPage() {
               Pending
             </button>
             <button
-              onClick={() => {
-                setStatusFilter('Processing');
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter('Processing')}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 statusFilter === 'Processing'
                   ? 'bg-blue-500 text-white'
@@ -497,10 +420,7 @@ export default function AdminOrdersPage() {
               Processing
             </button>
             <button
-              onClick={() => {
-                setStatusFilter('Shipped');
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter('Shipped')}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 statusFilter === 'Shipped'
                   ? 'bg-purple-500 text-white'
@@ -510,10 +430,7 @@ export default function AdminOrdersPage() {
               Shipped
             </button>
             <button
-              onClick={() => {
-                setStatusFilter('Delivered');
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter('Delivered')}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 statusFilter === 'Delivered'
                   ? 'bg-green-500 text-white'
@@ -523,10 +440,7 @@ export default function AdminOrdersPage() {
               Delivered
             </button>
             <button
-              onClick={() => {
-                setStatusFilter('Cancelled');
-                setCurrentPage(1);
-              }}
+              onClick={() => setStatusFilter('Cancelled')}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 statusFilter === 'Cancelled'
                   ? 'bg-red-500 text-white'
@@ -541,165 +455,114 @@ export default function AdminOrdersPage() {
       
       {/* Orders list */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Order ID
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Customer
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading ? (
               <tr>
-                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order ID
-                </th>
-                <th scope="col" className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th scope="col" className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th scope="col" className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <td colSpan={6} className="px-6 py-4 text-center">
+                  <div className="flex justify-center">
+                    <FiRefreshCw className="animate-spin h-5 w-5 text-blue-500" />
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center">
-                    <div className="flex justify-center">
-                      <FiRefreshCw className="animate-spin h-5 w-5 text-blue-500" />
+            ) : filteredOrders.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  No orders found
+                </td>
+              </tr>
+            ) : (
+              filteredOrders.map((order) => (
+                <tr key={order.id || order._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <FiPackage className="mr-2 text-gray-400" />
+                      <span className="font-medium text-gray-900">
+                        {order.orderNumber || (order.id ? order.id.slice(0, 8).toUpperCase() : order._id ? order._id.toString().slice(0, 8).toUpperCase() : 'N/A')}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{order.customer?.name || 'Unknown'}</div>
+                    <div className="text-sm text-gray-500">{order.customer?.email || 'No email'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(order.date || order.createdAt || new Date().toISOString())}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
+                      {order.status || 'Pending'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ₹{(order.total || order.totalPrice || 0).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      {/* Status update dropdown */}
+                      <div className="relative inline-block text-left">
+                        <select
+                          disabled={updatingOrderId === (order.id || order._id)}
+                          value={order.status || 'Pending'}
+                          onChange={(e) => updateOrderStatus(order.id || order._id, e.target.value)}
+                          className="block w-full pl-3 pr-10 py-1 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Processing">Processing</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                        {updatingOrderId === (order.id || order._id) && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <FiRefreshCw className="animate-spin h-4 w-4 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* View order details */}
+                      <Link 
+                        href={`/admin/orders/${order.id || order._id}`}
+                        className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                      >
+                        View
+                        <FiChevronRight className="ml-1" />
+                      </Link>
                     </div>
                   </td>
                 </tr>
-              ) : currentOrders.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                    No orders found
-                  </td>
-                </tr>
-              ) : (
-                currentOrders.map((order) => (
-                  <tr key={order.id || order._id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <FiPackage className="mr-2 text-gray-400" />
-                        <span className="font-medium text-gray-900 text-sm sm:text-base">
-                          {order.orderNumber || (order.id ? order.id.slice(0, 8).toUpperCase() : order._id ? order._id.toString().slice(0, 8).toUpperCase() : 'N/A')}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.customer?.name || 'Unknown'}</div>
-                      <div className="text-sm text-gray-500">{order.customer?.email || 'No email'}</div>
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(order.date || order.createdAt || new Date().toISOString())}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
-                        {order.status || 'Pending'}
-                      </span>
-                    </td>
-                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₹{(order.total || order.totalPrice || 0).toFixed(2)}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        {/* Status update dropdown */}
-                        <div className="relative inline-block text-left">
-                          <select
-                            disabled={updatingOrderId === (order.id || order._id)}
-                            value={order.status || 'Pending'}
-                            onChange={(e) => updateOrderStatus(order.id || order._id, e.target.value)}
-                            className="block w-full pl-2 pr-6 sm:pl-3 sm:pr-10 py-1 text-xs sm:text-sm border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                          >
-                            <option value="Pending">Pending</option>
-                            <option value="Processing">Processing</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Cancelled">Cancelled</option>
-                          </select>
-                          {updatingOrderId === (order.id || order._id) && (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                              <FiRefreshCw className="animate-spin h-4 w-4 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* View order details */}
-                        <Link 
-                          href={`/admin/orders/${order.id || order._id}`}
-                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                        >
-                          <span className="hidden sm:inline">View</span>
-                          <FiChevronRight className="ml-0 sm:ml-1 h-4 w-4" />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        {filteredOrders.length > ordersPerPage && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex flex-col sm:flex-row sm:flex-1 sm:items-center sm:justify-between">
-              <div className="mb-2 sm:mb-0">
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{indexOfFirstOrder + 1}</span> to{' '}
-                  <span className="font-medium">
-                    {Math.min(indexOfLastOrder, filteredOrders.length)}
-                  </span>{' '}
-                  of <span className="font-medium">{filteredOrders.length}</span> orders
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                      currentPage === 1
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="sr-only">Previous</span>
-                    <FiChevronLeft className="h-5 w-5" />
-                  </button>
-                  
-                  {/* Use the PaginationNumbers component */}
-                  <PaginationNumbers />
-                  
-                  <button
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                      currentPage === totalPages
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="sr-only">Next</span>
-                    <FiChevronRight className="h-5 w-5" />
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Quick status actions */}
       <div className="mt-6 bg-white shadow rounded-lg p-4">
         <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <button 
             onClick={() => {
               const selectedOrders = filteredOrders.filter(o => o.status === 'Pending');

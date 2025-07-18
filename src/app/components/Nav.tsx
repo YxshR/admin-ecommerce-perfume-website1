@@ -70,7 +70,6 @@ export default function Nav() {
   const [miniCartOpen, setMiniCartOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [cartItemsCount, setCartItemsCount] = useState(0);
-  const [mobileActiveDropdown, setMobileActiveDropdown] = useState<string | null>(null);
   
   // Refs for dropdown elements
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -226,8 +225,6 @@ export default function Nav() {
   
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
-    // Close any open mobile dropdowns when toggling menu
-    setMobileActiveDropdown(null);
   };
   
   const toggleSearch = () => {
@@ -244,10 +241,6 @@ export default function Nav() {
   
   const toggleDropdown = (id: string) => {
     setActiveDropdown(activeDropdown === id ? null : id);
-  };
-  
-  const toggleMobileDropdown = (id: string) => {
-    setMobileActiveDropdown(mobileActiveDropdown === id ? null : id);
   };
   
   const toggleMiniCart = () => {
@@ -373,7 +366,7 @@ export default function Nav() {
       <header className="bg-white shadow-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 flex flex-col items-center">
           {/* Top Row: Search | Logo | Cart */}
-          <div className="w-full flex items-center justify-between py-3 md:py-4">
+          <div className="w-full flex items-center justify-between py-4">
             {/* Search Bar (left) */}
             <div className="flex-1 flex justify-start">
               {componentSettings.search && (
@@ -391,13 +384,13 @@ export default function Nav() {
               <Link href="/" className="flex gap-2 items-center">
                 <img
                   src="/logoo1.png"
-                  alt="A V I T O   S C E N T S"
-                  className="h-14 md:h-20 w-auto"
+                  alt="A V I T O   S C E N T S"
+                  className="h-20 w-auto"
                 />
               </Link>
             </div>
             {/* Cart (right) */}
-            <div className="flex-1 flex justify-end items-center space-x-3 md:space-x-4">
+            <div className="flex-1 flex justify-end items-center space-x-4">
               {componentSettings.miniCart && (
                 <button
                   onClick={toggleMiniCart}
@@ -481,16 +474,15 @@ export default function Nav() {
         </div>
         {/* Search Bar (expanded) */}
         {searchOpen && (
-          <div className="border-t border-gray-200 py-3 px-4">
+          <div className="border-t border-gray-200 py-4 px-4">
             <div className="container mx-auto">
               <div className="flex items-center">
                 <input
                   type="text"
                   placeholder="Search for products..."
-                  className="flex-1 border-gray-300 border rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-black text-base"
-                  autoFocus
+                  className="flex-1 border-gray-300 border rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-black"
                 />
-                <button className="bg-black text-white py-2 px-4 sm:px-6 rounded-r-md hover:bg-gray-800 text-sm sm:text-base whitespace-nowrap">
+                <button className="bg-black text-white py-2 px-6 rounded-r-md hover:bg-gray-800">
                   Search
                 </button>
               </div>
@@ -501,55 +493,40 @@ export default function Nav() {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 fixed inset-x-0 top-[68px] z-40 overflow-y-auto max-h-[calc(100vh-68px)]">
-          <div className="container mx-auto px-4 py-3">
-            <nav className="space-y-2">
+        <div className="md:hidden bg-white border-t border-gray-200 fixed inset-x-0 top-[60px] z-20 overflow-y-auto max-h-[calc(100vh-60px)]">
+          <div className="container mx-auto px-4 py-4">
+            <nav className="space-y-4">
               {navigationItems.map((item) => 
                 navItems[item.id] ? (
-                  <div key={item.id} className="border-b border-gray-100 py-2.5">
+                  <div key={item.id}>
                     {item.hasDropdown ? (
                       <>
-                        <div className="flex items-center justify-between w-full">
-                          <Link
-                            href={item.path}
-                            className="text-base font-medium text-gray-700 hover:text-black transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            {item.name}
-                          </Link>
-                          <button 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              toggleMobileDropdown(item.id);
-                            }}
-                            className="p-1.5 rounded-full hover:bg-gray-100"
-                          >
-                            <FiChevronDown 
-                              className={`transition-transform duration-300 ${mobileActiveDropdown === item.id ? 'rotate-180' : ''}`} 
-                              size={20} 
-                            />
-                          </button>
-                        </div>
+                        <Link
+                          href={item.path}
+                          className="flex items-center justify-between w-full py-2 font-medium text-gray-700 hover:text-black transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <span>{item.name}</span>
+                          <FiChevronDown className="ml-1" size={16} />
+                        </Link>
                         
-                        {mobileActiveDropdown === item.id && (
-                          <div className="pl-4 mt-2.5 space-y-2 border-l border-gray-200">
-                            {item.dropdownItems?.map((dropdownItem) => (
-                              <Link
-                                key={dropdownItem.path}
-                                href={dropdownItem.path}
-                                className="block py-2.5 text-gray-600 hover:text-black transition-colors hover:pl-2"
-                                onClick={() => setMobileMenuOpen(false)}
-                              >
-                                {dropdownItem.name}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
+                        <div className="pl-4 mt-2 space-y-2 border-l border-gray-200">
+                          {item.dropdownItems?.map((dropdownItem) => (
+                            <Link
+                              key={dropdownItem.path}
+                              href={dropdownItem.path}
+                              className="block py-2 text-gray-600 hover:text-black transition-colors hover:pl-2"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              {dropdownItem.name}
+                            </Link>
+                          ))}
+                        </div>
                       </>
                     ) : (
                       <Link
                         href={item.path}
-                        className="block py-2.5 text-base font-medium text-gray-700 hover:text-black transition-colors"
+                        className="block py-2 font-medium text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.name}
@@ -564,7 +541,7 @@ export default function Nav() {
                 {navItems.about && (
                   <Link
                     href="/about-us"
-                    className="block py-2.5 text-base text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
+                    className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     About Us
@@ -574,7 +551,7 @@ export default function Nav() {
                 {navItems.track && (
                   <Link
                     href="/track-order"
-                    className="block py-2.5 text-base text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
+                    className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Track Order

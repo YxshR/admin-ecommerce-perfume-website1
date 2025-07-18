@@ -165,7 +165,7 @@ export default function SaleCarousel() {
   }
   
   return (
-    <div className="relative w-full h-[450px] xs:h-[480px] sm:h-[500px] md:h-[500px] overflow-hidden bg-gray-50">
+    <div className="relative w-full h-[300px] xs:h-[350px] sm:h-[400px] md:h-[500px] overflow-hidden bg-gray-50">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -178,7 +178,7 @@ export default function SaleCarousel() {
           {displayProducts[currentIndex] && (
             <div className="grid grid-cols-1 md:grid-cols-2 h-full">
               {/* Image - Mobile: Top, Desktop: Left */}
-              <div className="order-1 md:order-1 flex items-center justify-center h-[250px] xs:h-[260px] sm:h-[280px] md:h-full bg-gray-100 p-4">
+              <div className="order-1 md:order-1 flex items-center justify-center h-[180px] xs:h-[200px] sm:h-[220px] md:h-full bg-gray-100">
                 <img
                   src={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'}
                   alt={displayProducts[currentIndex].name || "Perfume product"}
@@ -193,28 +193,28 @@ export default function SaleCarousel() {
               </div>
               
               {/* Content - Mobile: Bottom, Desktop: Right */}
-              <div className="order-2 md:order-2 flex flex-col items-center justify-center p-4 xs:p-5 md:p-6 lg:p-8">
-                <div className="text-center space-y-2 xs:space-y-3 md:space-y-4 max-w-sm mx-auto">
-                  <div className="bg-red-600 text-white inline-block px-3 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
+              <div className="order-2 md:order-2 flex flex-col items-center justify-center p-3 xs:p-4 md:p-6 lg:p-8">
+                <div className="text-center space-y-1 xs:space-y-2 md:space-y-4 max-w-sm mx-auto">
+                  <div className="bg-red-600 text-white inline-block px-2 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
                     {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
                   </div>
-                  <h2 className="text-xl xs:text-2xl sm:text-2xl md:text-3xl text-[#FFD700] font-bold line-clamp-2">
+                  <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl text-[#FFD700] font-bold line-clamp-2">
                     {displayProducts[currentIndex].name}
                   </h2>
-                  <p className="text-sm xs:text-base text-gray-600 line-clamp-2 md:line-clamp-3">
+                  <p className="text-xs xs:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">
                     {displayProducts[currentIndex].description}
                   </p>
                   
-                  <div className="flex items-center justify-center mt-2 xs:mt-3 md:mt-4 space-x-3 md:space-x-4">
-                    <span className="text-lg xs:text-xl md:text-2xl font-bold">
+                  <div className="flex items-center justify-center mt-1 xs:mt-2 md:mt-4 space-x-2 md:space-x-4">
+                    <span className="text-base xs:text-lg md:text-xl font-bold">
                       ₹{displayProducts[currentIndex].discountedPrice.toFixed(0)}
                     </span>
-                    <span className="text-sm xs:text-base text-gray-500 line-through">
+                    <span className="text-xs xs:text-sm text-gray-500 line-through">
                       MRP ₹{displayProducts[currentIndex].price.toFixed(0)}
                     </span>
                   </div>
                   
-                  <div className="mt-3 md:mt-4">
+                  <div className="mt-2 md:mt-4">
                     <ShopNowButton href={`/product/${displayProducts[currentIndex]._id}`} />
                   </div>
                 </div>
@@ -229,14 +229,14 @@ export default function SaleCarousel() {
         <>
           <button 
             onClick={goToPrev}
-            className="absolute top-1/2 left-2 xs:left-3 sm:left-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1.5 sm:p-2 rounded-full shadow-md hover:bg-white"
+            className="absolute top-1/2 left-1 xs:left-2 sm:left-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-2 rounded-full shadow-md hover:bg-white"
             aria-label="Previous product"
           >
             <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={goToNext}
-            className="absolute top-1/2 right-2 xs:right-3 sm:right-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1.5 sm:p-2 rounded-full shadow-md hover:bg-white"
+            className="absolute top-1/2 right-1 xs:right-2 sm:right-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-2 rounded-full shadow-md hover:bg-white"
             aria-label="Next product"
           >
             <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -245,12 +245,12 @@ export default function SaleCarousel() {
       )}
       
       {/* Dots indicator */}
-      <div className="absolute bottom-3 xs:bottom-4 sm:bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-3 z-20">
+      <div className="absolute bottom-2 xs:bottom-3 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2 z-20">
         {displayProducts.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}
-            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all ${
+            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full transition-all ${
               i === currentIndex ? 'bg-black' : 'bg-gray-300'
             }`}
             aria-label={`Go to slide ${i + 1}`}

@@ -68,7 +68,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
       {/* Mobile Header */}
-      <div className="md:hidden bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-30">
+      <div className="md:hidden bg-white shadow-md p-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-700 to-indigo-800 rounded-full flex items-center justify-center">
             <FiShoppingBag className="text-white" />
@@ -95,9 +95,9 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
       <div 
         className={`
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0 fixed md:sticky top-0 inset-y-0 left-0 z-50
+          md:translate-x-0 fixed md:static inset-y-0 left-0 z-50
           w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out
-          flex flex-col h-screen md:h-screen overflow-hidden
+          flex flex-col
         `}
       >
         <div className="p-6 bg-gradient-to-r from-blue-700 to-indigo-800">
@@ -105,7 +105,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
               <FiShoppingBag className="text-indigo-600" />
             </div>
-            <h2 className="text-xl font-bold text-white">A V I T O   S C E N T S Admin</h2>
+            <h2 className="text-xl font-bold text-white">A V I T O   S C E N T S Admin</h2>
           </div>
         </div>
         

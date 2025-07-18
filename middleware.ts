@@ -27,9 +27,6 @@ const publicPaths = [
   '/register'
 ];
 
-// Check if environment is development
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.IS_DEVELOPMENT === 'true';
-
 export async function middleware(request: NextRequest) {
   const { pathname, host } = request.nextUrl;
 
@@ -37,21 +34,6 @@ export async function middleware(request: NextRequest) {
   if (host === 'avitoluxury.in' || host === 'www.avitoluxury.in') {
     const url = new URL('/', request.url);
     return applySecurityHeaders(NextResponse.redirect(url));
-  }
-
-  // Handle admin subdomain restrictions
-  if (pathname.startsWith(adminBasePath)) {
-    // In production, admin routes should only be accessed via admin.avitoluxury.in
-    if (!isDevelopment) {
-      if (host !== 'admin.avitoluxury.in') {
-        const url = new URL(pathname, `https://admin.avitoluxury.in`);
-        return applySecurityHeaders(NextResponse.redirect(url));
-      }
-    } 
-    // In development, allow access from localhost:3000 or admin.localhost:3000
-    else {
-      console.log('Development environment detected, allowing admin access on', host);
-    }
   }
 
   // Skip middleware for static files and certain API routes

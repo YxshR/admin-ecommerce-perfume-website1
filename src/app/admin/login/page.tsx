@@ -7,26 +7,10 @@ import { FiMail, FiAlertCircle, FiShield, FiKey, FiCheckCircle, FiPhone, FiMessa
 import { saveAdminAuth } from '@/app/lib/admin-auth';
 
 export default function AdminLoginPage() {
-  // Subdomain restriction: Only allow access from admin.avitoluxury.in in production
-  // but allow localhost:3000 in development
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const port = window.location.port;
-    const isDevelopment = hostname === 'localhost' || 
-                          hostname.includes('192.168.') || 
-                          process.env.NODE_ENV === 'development' || 
-                          process.env.NEXT_PUBLIC_APP_ENV === 'development';
-    
-    // In development, allow access from localhost:3000 or admin.localhost:3000
-    if (isDevelopment) {
-      // If we're on localhost but not on the admin subdomain, we can still access admin routes
-      console.log('Development environment detected, allowing admin access on localhost');
-    }
-    // In production, enforce the admin subdomain
-    else if (hostname !== 'admin.avitoluxury.in') {
-      window.location.href = 'https://admin.avitoluxury.in' + window.location.pathname;
-      return null;
-    }
+  // Subdomain restriction: Only allow access from admin.avitoluxury.in
+  if (typeof window !== 'undefined' && window.location.hostname !== 'admin.avitoluxury.in') {
+    window.location.href = 'https://admin.avitoluxury.in' + window.location.pathname;
+    return null;
   }
 
   const [email, setEmail] = useState('');
