@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { FiMenu, FiX, FiChevronDown, FiSearch, FiShoppingBag } from 'react-icons/fi';
-import { useAuth } from './AuthProvider';
+import { FiMenu, FiX, FiChevronDown, FiSearch, FiShoppingBag, FiMoreVertical, FiArrowLeft } from 'react-icons/fi';
 import MiniCartWithModal from './MiniCartWithModal';
 
 // Define interfaces for component props and state
@@ -63,16 +62,18 @@ interface ComponentSettings {
 export default function Nav() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated } = useAuth();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [miniCartOpen, setMiniCartOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [cartItemsCount, setCartItemsCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileOptionsOpen, setMobileOptionsOpen] = useState(false);
   
   // Refs for dropdown elements
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   // Store navigation items
   const [navItems, setNavItems] = useState<NavItems>({
@@ -188,6 +189,13 @@ export default function Nav() {
     };
   }, [activeDropdown]);
   
+  // Focus search input when search is opened
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+  
   // Handle open mini cart from other components
   useEffect(() => {
     const handleOpenMiniCart = () => {
@@ -223,8 +231,40 @@ export default function Nav() {
     };
   }, []);
   
+  // Disable background scrolling when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      // Save the current scroll position
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // Restore scroll position when menu is closed
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+      }
+    }
+    
+    return () => {
+      // Clean up in case component unmounts while menu is open
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [mobileMenuOpen]);
+  
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+    setMobileOptionsOpen(false);
+  };
+  
+  const toggleMobileOptions = () => {
+    setMobileOptionsOpen(!mobileOptionsOpen);
   };
   
   const toggleSearch = () => {
@@ -245,6 +285,23 @@ export default function Nav() {
   
   const toggleMiniCart = () => {
     setMiniCartOpen(!miniCartOpen);
+  };
+  
+  // Handle search form submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}&type=all`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+  
+  // Handle category search
+  const handleCategorySearch = (category: string) => {
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}&type=category&category=${encodeURIComponent(category)}`);
+    setSearchOpen(false);
+    setSearchQuery('');
   };
   
   // Navigation items configuration
@@ -354,6 +411,14 @@ export default function Nav() {
     }
   ];
   
+  // Get all categories for search
+  const searchCategories = [
+    { name: 'Perfumes', id: 'perfumes' },
+    { name: 'Attars', id: 'attars' },
+    { name: 'Air Fresheners', id: 'fresheners' },
+    { name: 'Waxfume', id: 'waxfume' }
+  ];
+  
   return (
     <>
       {/* Announcement Bar */}
@@ -366,7 +431,7 @@ export default function Nav() {
       <header className="bg-white shadow-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 flex flex-col items-center">
           {/* Top Row: Search | Logo | Cart */}
-          <div className="w-full flex items-center justify-between py-4">
+          <div className="w-full flex items-center justify-between py-2 xs:py-4">
             {/* Search Bar (left) */}
             <div className="flex-1 flex justify-start">
               {componentSettings.search && (
@@ -384,8 +449,8 @@ export default function Nav() {
               <Link href="/" className="flex gap-2 items-center">
                 <img
                   src="/logoo1.png"
-                  alt="A V I T O   S C E N T S"
-                  className="h-20 w-auto"
+                  alt="A V I T O   S C E N T S"
+                  className="h-12 xs:h-16 sm:h-20 w-auto"
                 />
               </Link>
             </div>
@@ -405,14 +470,39 @@ export default function Nav() {
                   )}
                 </button>
               )}
-              {/* Mobile menu button */}
-              <button
-                onClick={toggleMobileMenu}
-                className="md:hidden text-gray-700 hover:text-black p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
-                aria-label="Menu"
-              >
-                {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-              </button>
+              {/* Mobile menu options */}
+              <div className="md:hidden relative">
+                <button
+                  onClick={toggleMobileOptions}
+                  className="text-gray-700 hover:text-black p-2 rounded-full hover:bg-gray-100 transition-all duration-300"
+                  aria-label="Options"
+                >
+                  <FiMoreVertical size={24} />
+                </button>
+                
+                {mobileOptionsOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden z-50">
+                    <div className="py-2">
+                      <button
+                        onClick={toggleMobileMenu}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black flex items-center"
+                      >
+                        {mobileMenuOpen ? <FiX className="mr-2" size={16} /> : <FiMenu className="mr-2" size={16} />}
+                        {mobileMenuOpen ? 'Close Menu' : 'Menu'}
+                      </button>
+                      {navItems.track && (
+                        <Link
+                          href="/order-tracking"
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black"
+                          onClick={() => setMobileOptionsOpen(false)}
+                        >
+                          Track Order
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -476,16 +566,40 @@ export default function Nav() {
         {searchOpen && (
           <div className="border-t border-gray-200 py-4 px-4">
             <div className="container mx-auto">
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search for products..."
-                  className="flex-1 border-gray-300 border rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-black"
-                />
-                <button className="bg-black text-white py-2 px-6 rounded-r-md hover:bg-gray-800">
-                  Search
-                </button>
-              </div>
+              <form onSubmit={handleSearch}>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search for products..."
+                      className="flex-1 border-gray-300 border rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-black"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button 
+                      type="submit"
+                      className="bg-black text-white py-2 px-6 rounded-r-md hover:bg-gray-800"
+                    >
+                      Search
+                    </button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-sm font-medium text-gray-700">Search by category:</span>
+                    {searchCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => handleCategorySearch(category.id)}
+                        className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full transition-colors"
+                      >
+                        {category.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -493,35 +607,76 @@ export default function Nav() {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 fixed inset-x-0 top-[60px] z-20 overflow-y-auto max-h-[calc(100vh-60px)]">
+        <div className="md:hidden bg-white border-t border-gray-200 fixed inset-x-0 top-[60px] z-40 overflow-y-auto max-h-[calc(100vh-60px)]">
           <div className="container mx-auto px-4 py-4">
+            {/* Back button */}
+            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+              <button
+                onClick={toggleMobileMenu}
+                className="flex items-center text-gray-700 hover:text-black"
+              >
+                <FiArrowLeft className="mr-2" size={20} />
+                <span className="font-medium">Back</span>
+              </button>
+            </div>
+            
+            {/* Search in mobile menu */}
+            {componentSettings.search && (
+              <div className="mb-4 pb-4 border-b border-gray-200">
+                <form onSubmit={handleSearch} className="flex">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="flex-1 border-gray-300 border rounded-l-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button 
+                    type="submit"
+                    className="bg-black text-white py-2 px-4 rounded-r-md hover:bg-gray-800"
+                  >
+                    <FiSearch size={16} />
+                  </button>
+                </form>
+              </div>
+            )}
+            
             <nav className="space-y-4">
               {navigationItems.map((item) => 
                 navItems[item.id] ? (
-                  <div key={item.id}>
+                  <div key={item.id} className="border-b border-gray-100 pb-2">
                     {item.hasDropdown ? (
                       <>
-                        <Link
-                          href={item.path}
-                          className="flex items-center justify-between w-full py-2 font-medium text-gray-700 hover:text-black transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <span>{item.name}</span>
-                          <FiChevronDown className="ml-1" size={16} />
-                        </Link>
-                        
-                        <div className="pl-4 mt-2 space-y-2 border-l border-gray-200">
-                          {item.dropdownItems?.map((dropdownItem) => (
-                            <Link
-                              key={dropdownItem.path}
-                              href={dropdownItem.path}
-                              className="block py-2 text-gray-600 hover:text-black transition-colors hover:pl-2"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              {dropdownItem.name}
-                            </Link>
-                          ))}
+                        <div className="flex items-center justify-between w-full py-2 font-medium text-gray-700 hover:text-black transition-colors">
+                          <Link
+                            href={item.path}
+                            className="flex-grow"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <span>{item.name}</span>
+                          </Link>
+                          <button 
+                            onClick={() => toggleDropdown(item.id)}
+                            className="p-1 bg-gray-50 rounded-full"
+                          >
+                            <FiChevronDown className={`transition-transform duration-300 ${activeDropdown === item.id ? 'rotate-180' : ''}`} size={16} />
+                          </button>
                         </div>
+                        
+                        {activeDropdown === item.id && (
+                          <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-200">
+                            {item.dropdownItems?.map((dropdownItem) => (
+                              <Link
+                                key={dropdownItem.path}
+                                href={dropdownItem.path}
+                                className="block py-2 text-gray-600 hover:text-black transition-colors hover:pl-2"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                {dropdownItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </>
                     ) : (
                       <Link
@@ -548,7 +703,7 @@ export default function Nav() {
                   </Link>
                 )}
                 
-                {navItems.track && (
+                {/* {navItems.track && (
                   <Link
                     href="/track-order"
                     className="block py-2 text-gray-700 hover:text-black transition-colors duration-200 hover:pl-2 border-l-0 hover:border-l-2 hover:border-black"
@@ -556,7 +711,7 @@ export default function Nav() {
                   >
                     Track Order
                   </Link>
-                )}
+                )} */}
               </div>
             </nav>
           </div>

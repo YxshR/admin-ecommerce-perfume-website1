@@ -165,7 +165,7 @@ export default function SaleCarousel() {
   }
   
   return (
-    <div className="relative w-full h-[300px] xs:h-[350px] sm:h-[400px] md:h-[500px] overflow-hidden bg-gray-50">
+    <div className="relative w-full h-[250px] xs:h-[280px] sm:h-[350px] md:h-[450px] overflow-hidden bg-gray-50">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -177,44 +177,56 @@ export default function SaleCarousel() {
         >
           {displayProducts[currentIndex] && (
             <div className="grid grid-cols-1 md:grid-cols-2 h-full">
-              {/* Image - Mobile: Top, Desktop: Left */}
-              <div className="order-1 md:order-1 flex items-center justify-center h-[180px] xs:h-[200px] sm:h-[220px] md:h-full bg-gray-100">
-                <img
-                  src={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'}
-                  alt={displayProducts[currentIndex].name || "Perfume product"}
-                  className="object-contain w-auto h-full max-h-full max-w-[90%] md:max-w-[80%]"
-                  onError={(e) => {
-                    // Fallback to placeholder on error
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null; // Prevent infinite loop
-                    target.src = '/perfume-placeholder.jpg';
-                  }}
-                />
-              </div>
-              
-              {/* Content - Mobile: Bottom, Desktop: Right */}
-              <div className="order-2 md:order-2 flex flex-col items-center justify-center p-3 xs:p-4 md:p-6 lg:p-8">
-                <div className="text-center space-y-1 xs:space-y-2 md:space-y-4 max-w-sm mx-auto">
-                  <div className="bg-red-600 text-white inline-block px-2 py-1 text-xs uppercase tracking-wider mb-1 md:mb-2">
+              {/* Image - Mobile: Full screen with link, Desktop: Left side */}
+              <div className="order-1 md:order-1 flex items-center justify-center h-full md:h-full bg-gray-100 relative">
+                <Link href={`/product/${displayProducts[currentIndex]._id}`} className="w-full h-full flex items-center justify-center">
+                  <img
+                    src={displayProducts[currentIndex].images && displayProducts[currentIndex].images[0]?.url || '/perfume-placeholder.jpg'}
+                    alt={displayProducts[currentIndex].name || "Perfume product"}
+                    className="object-contain w-auto h-full max-h-full max-w-[70%] sm:max-w-[80%] md:max-w-[80%]"
+                    onError={(e) => {
+                      // Fallback to placeholder on error
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null; // Prevent infinite loop
+                      target.src = '/perfume-placeholder.jpg';
+                    }}
+                  />
+                  {/* Mobile-only discount badge */}
+                  <div className="md:hidden absolute top-4 left-4 bg-red-600 text-white inline-block px-1.5 xs:px-2 py-0.5 text-xs uppercase tracking-wider">
                     {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
                   </div>
-                  <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl text-[#FFD700] font-bold line-clamp-2">
+                  {/* Mobile-only product name overlay at bottom */}
+                  <div className="md:hidden absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-center">
+                    <h3 className="text-sm xs:text-base font-medium truncate">{displayProducts[currentIndex].name}</h3>
+                  </div>
+                </Link>
+              </div>
+              
+              {/* Content - Hidden on mobile, Visible on Desktop: Right side */}
+              <div className="hidden md:flex order-2 md:order-2 flex-col items-center justify-center p-1 xs:p-2 sm:p-4 md:p-6 lg:p-8">
+                <div className="text-center space-y-0.5 xs:space-y-1 sm:space-y-2 md:space-y-4 max-w-sm mx-auto">
+                  <div className="bg-red-600 text-white inline-block px-1.5 xs:px-2 py-0.5 text-xs uppercase tracking-wider mb-0.5 xs:mb-1 md:mb-2">
+                    {Math.round(displayProducts[currentIndex].discountPercentage || 0)}% OFF
+                  </div>
+                  
+                  <h2 className="text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl font-bold font-serif">
                     {displayProducts[currentIndex].name}
                   </h2>
-                  <p className="text-xs xs:text-sm text-gray-600 line-clamp-2 md:line-clamp-3">
+                  
+                  <p className="text-xs sm:text-sm text-gray-600 line-clamp-1 sm:line-clamp-2">
                     {displayProducts[currentIndex].description}
                   </p>
                   
-                  <div className="flex items-center justify-center mt-1 xs:mt-2 md:mt-4 space-x-2 md:space-x-4">
-                    <span className="text-base xs:text-lg md:text-xl font-bold">
-                      ₹{displayProducts[currentIndex].discountedPrice.toFixed(0)}
+                  <div className="flex flex-row items-center justify-center gap-1 xs:gap-2 md:gap-4 my-0.5 xs:my-1 sm:my-2 md:my-4">
+                    <span className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold">
+                      ₹{displayProducts[currentIndex].discountedPrice}
                     </span>
-                    <span className="text-xs xs:text-sm text-gray-500 line-through">
-                      MRP ₹{displayProducts[currentIndex].price.toFixed(0)}
+                    <span className="text-xs sm:text-sm text-gray-500 line-through">
+                      ₹{displayProducts[currentIndex].price}
                     </span>
                   </div>
                   
-                  <div className="mt-2 md:mt-4">
+                  <div className="mt-0.5 xs:mt-1 sm:mt-2 md:mt-4">
                     <ShopNowButton href={`/product/${displayProducts[currentIndex]._id}`} />
                   </div>
                 </div>
@@ -224,36 +236,33 @@ export default function SaleCarousel() {
         </motion.div>
       </AnimatePresence>
       
-      {/* Navigation arrows */}
-      {displayProducts.length > 1 && (
-        <>
-          <button 
-            onClick={goToPrev}
-            className="absolute top-1/2 left-1 xs:left-2 sm:left-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-2 rounded-full shadow-md hover:bg-white"
-            aria-label="Previous product"
-          >
-            <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-          <button 
-            onClick={goToNext}
-            className="absolute top-1/2 right-1 xs:right-2 sm:right-4 -translate-y-1/2 z-20 bg-white/80 text-black p-1 sm:p-2 rounded-full shadow-md hover:bg-white"
-            aria-label="Next product"
-          >
-            <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-        </>
-      )}
+      {/* Navigation arrows - hidden on small screens, visible on medium and up */}
+      <button
+        onClick={goToPrev}
+        className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md z-10"
+        aria-label="Previous product"
+      >
+        <FiChevronLeft className="w-5 h-5" />
+      </button>
       
-      {/* Dots indicator */}
-      <div className="absolute bottom-2 xs:bottom-3 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2 z-20">
-        {displayProducts.map((_, i) => (
+      <button
+        onClick={goToNext}
+        className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md z-10"
+        aria-label="Next product"
+      >
+        <FiChevronRight className="w-5 h-5" />
+      </button>
+      
+      {/* Indicators - hidden on mobile screens */}
+      <div className="hidden sm:flex absolute bottom-1 sm:bottom-2 md:bottom-4 left-0 right-0 justify-center space-x-1.5 sm:space-x-2">
+        {displayProducts.map((_, index) => (
           <button
-            key={i}
-            onClick={() => setCurrentIndex(i)}
+            key={index}
+            onClick={() => setCurrentIndex(index)}
             className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full transition-all ${
-              i === currentIndex ? 'bg-black' : 'bg-gray-300'
+              currentIndex === index ? 'bg-black scale-125' : 'bg-gray-300'
             }`}
-            aria-label={`Go to slide ${i + 1}`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>

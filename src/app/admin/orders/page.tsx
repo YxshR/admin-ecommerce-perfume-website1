@@ -17,7 +17,9 @@ import {
   FiUsers,
   FiSettings,
   FiLogOut,
-  FiGrid
+  FiGrid,
+  FiChevronLeft,
+  FiChevronRight
 } from 'react-icons/fi';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAdminAuth, getAdminToken, getAdminUser } from '@/app/lib/admin-auth';
@@ -64,6 +66,8 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(10);
 
   // Fetch orders
   const fetchOrders = async () => {
@@ -309,6 +313,16 @@ export default function AdminOrdersPage() {
     ? orders 
     : orders.filter(order => order.status === statusFilter);
 
+  // Pagination
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+  
   // Format date
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'No date';
@@ -487,14 +501,14 @@ export default function AdminOrdersPage() {
                   </div>
                 </td>
               </tr>
-            ) : filteredOrders.length === 0 ? (
+            ) : currentOrders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                   No orders found
                 </td>
               </tr>
             ) : (
-              filteredOrders.map((order) => (
+              currentOrders.map((order) => (
                 <tr key={order.id || order._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -558,6 +572,82 @@ export default function AdminOrdersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {filteredOrders.length > ordersPerPage && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+          <div className="flex-1 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{indexOfFirstOrder + 1}</span> to{' '}
+                <span className="font-medium">
+                  {Math.min(indexOfLastOrder, filteredOrders.length)}
+                </span>{' '}
+                of <span className="font-medium">{filteredOrders.length}</span> orders
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                    currentPage === 1
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="sr-only">Previous</span>
+                  <FiChevronLeft className="h-5 w-5" />
+                </button>
+                
+                {/* Page Numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
+                  let pageNum;
+                  
+                  // Logic to display page numbers centered around current page
+                  if (totalPages <= 5) {
+                    pageNum = index + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = index + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + index;
+                  } else {
+                    pageNum = currentPage - 2 + index;
+                  }
+                  
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => paginate(pageNum)}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === pageNum
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                    currentPage === totalPages
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="sr-only">Next</span>
+                  <FiChevronRight className="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick status actions */}
       <div className="mt-6 bg-white shadow rounded-lg p-4">

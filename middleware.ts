@@ -27,13 +27,51 @@ const publicPaths = [
   '/register'
 ];
 
-export async function middleware(request: NextRequest) {
-  const { pathname, host } = request.nextUrl;
+// Helper function to check if we're in development mode or on localhost
+function isDevelopmentOrLocalhost(hostname: string): boolean {
+  return process.env.NODE_ENV !== 'production' || 
+         hostname.includes('localhost') || 
+         hostname.includes('127.0.0.1');
+}
 
-  // Handle domain redirect for avitoluxury.in
-  if (host === 'avitoluxury.in' || host === 'www.avitoluxury.in') {
-    const url = new URL('/', request.url);
-    return applySecurityHeaders(NextResponse.redirect(url));
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const hostname = request.headers.get('host') || '';
+  
+  // Skip domain-based routing for development or localhost
+  const isDevOrLocal = isDevelopmentOrLocalhost(hostname);
+  
+  // Handle domain-based routing only in production and not on localhost
+  if (!isDevOrLocal) {
+    // Admin subdomain handling
+    if (hostname === 'admin.avitoluxury.in') {
+      // If accessing the root of admin subdomain, redirect to admin dashboard or login
+      if (pathname === '/') {
+        const session = await getSessionFromRequest(request);
+        if (session && session.role === 'admin') {
+          return applySecurityHeaders(NextResponse.redirect(new URL('/admin/dashboard', request.url)));
+        } else {
+          return applySecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)));
+        }
+      }
+      
+      // If trying to access non-admin paths on admin subdomain, redirect to main site
+      if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next')) {
+        return applySecurityHeaders(
+          NextResponse.redirect(new URL(`https://avitoluxury.in${pathname}`, request.url))
+        );
+      }
+    }
+    
+    // Main domain and www subdomain handling
+    else if (hostname === 'avitoluxury.in' || hostname === 'www.avitoluxury.in') {
+      // If trying to access admin paths on main domain, redirect to admin subdomain
+      if (pathname.startsWith('/admin')) {
+        return applySecurityHeaders(
+          NextResponse.redirect(new URL(`https://admin.avitoluxury.in${pathname}`, request.url))
+        );
+      }
+    }
   }
 
   // Skip middleware for static files and certain API routes

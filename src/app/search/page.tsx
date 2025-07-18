@@ -11,12 +11,15 @@ import Footer from '@/app/components/Footer';
 interface Product {
   _id: string;
   name: string;
+  productType: string;
   description: string;
   price: number;
   discountedPrice: number;
   category: string;
+  subCategory?: string;
   images: { url: string }[];
-  rating: number;
+  rating?: number;
+  mainImage?: string;
   ml?: number;
   gender?: string;
 }
@@ -24,7 +27,9 @@ interface Product {
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const query = searchParams.get('q') || '';
+  const query = searchParams?.get('q') || '';
+  const type = searchParams?.get('type') || 'all';
+  const categoryParam = searchParams?.get('category') || '';
   
   // Function to handle the back button click
   const handleBackClick = () => {
@@ -39,7 +44,9 @@ export default function SearchPage() {
   // Filter states
   const [searchQuery, setSearchQuery] = useState(query);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categoryParam ? [categoryParam] : []
+  );
   const [selectedGender, setSelectedGender] = useState<string[]>([]);
   const [selectedML, setSelectedML] = useState<number[]>([]);
   
@@ -55,18 +62,35 @@ export default function SearchPage() {
   const [availableGenders, setAvailableGenders] = useState<string[]>([]);
   const [availableML, setAvailableML] = useState<number[]>([]);
   
-  // Fetch products
+  // Fetch products using the search API
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const response = await fetch('/api/products');
+        
+        // Construct API URL with search parameters
+        let apiUrl = `/api/search?q=${encodeURIComponent(query)}`;
+        
+        if (type && type !== 'all') {
+          apiUrl += `&type=${encodeURIComponent(type)}`;
+        }
+        
+        if (categoryParam) {
+          apiUrl += `&category=${encodeURIComponent(categoryParam)}`;
+        }
+        
+        const response = await fetch(apiUrl);
         
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
         
         const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to load products');
+        }
+        
         const productsData = data.products || [];
         setProducts(productsData);
         
@@ -87,6 +111,8 @@ export default function SearchPage() {
             price: 199.99,
             discountedPrice: 149.99,
             category: 'Floral',
+            productType: 'Perfumes',
+            subCategory: 'Luxury',
             images: [{ url: 'https://placehold.co/400x500/272420/FFFFFF?text=Midnight+Elixir' }],
             rating: 4.5,
             ml: 50,
@@ -99,6 +125,8 @@ export default function SearchPage() {
             price: 299.99,
             discountedPrice: 249.99,
             category: 'Woody',
+            productType: 'Perfumes',
+            subCategory: 'Premium',
             images: [{ url: 'https://placehold.co/400x500/272420/FFFFFF?text=Golden+Aura' }],
             rating: 4.8,
             ml: 100,
@@ -111,6 +139,8 @@ export default function SearchPage() {
             price: 399.99,
             discountedPrice: 0,
             category: 'Oriental',
+            productType: 'Perfumes',
+            subCategory: 'Luxury',
             images: [{ url: 'https://placehold.co/400x500/272420/FFFFFF?text=Royal+Oud' }],
             rating: 4.9,
             ml: 75,
@@ -123,6 +153,8 @@ export default function SearchPage() {
             price: 229.99,
             discountedPrice: 199.99,
             category: 'Floral',
+            productType: 'Perfumes',
+            subCategory: 'Premium',
             images: [{ url: 'https://placehold.co/400x500/272420/FFFFFF?text=Velvet+Rose' }],
             rating: 4.6,
             ml: 50,
@@ -140,7 +172,7 @@ export default function SearchPage() {
     }
     
     fetchProducts();
-  }, []);
+  }, [query, type, categoryParam]);
   
   // Helper function to extract filter options
   const extractFilterOptions = (products: Product[]) => {
@@ -167,8 +199,9 @@ export default function SearchPage() {
     
     // Filter products based on all criteria
     const filtered = products.filter(product => {
-      // Search text match
-      const searchMatch = searchQuery === '' || 
+      // Search text match - we already filtered by search query from the API
+      // but this allows for additional filtering on the client side
+      const searchMatch = searchQuery === '' || query === searchQuery || 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,7 +228,15 @@ export default function SearchPage() {
     });
     
     setFilteredProducts(filtered);
-  }, [searchQuery, selectedCategories, selectedGender, selectedML, priceRange, products]);
+  }, [searchQuery, selectedCategories, selectedGender, selectedML, priceRange, products, query]);
+  
+  // Handle search form submission
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}&type=all`);
+    }
+  };
   
   // Handlers for filter toggles
   const handleCategoryToggle = (category: string) => {
@@ -267,13 +308,18 @@ export default function SearchPage() {
             {/* Search and Filter Toggle */}
             <div className="mb-10 flex flex-col md:flex-row gap-4 justify-between items-center bg-[#30231d]/50 p-4 rounded-lg border border-[#b8860b]/20">
               <div className="w-full md:w-2/3 relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name, category, gender or size..."
-                  className="w-full px-4 py-3 pl-10 rounded-md bg-[#322920] border border-[#b8860b]/30 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none text-white"
-                />
+                <form onSubmit={handleSearchSubmit}>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name, category, gender or size..."
+                    className="w-full px-4 py-3 pl-10 rounded-md bg-[#322920] border border-[#b8860b]/30 focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] focus:outline-none text-white"
+                  />
+                  <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                    <FiSearch />
+                  </button>
+                </form>
                 <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
               

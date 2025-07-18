@@ -306,24 +306,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       {/* On Sale Tag */}
       {discount > 0 && (
-        <div className="absolute top-3 left-3 sale-tag z-10">
+        <div className="absolute top-2 left-2 xs:top-3 xs:left-3 sale-tag z-10 text-xs xs:text-sm">
           On Sale
         </div>
       )}
       
-      {/* Wishlist button
-      <button
-        onClick={handleToggleWishlist}
-        className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow-md transition-all hover:scale-110"
-        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-      >
-        <FiHeart 
-          className={`w-5 h-5 ${isWishlisted ? 'text-red-500 fill-current' : 'text-gray-600'}`} 
-        />
-      </button> */}
-      
       {/* Product Image - Link wrapper */}
-      <Link href={`/product/${product._id}`} className="block relative h-64 md:h-80 overflow-hidden">
+      <Link href={`/product/${product._id}`} className="block relative h-48 xs:h-56 sm:h-60 md:h-64 overflow-hidden">
         <Image
           src={imageUrl}
           alt={product.name}
@@ -335,35 +324,35 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
       
       {/* Product Info */}
-      <div className="p-4 flex-grow flex flex-col">
-{/* Product Type */}
-<div className="text-xs text-gray-500 uppercase mb-1">
-  {product.productType}
-</div>
+      <div className="p-3 xs:p-4 flex-grow flex flex-col">
+        {/* Product Type */}
+        <div className="text-xs text-gray-500 uppercase mb-1">
+          {product.productType}
+        </div>
         
         {/* Title - Link wrapper */}
         <Link href={`/product/${product._id}`} className="block">
-          <h3 className="text-sm font-medium mb-2 line-clamp-1 font-lastica">
+          <h3 className="text-xs xs:text-sm font-medium mb-1 xs:mb-2 line-clamp-1 font-lastica">
             {product.name}
           </h3>
         </Link>
         
-{/* Sub-Category */}
-<p className="text-xs text-gray-500 mb-2 line-clamp-1">
-  {product.subCategory}
-</p>
+        {/* Sub-Category */}
+        <p className="text-xs text-gray-500 mb-1 xs:mb-2 line-clamp-1">
+          {product.subCategory}
+        </p>
         
         {/* Price */}
-        <div className="flex items-center justify-center mt-auto mb-3">
+        <div className="flex items-center justify-center mt-auto mb-2 xs:mb-3">
           {product.discountedPrice > 0 ? (
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-black">₹{product.discountedPrice.toFixed(2)}</span>
+              <div className="flex items-center gap-1 xs:gap-2">
+                <span className="text-xs xs:text-sm font-medium text-black">₹{product.discountedPrice.toFixed(2)}</span>
                 <span className="text-xs text-gray-500 line-through">MRP ₹{product.price.toFixed(2)}</span>
               </div>
             </div>
           ) : (
-            <span className="text-sm font-medium text-black">₹{product.price.toFixed(2)}</span>
+            <span className="text-xs xs:text-sm font-medium text-black">₹{product.price.toFixed(2)}</span>
           )}
         </div>
         
@@ -371,9 +360,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         <button 
           onClick={handleAddToCart}
           disabled={isAddingToCart}
-          className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-black text-white hover:bg-[#333] transition-all duration-300"
+          className="w-full flex items-center justify-center space-x-2 py-2 xs:py-2.5 sm:py-3 px-3 xs:px-4 bg-black text-white hover:bg-[#333] transition-all duration-300 text-xs xs:text-sm rounded-none"
         >
-          <span className="text-xs font-medium uppercase">{isAddingToCart ? 'Added!' : 'Add to Cart'}</span>
+          <span className="font-medium uppercase">{isAddingToCart ? 'Added!' : 'Add to Cart'}</span>
         </button>
       </div>
     </div>

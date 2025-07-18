@@ -32,6 +32,8 @@ interface Product {
   createdAt: string;
   updatedAt: string;
   ml?: number;
+  category?: string;
+  description?: string;
 }
 
 // ProductCardWrapper to handle different Product interfaces
@@ -108,7 +110,7 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
           <img 
             src={formattedProduct.mainImage} 
             alt={formattedProduct.name}
-            className="w-full h-64 object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-48 xs:h-56 sm:h-60 md:h-64 object-cover object-center transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
         {hasDiscount && (
@@ -117,37 +119,37 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
           </div>
         )}
       </div>
-      <div className="p-4 flex-grow flex flex-col">
-        <h3 className="font-medium text-lg mb-1 font-lastica">
+      <div className="p-3 xs:p-4 flex-grow flex flex-col">
+        <h3 className="font-medium text-xs xs:text-sm md:text-base mb-1 font-lastica line-clamp-1">
           <Link href={`/product/${formattedProduct.slug}`} className="hover:text-gray-700 font-lastica">
             {formattedProduct.name}
           </Link>
         </h3>
-        <p className="text-sm text-gray-600 mb-1">{formattedProduct.subCategories && formattedProduct.subCategories.length > 0 ? formattedProduct.subCategories[0] : ''}</p>
-        <p className="text-sm text-gray-600 mb-1">{formattedProduct.productType}</p>
+        <p className="text-xs text-gray-600 mb-1">{formattedProduct.subCategories && formattedProduct.subCategories.length > 0 ? formattedProduct.subCategories[0] : ''}</p>
+        <p className="text-xs text-gray-600 mb-1">{formattedProduct.productType}</p>
 
         <div className="mt-auto flex justify-between items-center">
           <div className="flex items-baseline">
             {hasDiscount ? (
               <>
-                <span className="text-lg font-bold text-red-600">₹{displayOriginalPrice}</span>
+                <span className="text-sm xs:text-base font-bold text-red-600">₹{displayOriginalPrice}</span>
                 {displayOriginalPrice && (
-                  <span className="text-sm text-gray-400 line-through ml-2">
+                  <span className="text-xs text-gray-400 line-through ml-2">
                     MRP ₹{displayPrice}
                   </span>
                 )}
               </>
             ) : (
-              <span className="text-lg font-bold">₹{displayPrice}</span>
+              <span className="text-sm xs:text-base font-bold">₹{displayPrice}</span>
             )}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-xs text-gray-500">
             {formattedProduct.volume && `${formattedProduct.volume} `}
           </div>
         </div>
         <button 
           onClick={handleAddToCart}
-          className="mt-4 w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition-colors"
+          className="mt-3 w-full bg-black text-white py-2 xs:py-2.5 sm:py-3 rounded-none hover:bg-gray-800 transition-colors text-xs xs:text-sm"
         >
           Add to Cart
         </button>
@@ -422,27 +424,27 @@ export default function ProductListing({
           </button>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Filters Panel */}
-          <div className={`lg:w-1/4 ${isFilterOpen ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 shadow-sm sticky top-24">
-              <div className="flex justify-between items-center mb-5 pb-2 border-b border-gray-200">
-                <h3 className="font-semibold text-lg">Filters</h3>
+          <div className={`${isFilterOpen ? 'block' : 'hidden lg:block'} w-full lg:w-1/4 transition-all duration-300`}>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 xs:p-4 mb-6 shadow-sm lg:sticky lg:top-24">
+              <div className="flex justify-between items-center mb-3 xs:mb-5 pb-2 border-b border-gray-200">
+                <h3 className="font-semibold text-base xs:text-lg">Filters</h3>
                 <button 
                   onClick={resetFilters}
-                  className="text-sm text-black hover:text-gray-600 transition-colors"
+                  className="text-xs xs:text-sm text-black hover:text-gray-600 transition-colors"
                 >
                   Reset All
                 </button>
               </div>
               
               {/* Sort By */}
-              <div className="border-t border-gray-200 py-4">
-                <h4 className="font-medium mb-2">Sort By</h4>
+              <div className="border-t border-gray-200 py-3 xs:py-4">
+                <h4 className="font-medium mb-2 text-sm xs:text-base">Sort By</h4>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                  className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm"
                 >
                   <option value="newest">Newest</option>
                   <option value="price-low-high">Price: Low to High</option>
@@ -611,7 +613,7 @@ export default function ProductListing({
           </div>
           
           {/* Products Grid */}
-          <div className="lg:w-3/4">
+          <div className="w-full lg:w-3/4">
             {loading ? (
               <div className="flex justify-center items-center h-64 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="text-center">
@@ -643,7 +645,7 @@ export default function ProductListing({
                 </div>
                 
                 {filteredProducts.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 xs:gap-6 md:gap-8">
                     {filteredProducts.map((product) => (
                       <div key={product._id} className="h-full">
                         <ProductCardWrapper product={product} />

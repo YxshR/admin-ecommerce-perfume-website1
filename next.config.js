@@ -61,29 +61,8 @@ const nextConfig = {
     return config;
   },
   async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'avitoluxury.in',
-          }
-        ],
-        destination: 'https://avitoluxury.in/:path*',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.avitoluxury.in',
-          }
-        ],
-        destination: 'https://avitoluxury.in/:path*',
-        permanent: true,
-      },
+    // Basic redirects that apply in all environments
+    const redirects = [
       {
         source: '/store',
         destination: '/store-routes/store',
@@ -99,8 +78,93 @@ const nextConfig = {
         destination: '/store-routes/product/:path*',
         permanent: true,
       }
-    ]
-  }
+    ];
+
+    // Add production-only domain-based redirects
+    if (process.env.NODE_ENV === 'production') {
+      // Admin redirects from main domain to admin subdomain
+      redirects.push({
+        source: '/admin/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'avitoluxury.in'
+          }
+        ],
+        destination: 'https://admin.avitoluxury.in/admin/:path*',
+        permanent: true
+      });
+      
+      redirects.push({
+        source: '/admin/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.avitoluxury.in'
+          }
+        ],
+        destination: 'https://admin.avitoluxury.in/admin/:path*',
+        permanent: true
+      });
+      
+      // Non-admin redirects from admin subdomain to main domain
+      redirects.push({
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'admin.avitoluxury.in'
+          }
+        ],
+        missing: [
+          {
+            type: 'path',
+            value: '^/admin.*'
+          },
+          {
+            type: 'path',
+            value: '^/_next.*'
+          }
+        ],
+        destination: 'https://avitoluxury.in/:path*',
+        permanent: true
+      });
+      
+      // Root admin subdomain to admin login
+      redirects.push({
+        source: '/',
+        has: [
+          {
+            type: 'host',
+            value: 'admin.avitoluxury.in'
+          }
+        ],
+        destination: 'https://admin.avitoluxury.in/admin/login',
+        permanent: false
+      });
+    }
+    
+    return redirects;
+  },
+  // Domain configuration
+  async headers() {
+    return [
+      {
+        // Apply these headers to all routes
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          }
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig; 

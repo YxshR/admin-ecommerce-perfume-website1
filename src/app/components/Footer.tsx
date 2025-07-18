@@ -13,17 +13,19 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8  items-start">
           {/* Logo and Story Section */}
-          <div className="col-span-1 flex flex-col items-start">
-            <div className="mb-6 w-full">
+          <div className="col-span-1 flex flex-col items-center md:items-start">
+            <div className="mb-6 w-full text-center md:text-left">
               {/* Logo */}
-              <Image 
-                src="/avito3-13.png" 
-                alt="A V I T O   S C E N T S Logo" 
-                width={150}
-                height={60}
-                className="mb-4"
-                style={{ width: '80%', height: 'auto' }}
-              />
+              <div className="flex justify-center md:justify-start">
+                <Image 
+                  src="/avito3-13.png" 
+                  alt="A V I T O   S C E N T S Logo" 
+                  width={150}
+                  height={60}
+                  className="mb-4"
+                  style={{ width: '80%', height: 'auto' }}
+                />
+              </div>
               {/* Our Story */}
               <h3 className="text-lg font-medium mb-2">Our Story</h3>
               <p className="text-sm text-gray-600">

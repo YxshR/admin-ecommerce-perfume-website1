@@ -274,7 +274,7 @@ export default function AdminProducts() {
   
   return (
     <AdminLayout activeRoute="/admin/products">
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
           <p className="text-gray-600">Manage your product inventory</p>
@@ -291,7 +291,7 @@ export default function AdminProducts() {
       
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-col md:flex-row flex-wrap gap-4">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
@@ -353,25 +353,25 @@ export default function AdminProducts() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Category
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Price
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Inventory
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Added On
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -379,7 +379,7 @@ export default function AdminProducts() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentProducts.map((product) => (
                   <tr key={product._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <img 
@@ -390,31 +390,39 @@ export default function AdminProducts() {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900 font-lastica">{product.name}</div>
-                          <div className="text-sm text-gray-500 truncate max-w-xs ">{product.description.substring(0, 50)}...</div>
+                          <div className="text-sm text-gray-500 truncate max-w-[150px] sm:max-w-xs">{product.description.substring(0, 50)}...</div>
+                          <div className="sm:hidden text-xs text-gray-500 mt-1">{product.category || 'Uncategorized'}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{product.category || 'Uncategorized'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatCurrency(product.price)}</div>
+                      <div className="md:hidden mt-1">
+                        <Badge 
+                          featured={product.featured} 
+                          new_arrival={product.new_arrival} 
+                          best_seller={product.best_seller} 
+                        />
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                       <Badge 
                         featured={product.featured} 
                         new_arrival={product.new_arrival} 
                         best_seller={product.best_seller} 
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{product.quantity} in stock</div>
                       <div className="text-xs text-gray-500">{product.sold || 0} sold</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(product.createdAt)}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <Link href={`/product/${product._id}`}>
                           <button className="text-indigo-600 hover:text-indigo-900">
@@ -443,9 +451,9 @@ export default function AdminProducts() {
         
         {/* Pagination */}
         {filteredProducts.length > productsPerPage && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
+          <div className="bg-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
+              <div className="mb-4 sm:mb-0">
                 <p className="text-sm text-gray-700">
                   Showing <span className="font-medium">{indexOfFirstProduct + 1}</span> to{' '}
                   <span className="font-medium">
@@ -469,35 +477,42 @@ export default function AdminProducts() {
                     <FiChevronLeft className="h-5 w-5" />
                   </button>
                   
-                  {/* Page Numbers */}
-                  {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
-                    let pageNum;
-                    
-                    // Logic to display page numbers centered around current page
-                    if (totalPages <= 5) {
-                      pageNum = index + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = index + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + index;
-                    } else {
-                      pageNum = currentPage - 2 + index;
-                    }
-                    
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => paginate(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                          currentPage === pageNum
-                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                            : 'text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+                  {/* Page Numbers - Only show on larger screens */}
+                  <div className="hidden sm:flex">
+                    {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
+                      let pageNum;
+                      
+                      // Logic to display page numbers centered around current page
+                      if (totalPages <= 5) {
+                        pageNum = index + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = index + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + index;
+                      } else {
+                        pageNum = currentPage - 2 + index;
+                      }
+                      
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => paginate(pageNum)}
+                          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                            currentPage === pageNum
+                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                              : 'text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Current page indicator for small screens */}
+                  <div className="sm:hidden flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium">
+                    Page {currentPage} of {totalPages}
+                  </div>
                   
                   <button
                     onClick={() => paginate(currentPage + 1)}
