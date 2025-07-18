@@ -2,20 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse the CSP violation report
+    // Get the CSP report from the request body
     const report = await request.json();
     
-    // In production, you would log this to a secure logging service
-    // For security reasons, we don't log to console
+    // In production, you might want to log this to a monitoring service
+    // For now, we'll just log it to the console in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('CSP Violation Report:');
+      console.log(JSON.stringify(report, null, 2));
+    }
     
-    // You could store these reports in your database for later analysis
-    // Or send them to a monitoring service
-    
+    // Return a success response
     return NextResponse.json({ success: true }, { status: 204 });
   } catch (error) {
-    // Silent error handling for security
+    // Silent error handling
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }
 
+// Don't cache this route
 export const dynamic = 'force-dynamic'; 

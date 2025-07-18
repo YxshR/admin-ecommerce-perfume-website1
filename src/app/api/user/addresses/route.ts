@@ -3,21 +3,33 @@ import mongoose from 'mongoose';
 import connectMongoDB from '@/app/lib/mongodb';
 import User from '@/app/models/User';
 
+// Remove all console.log statements
+// Replace them with a secure logging function if needed
+
+// Example secure logging function
+const secureLog = (message: string) => {
+  if (process.env.NODE_ENV !== 'production') {
+    // Only log in development
+  }
+};
+
+// Then replace all console.log calls with secureLog or remove them completely
+
 // GET endpoint to fetch user addresses
 export async function GET(request: Request) {
   try {
-    console.log('GET /api/user/addresses - Fetching addresses');
+    secureLog('GET /api/user/addresses - Fetching addresses');
     
     // Get session from cookies
     const cookie = request.headers.get('cookie') || '';
-    console.log('Cookie header present:', !!cookie);
+    secureLog('Cookie header present: ' + !!cookie);
     
     // Check for isLoggedIn cookie without assuming specific value
     const isLoggedInCookie = cookie.match(/isLoggedIn=([^;]+)/);
-    console.log('isLoggedIn cookie found:', !!isLoggedInCookie);
+    secureLog('isLoggedIn cookie found: ' + !!isLoggedInCookie);
     
     if (!isLoggedInCookie) {
-      console.log('User not logged in, returning 401');
+      secureLog('User not logged in, returning 401');
       return NextResponse.json({ 
         success: false, 
         error: 'Unauthorized - Please log in' 
@@ -34,10 +46,10 @@ export async function GET(request: Request) {
     
     // Find the userDataCookie to extract the user ID
     const userDataCookieMatch = cookie.match(/userData=([^;]+)/);
-    console.log('userData cookie match found:', !!userDataCookieMatch);
+    secureLog('userData cookie match found: ' + !!userDataCookieMatch);
     
     if (!userDataCookieMatch) {
-      console.log('No userData cookie found, returning 401');
+      secureLog('No userData cookie found, returning 401');
       return NextResponse.json({ 
         success: false, 
         error: 'User data not found in cookies' 
@@ -47,19 +59,19 @@ export async function GET(request: Request) {
     try {
       // Properly decode the cookie value
       const encodedUserData = userDataCookieMatch[1];
-      console.log('Encoded userData:', encodedUserData);
+      secureLog('Encoded userData: ' + encodedUserData);
       
       // Handle URL-encoded JSON properly
       const decodedUserData = decodeURIComponent(encodedUserData);
-      console.log('Decoded userData:', decodedUserData);
+      secureLog('Decoded userData: ' + decodedUserData);
       
       const userData = JSON.parse(decodedUserData);
-      console.log('userData parsed successfully, userId:', userData.userId);
+      secureLog('userData parsed successfully, userId: ' + userData.userId);
       
       const userId = userData.userId;
       
       if (!userId) {
-        console.log('No userId found in userData');
+        secureLog('No userId found in userData');
         return NextResponse.json({ 
           success: false, 
           error: 'User ID not found in cookie data' 
@@ -67,23 +79,23 @@ export async function GET(request: Request) {
       }
       
       // Connect to MongoDB
-      console.log('Connecting to MongoDB...');
+      secureLog('Connecting to MongoDB...');
       await connectMongoDB();
-      console.log('Connected to MongoDB');
+      secureLog('Connected to MongoDB');
       
       // Find the user and get their addresses
-      console.log('Finding user with ID:', userId);
+      secureLog('Finding user with ID: ' + userId);
       const user = await User.findById(userId);
       
       if (!user) {
-        console.log('User not found with ID:', userId);
+        secureLog('User not found with ID: ' + userId);
         return NextResponse.json({ 
           success: false, 
           error: 'User not found' 
         }, { status: 404 });
       }
       
-      console.log('User found, addresses count:', user.addresses?.length || 0);
+      secureLog('User found, addresses count: ' + (user.addresses?.length || 0));
       return NextResponse.json({
         success: true,
         addresses: user.addresses || []

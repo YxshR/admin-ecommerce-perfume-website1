@@ -14,7 +14,7 @@ interface AuthContextType {
     email?: string;
     role?: string;
   } | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string, redirectPath?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -58,7 +58,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // Sync cart with server
           CartService.syncWithServer(true);
-          // Removed wishlist sync
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, redirectPath?: string) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -102,7 +101,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Sync cart with server
         await CartService.syncWithServer(true);
-        // Removed wishlist sync
+        
+        // Handle redirect after successful login
+        if (redirectPath) {
+          router.push(redirectPath);
+        } else {
+          // Default redirect to account page instead of store
+          router.push('/account');
+        }
         
         return { success: true };
       } else {

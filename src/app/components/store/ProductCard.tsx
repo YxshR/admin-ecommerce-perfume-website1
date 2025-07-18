@@ -343,7 +343,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* Title - Link wrapper */}
         <Link href={`/product/${product._id}`} className="block">
-          <h3 className="text-sm font-medium mb-2 line-clamp-1">
+          <h3 className="text-sm font-medium mb-2 line-clamp-1 font-lastica">
             {product.name}
           </h3>
         </Link>

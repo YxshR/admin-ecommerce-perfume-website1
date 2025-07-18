@@ -118,8 +118,8 @@ const ProductCardWrapper = ({ product }: { product: Product }) => {
         )}
       </div>
       <div className="p-4 flex-grow flex flex-col">
-        <h3 className="font-medium text-lg mb-1">
-          <Link href={`/product/${formattedProduct.slug}`} className="hover:text-gray-700">
+        <h3 className="font-medium text-lg mb-1 font-lastica">
+          <Link href={`/product/${formattedProduct.slug}`} className="hover:text-gray-700 font-lastica">
             {formattedProduct.name}
           </Link>
         </h3>

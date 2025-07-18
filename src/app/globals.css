@@ -254,3 +254,15 @@ button:focus, a:focus, input:focus, select:focus, textarea:focus {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+@font-face {
+  font-family: 'Lastica';
+  src: url('/fonts/lastica.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-lastica {
+  font-family: 'Lastica', sans-serif !important;
+}

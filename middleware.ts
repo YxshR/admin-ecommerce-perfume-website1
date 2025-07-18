@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from './src/app/lib/auth-utils';
 
 // Protected paths that require authentication
-// const protectedPaths = [
-//   '/account',
-//   '/account/wishlist',
-//   '/account/orders'
-// ];
+const protectedPaths = [
+  '/account',
+  '/account/wishlist',
+  '/account/orders'
+];
 
 // Admin-only paths
 // const adminPaths = [
@@ -87,7 +87,16 @@ export async function middleware(request: NextRequest) {
   // Add Content-Security-Policy to prevent console logging exploits
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self' data: blob: https://*.cloudinary.com; style-src 'self' 'unsafe-inline'; font-src 'self';"
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; " +
+    "connect-src 'self' https://*.cloudinary.com https://*.razorpay.com; " +
+    "img-src 'self' data: blob: https://*.cloudinary.com https://placehold.co https://storage.googleapis.com; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "font-src 'self' data:; " +
+    "frame-src 'self' https://checkout.razorpay.com; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "report-uri /api/csp-report;"
   );
   
   // Return response
@@ -135,34 +144,7 @@ function applySecurityHeaders(response: NextResponse) {
   const securityHeaders = {
     // Content Security Policy to prevent XSS attacks and console exploits
     'Content-Security-Policy':
-      "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://placehold.co https://storage.googleapis.com https://*.google-analytics.com; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-      "img-src 'self' data: https: blob:; " +
-      "font-src 'self' https://fonts.gstatic.com; " +
-      "connect-src 'self' https://storage.googleapis.com https://*.google-analytics.com http://localhost:* https://localhost:* https://*.mongodb.net; " +
-      "frame-src 'self'; " +
-      "object-src 'none'; " +
-      "base-uri 'self';" +
-      "report-uri /api/csp-report;",
-    
-    // Prevent clickjacking attacks
-    'X-Frame-Options': 'DENY',
-    
-    // Prevent MIME type sniffing
-    'X-Content-Type-Options': 'nosniff',
-    
-    // Enable XSS protection in older browsers
-    'X-XSS-Protection': '1; mode=block',
-    
-    // Control referrer information
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    
-    // Enforce HTTPS
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-    
-    // Permissions policy to limit features
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self' data: blob: https://*.cloudinary.com; style-src 'self' 'unsafe-inline'; font-src 'self';"
   };
 
   // Apply all security headers

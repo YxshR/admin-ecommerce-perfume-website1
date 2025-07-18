@@ -7,8 +7,6 @@ import { decrypt } from '@/app/lib/auth-utils';
 // GET all users or a single user by ID
 export async function GET(request: Request) {
   try {
-    console.log('Fetching users from database...');
-    
     // Check if requesting a specific user
     const url = new URL(request.url);
     const userId = url.searchParams.get('id');
@@ -17,7 +15,6 @@ export async function GET(request: Request) {
     const token = request.headers.get('Authorization')?.split(' ')[1];
     
     if (!token) {
-      console.log('No token provided in users API request');
       // For development, continue without token verification
     } else {
       try {
@@ -27,7 +24,6 @@ export async function GET(request: Request) {
           return NextResponse.json({ error: 'Unauthorized - Not an admin' }, { status: 403 });
         }
       } catch (tokenError) {
-        console.error('Invalid token in users API request:', tokenError);
         // For development, continue without token verification
       }
     }
@@ -35,11 +31,9 @@ export async function GET(request: Request) {
     // Connect to the database
     try {
       await connectMongoDB();
-      console.log('MongoDB connected successfully for users API');
       
       // If requesting a specific user
       if (userId) {
-        console.log(`Fetching user with ID: ${userId}`);
         
         // Validate MongoDB ObjectId
         if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -85,8 +79,6 @@ export async function GET(request: Request) {
           .lean() // Use lean() to get plain JS objects instead of Mongoose documents
           .sort({ createdAt: -1 });
         
-        console.log(`Found ${users.length} users in database`);
-        
         // Format users for API response
         const formattedUsers = users.map((user: any) => {
           return {
@@ -108,8 +100,6 @@ export async function GET(request: Request) {
         });
       }
     } catch (dbError) {
-      console.error('Failed to connect to MongoDB for users:', dbError);
-      
       // If requesting a specific user and DB fails, return error
       if (userId) {
         return NextResponse.json({ 
@@ -126,8 +116,6 @@ export async function GET(request: Request) {
       });
     }
   } catch (error) {
-    console.error('Error fetching users:', error);
-    
     // If requesting a specific user
     const url = new URL(request.url);
     const userId = url.searchParams.get('id');

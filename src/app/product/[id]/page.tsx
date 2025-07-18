@@ -369,7 +369,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <div className="space-y-6">
           {/* Product Title and Brand */}
           <div>
-            <h1 className="text-3xl font-medium text-black">{product.name}</h1>
+            <h1 className="text-3xl font-medium text-black font-lastica">{product.name}</h1>
             <div className="text-sm text-gray-500 mt-1">
               {product.brand || 'A V I T O   S C E N T S'} | {product.volume || '50ml'} | {product.gender || 'Unisex'}
             </div>
@@ -443,7 +443,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           {/* Description */}
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-lg font-medium mb-4">Description</h3>
-            <p className="text-gray-700">{product.description}</p>
+            <p className="text-gray-700 ">{product.description}</p>
           </div>
           
           {/* Product Details */}

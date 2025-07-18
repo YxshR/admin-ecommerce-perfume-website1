@@ -239,8 +239,8 @@ export default function NewArrivalsClient() {
                   {/* Product Details */}
                   <div className="p-6 flex flex-col justify-between">
                     <div>
-                      <h3 className="text-xl font-bold mb-2">{product.name}</h3>
-                      <p className="text-gray-600 mb-4">{product.description}</p>
+                      <h3 className="text-xl font-bold mb-2 font-lastica">{product.name}</h3>
+                      <p className="text-gray-600 mb-4 ">{product.description}</p>
                       
                       {/* Countdown Timer */}
                       <div className="mb-4">

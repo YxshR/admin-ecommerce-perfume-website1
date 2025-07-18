@@ -408,7 +408,7 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-medium text-black">{product.name}</h1>
+              <h1 className="text-3xl font-medium text-black font-lastica">{product.name}</h1>
               <div className="text-sm text-gray-500 mt-1">{product.brand} | {product.concentration}</div>
             </div>
             
@@ -490,7 +490,7 @@ export default function ProductDetailPage() {
             {/* Description */}
             <div>
               <h3 className="text-sm font-medium uppercase mb-2">Description</h3>
-              <p className="text-gray-700">{product.description}</p>
+              <p className="text-gray-700 ">{product.description}</p>
             </div>
             
             {/* Fragrance Notes */}
@@ -600,8 +600,8 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="p-4 flex-grow flex flex-col">
                     <div className="relative mb-1">
-                      <h3 className="font-medium text-sm">
-                        <Link href={`/product/${relatedProduct._id}`} className="hover:text-gray-700">
+                      <h3 className="font-medium text-sm font-lastica">
+                        <Link href={`/product/${relatedProduct._id}`} className="hover:text-gray-700 font-lastica">
                           {relatedProduct.name}
                         </Link>
                       </h3>

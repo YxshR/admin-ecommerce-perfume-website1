@@ -389,8 +389,8 @@ export default function AdminProducts() {
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                          <div className="text-sm text-gray-500 truncate max-w-xs">{product.description.substring(0, 50)}...</div>
+                          <div className="text-sm font-medium text-gray-900 font-lastica">{product.name}</div>
+                          <div className="text-sm text-gray-500 truncate max-w-xs ">{product.description.substring(0, 50)}...</div>
                         </div>
                       </div>
                     </td>
