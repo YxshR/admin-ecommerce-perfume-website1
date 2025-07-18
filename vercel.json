@@ -15,6 +15,30 @@
       "destination": "/store-routes/product/:path*" 
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "avitoluxury.in"
+        }
+      ],
+      "destination": "https://avitoluxury.in/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.avitoluxury.in"
+        }
+      ],
+      "destination": "https://avitoluxury.in/:path*",
+      "permanent": true
+    }
+  ],
   "build": {
     "env": {
       "NEXT_PRIVATE_STANDALONE": "true"
