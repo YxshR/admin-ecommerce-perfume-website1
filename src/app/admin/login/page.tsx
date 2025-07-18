@@ -7,6 +7,12 @@ import { FiMail, FiAlertCircle, FiShield, FiKey, FiCheckCircle, FiPhone, FiMessa
 import { saveAdminAuth } from '@/app/lib/admin-auth';
 
 export default function AdminLoginPage() {
+  // Subdomain restriction: Only allow access from admin.avitoluxury.in
+  if (typeof window !== 'undefined' && window.location.hostname !== 'admin.avitoluxury.in') {
+    window.location.href = 'https://admin.avitoluxury.in' + window.location.pathname;
+    return null;
+  }
+
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
