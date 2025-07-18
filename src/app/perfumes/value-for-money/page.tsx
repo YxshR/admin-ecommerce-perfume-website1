@@ -2,7 +2,7 @@ import ProductListing from '../../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Value for Money Perfumes | Avito Scent',
+  title: 'Value for Money Perfumes | A V I T O   S C E N T S',
   description: 'Discover quality fragrances at affordable prices with our value for money perfume collection.',
 };
 

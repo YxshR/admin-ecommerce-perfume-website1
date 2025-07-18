@@ -23,7 +23,15 @@ const OrderItemSchema = new Schema({
     type: String,
     required: false
   },
-  // Add product details fields
+  // Complete product details fields
+  sku: {
+    type: String,
+    required: false
+  },
+  productType: {
+    type: String,
+    required: false
+  },
   category: {
     type: String,
     required: false
@@ -33,6 +41,10 @@ const OrderItemSchema = new Schema({
     required: false
   },
   volume: {
+    type: String,
+    required: false
+  },
+  gender: {
     type: String,
     required: false
   }

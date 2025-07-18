@@ -103,7 +103,7 @@ export async function PUT(
       isBestBuy: productInfo.isBestBuy || false,
       
       // Keep existing fields
-      brand: productInfo.brand || 'Avito Scent',
+      brand: productInfo.brand || 'A V I T O   S C E N T S',
       sku: productInfo.sku,
       quantity: productInfo.quantity || 0,
       featured: productInfo.featured || false,

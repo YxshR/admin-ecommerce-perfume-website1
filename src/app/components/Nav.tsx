@@ -251,13 +251,16 @@ export default function Nav() {
   const navigationItems: NavigationItem[] = [
     {
       id: 'home',
-      name: 'Home',
+      name: 'AVITO',
       path: '/',
       hasDropdown: true,
       dropdownItems: [
         { name: 'Best Selling', path: '/best-selling' },
         { name: 'New Arrivals', path: '/new-arrivals' },
-        { name: 'Best Buy', path: '/best-buy' }
+        { name: 'Best Buy', path: '/best-buy' },
+        { name: 'Him', path: '/him' },
+        { name: 'Her', path: '/her' },
+        { name: 'Unisex', path: '/unisex' }
       ]
     },
     // {
@@ -381,7 +384,7 @@ export default function Nav() {
               <Link href="/" className="flex gap-2 items-center">
                 <img
                   src="/logoo1.png"
-                  alt="Avito Scent"
+                  alt="A V I T O   S C E N T S"
                   className="h-20 w-auto"
                 />
               </Link>

@@ -1,7 +1,7 @@
-# Responsive Design Updates for Avito Scent E-commerce Website
+# Responsive Design Updates for A V I T O   S C E N T S E-commerce Website
 
 ## Overview of Responsive Improvements
-The following updates have been implemented to improve the responsiveness and usability of the Avito Scent e-commerce website across all device sizes.
+The following updates have been implemented to improve the responsiveness and usability of the A V I T O   S C E N T S e-commerce website across all device sizes.
 
 ## Homepage Slider Updates
 1. **Responsive Height Adjustments**

@@ -1,7 +1,7 @@
-# Avito Scent E-commerce Website
+# A V I T O   S C E N T S E-commerce Website
 
 ## Overview
-This is an e-commerce website for Avito Scent, a premium perfume brand. The website allows users to browse products, add them to cart, and complete purchases without requiring login or signup.
+This is an e-commerce website for A V I T O   S C E N T S, a premium perfume brand. The website allows users to browse products, add them to cart, and complete purchases without requiring login or signup.
 
 ## Features
 

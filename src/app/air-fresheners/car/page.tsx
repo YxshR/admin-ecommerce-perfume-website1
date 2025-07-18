@@ -2,7 +2,7 @@ import ProductListing from '../../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Luxury Car Diffusers | Avito Scent',
+  title: 'Luxury Car Diffusers | A V I T O   S C E N T S',
   description: 'Elevate your driving experience with our luxury car diffusers that provide a premium fragrance experience on the go.',
 };
 

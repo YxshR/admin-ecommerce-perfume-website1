@@ -38,7 +38,7 @@ const nextConfig = {
     GOOGLE_STORAGE_BUCKET_NAME: 'ecommerce-app-444531.appspot.com',
     GOOGLE_STORAGE_PROJECT_ID: 'ecommerce-app-444531',
     MONGODB_URI: 'mongodb+srv://avitoluxury:l2AuSv97J5FW4ZvU@freetester.667mr8b.mongodb.net/ecommerce',
-    JWT_SECRET: 'Avito Scent_admin_secret_key_2025',
+    JWT_SECRET: 'A V I T O   S C E N T S_admin_secret_key_2025',
     ADMIN_EMAIL: 'admin@example.com',
     ADMIN_PHONE: '8126518755',
     CLOUDINARY_API_SECRET: 'cloudinary://992368173733427:kQuf9IxR7a503I0y-J_QVzx4RI8@dzzxpyqif', // Replace with your actual API secret

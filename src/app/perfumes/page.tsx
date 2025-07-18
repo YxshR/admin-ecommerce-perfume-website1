@@ -2,7 +2,7 @@ import ProductListing from '../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Perfumes Collection | Avito Scent',
+  title: 'Perfumes Collection | A V I T O   S C E N T S',
   description: 'Explore our exclusive collection of premium and luxury perfumes for every occasion.',
 };
 

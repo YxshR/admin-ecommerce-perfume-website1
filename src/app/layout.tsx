@@ -30,8 +30,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Avito Scent | Premium Fragrances",
-  description: "Discover luxury fragrances and premium perfumes at Avito Scent.",
+  title: "A V I T O   S C E N T S | Premium Fragrances",
+  description: "Discover luxury fragrances and premium perfumes at A V I T O   S C E N T S.",
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-icon.png',

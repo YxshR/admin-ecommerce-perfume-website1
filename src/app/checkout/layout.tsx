@@ -18,7 +18,7 @@ export default function CheckoutLayout({
              <Link href="/" className="flex-shrink-0 flex gap-2 items-center">
               <img
                 src="/avitologo2.png"
-                alt="Avito Scent"
+                alt="A V I T O   S C E N T S"
                 className="h-12 w-auto"
               />
               
@@ -35,7 +35,7 @@ export default function CheckoutLayout({
       </main>
       <footer className="bg-white border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} Avito Scent. All rights reserved.
+          &copy; {new Date().getFullYear()} A V I T O   S C E N T S. All rights reserved.
         </div>
       </footer>
     </div>

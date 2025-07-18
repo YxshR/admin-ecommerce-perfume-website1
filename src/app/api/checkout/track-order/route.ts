@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/lib/db-connect';
 import Order from '@/app/models/Order';
+import User from '@/app/models/User'; // Add User model import
 
 export async function GET(request: NextRequest) {
   try {

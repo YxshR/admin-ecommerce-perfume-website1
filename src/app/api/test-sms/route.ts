@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
           success: true,
           message: 'Test SMS sent successfully',
           phone: formattedPhone,
-          template: 'AvitoLuxury'
+          template: 'AVITO LUXURY'
         });
       } else {
         return NextResponse.json(

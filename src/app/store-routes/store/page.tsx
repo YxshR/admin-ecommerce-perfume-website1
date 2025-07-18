@@ -183,9 +183,9 @@ export default function HomePage() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-medium mb-4">About Avito Scent</h2>
+            <h2 className="text-2xl md:text-3xl font-medium mb-4">About A V I T O   S C E N T S</h2>
             <p className="text-gray-600 mb-8">
-              Avito Scent is a premium fragrance brand that offers high-quality perfumes inspired by the world's most iconic scents.
+              A V I T O   S C E N T S is a premium fragrance brand that offers high-quality perfumes inspired by the world's most iconic scents.
             </p>
             <Link href="/about-us" className="inline-block border border-black px-6 py-2 hover:bg-black hover:text-white transition duration-300">
               Learn More

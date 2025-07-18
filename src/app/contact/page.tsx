@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { FiSend, FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import Footer from '../components/Footer';
 
 export default function ContactPage() {
   // Form state
@@ -84,8 +85,11 @@ export default function ContactPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <div className="relative h-[300px] bg-gray-900">
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+      <div
+        className="relative h-[400px] bg-gray-900 bg-center bg-cover"
+        style={{ backgroundImage: "url('/1.svg')" }}
+      >
+        <div className="absolute inset-0 bg-black opacity-75"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-white mb-4">Contact Us</h1>
@@ -309,6 +313,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 } 

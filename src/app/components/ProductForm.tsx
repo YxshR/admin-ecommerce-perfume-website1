@@ -122,7 +122,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       comparePrice: initialData.comparePrice || 0,
       sku: initialData.sku || '',
       quantity: initialData.quantity || 0,
-      brand: initialData.brand || 'Avito Scent',
+      brand: initialData.brand || 'A V I T O   S C E N T S',
       productType: initialData.productType || '',
       category: initialData.category || '',
       subCategories: initialData.subCategories || [],

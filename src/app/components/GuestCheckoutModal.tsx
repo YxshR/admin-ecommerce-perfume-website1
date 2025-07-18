@@ -50,6 +50,43 @@ export default function GuestCheckoutModal({
       }));
     }
   };
+
+  // Fetch city and state by pincode
+  const fetchCityAndStateByPincode = async (pincode: string) => {
+    try {
+      console.log('GuestModal: Fetching city and state for pincode:', pincode);
+      const response = await fetch(`/api/checkout/pincode-lookup?pincode=${pincode}`);
+      const data = await response.json();
+      console.log('GuestModal: Pincode lookup response:', data);
+      
+      if (data.success) {
+        console.log('GuestModal: Setting city to:', data.data.city);
+        console.log('GuestModal: Setting state to:', data.data.state);
+        
+        // Update form data with city and state
+        setFormData(prev => {
+          const updated = {
+            ...prev,
+            city: data.data.city,
+            state: data.data.state
+          };
+          console.log('GuestModal: Updated form data:', updated);
+          return updated;
+        });
+        
+        // Clear any errors for city and state
+        setErrors(prev => ({
+          ...prev,
+          city: '',
+          state: ''
+        }));
+      } else {
+        console.error('GuestModal: Pincode lookup failed:', data.error);
+      }
+    } catch (error) {
+      console.error('GuestModal: Error fetching city and state:', error);
+    }
+  };
   
   const validateForm = () => {
     const newErrors: Partial<Record<keyof GuestAddressInfo, string>> = {};
@@ -216,8 +253,9 @@ export default function GuestCheckoutModal({
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
+                  readOnly={formData.city !== ''}
                   className={`w-full p-3 border rounded-md ${
-                    errors.city ? 'border-red-500' : 'border-gray-300'
+                    errors.city ? 'border-red-500' : formData.city ? 'border-gray-300 bg-gray-50' : 'border-gray-300'
                   }`}
                   placeholder="City"
                 />
@@ -234,8 +272,9 @@ export default function GuestCheckoutModal({
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
+                  readOnly={formData.state !== ''}
                   className={`w-full p-3 border rounded-md ${
-                    errors.state ? 'border-red-500' : 'border-gray-300'
+                    errors.state ? 'border-red-500' : formData.state ? 'border-gray-300 bg-gray-50' : 'border-gray-300'
                   }`}
                   placeholder="State"
                 />
@@ -245,7 +284,7 @@ export default function GuestCheckoutModal({
             
             <div>
               <label htmlFor="pincode" className="block text-sm text-gray-700 mb-1">
-                Pincode*
+                Pincode* <span className="text-xs text-gray-500">(Auto-fills city & state)</span>
               </label>
               <input
                 type="text"
@@ -265,6 +304,11 @@ export default function GuestCheckoutModal({
                       ...prev,
                       pincode: ''
                     }));
+                  }
+                  
+                  // If pincode is 6 digits, fetch city and state
+                  if (value.length === 6) {
+                    fetchCityAndStateByPincode(value);
                   }
                 }}
                 className={`w-full p-3 border rounded-md ${

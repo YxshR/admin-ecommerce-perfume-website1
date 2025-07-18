@@ -2,7 +2,7 @@ import ProductListing from '../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Waxfume Collection | Avito Scent',
+  title: 'Waxfume Collection | A V I T O   S C E N T S',
   description: 'Discover our innovative solid perfume collection that combines convenience with lasting fragrance.',
 };
 

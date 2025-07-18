@@ -1,5 +1,5 @@
 /**
- * Setup and Run Script for Avito Scent Perfume E-commerce Website
+ * Setup and Run Script for A V I T O   S C E N T S Perfume E-commerce Website
  * 
  * This script automates the process of:
  * 1. Creating the .env.local file if it doesn't exist
@@ -29,7 +29,7 @@ const colors = {
 };
 
 console.log(`${colors.cyan}====================================================${colors.reset}`);
-console.log(`${colors.cyan}  Avito Scent Perfume E-commerce Setup & Run Tool  ${colors.reset}`);
+console.log(`${colors.cyan}  A V I T O   S C E N T S Perfume E-commerce Setup & Run Tool  ${colors.reset}`);
 console.log(`${colors.cyan}====================================================${colors.reset}\n`);
 
 // Step 1: Check if .env.local exists, create if not

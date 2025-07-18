@@ -82,7 +82,7 @@ export default function PaymentPage() {
         key: data.key_id,
         amount: data.amount,
         currency: data.currency,
-        name: 'Avito Scent',
+        name: 'A V I T O   S C E N T S',
         description: 'Premium Fragrances',
         order_id: data.razorpayOrderId,
         handler: function(response: any) {

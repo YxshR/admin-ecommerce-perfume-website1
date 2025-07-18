@@ -68,7 +68,7 @@ export async function GET(request: Request) {
         
         // Calculate total price if it's missing or zero
         if (totalPrice === 0 && orderItems.length > 0) {
-          totalPrice = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + (order.shippingPrice || 0);
+          totalPrice = orderItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0) + (order.shippingPrice || 0);
         }
         
         return {
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
           status: order.status || 'Pending',
           total: totalPrice,
           itemsCount: orderItems.length,
-          items: orderItems.map(item => ({
+          items: orderItems.map((item: any) => ({
             id: item.product?.toString() || 'unknown',
             name: item.name || 'Unknown Product',
             quantity: item.quantity || 1,
@@ -310,7 +310,7 @@ export async function POST(request: Request) {
     console.log('Order API: Cart found with', cart.items.length, 'items');
     
     // Calculate order totals
-    const subtotal = cart.items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+    const subtotal = cart.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
     
     // Use custom shipping price if provided, otherwise calculate based on subtotal
     const shippingPrice = typeof customShippingPrice === 'number' ? 
@@ -328,17 +328,54 @@ export async function POST(request: Request) {
     const orderId = generateOrderId();
     console.log('Order API: Generated order ID:', orderId);
     
-    // Create order
-    const order = new Order({
-      user: userId,
-      orderId,
-      items: cart.items.map((item: any) => ({
+    // Create order with complete product details
+    const orderItems = await Promise.all(cart.items.map(async (item: any) => {
+      // Find the product to get all details
+      let productDetails = null;
+      if (item.product) {
+        productDetails = await Product.findById(item.product);
+        console.log('Order API: Found product details:', {
+          id: productDetails?._id?.toString(),
+          name: productDetails?.name,
+          sku: productDetails?.sku,
+          productType: productDetails?.productType,
+          category: productDetails?.category,
+          subCategories: productDetails?.subCategories,
+          volume: productDetails?.volume
+        });
+      } else {
+        console.log('Order API: No product ID found for item:', item.name);
+      }
+      
+      // If product details are null, try to find by name as fallback
+      if (!productDetails && item.name) {
+        productDetails = await Product.findOne({ name: item.name });
+        console.log('Order API: Fallback - Found product by name:', !!productDetails);
+      }
+      
+      return {
         product: item.product,
         name: item.name,
         quantity: item.quantity,
         price: item.price,
-        image: item.image
-      })),
+        image: item.image,
+        // Add complete product details with proper fallbacks
+        sku: productDetails?.sku || '',
+        productType: productDetails?.productType || '',
+        category: productDetails?.category || '',
+        subCategory: Array.isArray(productDetails?.subCategories) && productDetails?.subCategories.length > 0 
+          ? productDetails?.subCategories[0] 
+          : '',
+        volume: productDetails?.volume || '',
+        gender: productDetails?.gender || ''
+      };
+    }));
+
+    const order = new Order({
+      user: userId,
+      trackingId: orderId, // Use trackingId field instead of orderId
+      orderId, // Keep orderId for backward compatibility
+      items: orderItems,
       shippingAddress,
       paymentMethod,
       paymentResult: paymentMethod === 'COD' ? {
@@ -521,4 +558,4 @@ const generateOrderId = () => {
   const timestamp = new Date().getTime().toString().slice(-8);
   const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
   return `ORD-${timestamp}${random}`;
-}; 
+};

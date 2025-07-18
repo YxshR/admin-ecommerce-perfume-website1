@@ -246,7 +246,7 @@ export default function OrderDetailsPage() {
           
           <div class="footer">
             <p>Thank you for your purchase!</p>
-            <p>Avito Scent</p>
+            <p>A V I T O   S C E N T S</p>
           </div>
         </body>
       </html>

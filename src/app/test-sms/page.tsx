@@ -86,8 +86,8 @@ export default function TestSMSPage() {
         
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-xs">
           <h3 className="font-medium mb-1">Template Information:</h3>
-          <p>Template Name: AvitoLuxury</p>
-          <p className="mt-1">Template Text: "Thank you for shopping with AvitoLuxury. Your transaction ID is #VAR1#, amount paid ₹#VAR2#, tracking ID #VAR3#. Track your order here: #VAR4#. We hope to see you again!"</p>
+          <p>Template Name: AVITO LUXURY</p>
+          <p className="mt-1">Template Text: "Thank you for shopping with AVITO LUXURY. Your transaction ID is #VAR1#, amount paid ₹#VAR2#, tracking ID #VAR3#. Track your order here: #VAR4#. We hope to see you again!"</p>
         </div>
         
         <form onSubmit={handleSubmit}>

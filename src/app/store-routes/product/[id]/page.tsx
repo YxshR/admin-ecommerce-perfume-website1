@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
             price: data.product.price,
             discountedPrice: data.product.comparePrice || 0,
             category: data.product.category || "Perfume",
-            brand: data.product.brand || 'Avito Scent',
+            brand: data.product.brand || 'A V I T O   S C E N T S',
             images: data.product.images ? 
               data.product.images.map((img: string) => ({ url: img })) : 
               [{ url: data.product.mainImage || 'https://placehold.co/600x800/222/fff?text=Product' }],
@@ -136,7 +136,7 @@ export default function ProductDetailPage() {
           price: 1499,
           discountedPrice: 1299,
           category: 'Woody',
-          brand: 'Avito Scent',
+          brand: 'A V I T O   S C E N T S',
           stock: 10,
           images: [
             { url: 'https://placehold.co/600x800/222/fff?text=Wild+Escape' },
@@ -330,7 +330,7 @@ export default function ProductDetailPage() {
             price: p.price,
             discountedPrice: p.comparePrice || 0,
             category: p.category || "Perfume",
-            brand: p.brand || 'Avito Scent',
+            brand: p.brand || 'A V I T O   S C E N T S',
             images: p.images ? 
               p.images.map((img: string) => ({ url: img })) : 
               [{ url: p.mainImage || 'https://placehold.co/600x800/222/fff?text=Product' }],
@@ -579,9 +579,9 @@ export default function ProductDetailPage() {
               Related Products
             </h2>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4  gap-6">
               {relatedProducts.slice(0, 8).map((relatedProduct) => (
-                <div key={relatedProduct._id} className="h-full flex flex-col bg-gray-100 border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+                <div key={relatedProduct._id} className="h-full flex flex-col bg-[#F5E9DA] border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
                   <div className="relative overflow-hidden group">
                     <Link href={`/product/${relatedProduct._id}`}>
                       <Image 
@@ -619,7 +619,7 @@ export default function ProductDetailPage() {
 
                     <p className="text-xs text-gray-600 mb-1">{relatedProduct.productType}</p>
                     
-                    <div className="mt-auto flex justify-between items-center">
+                    <div className="mt-auto flex justify-between pb-2 items-center">
                       <div className="flex items-baseline">
                         {relatedProduct.discountedPrice > 0 ? (
                           <>
@@ -634,8 +634,7 @@ export default function ProductDetailPage() {
                       </div>
                       
                     </div>
-                  </div>
-                  <AddToCartButton
+                    <AddToCartButton
                       productId={relatedProduct._id}
                       productName={relatedProduct.name}
                       productPrice={relatedProduct.discountedPrice > 0 ? relatedProduct.discountedPrice : relatedProduct.price}
@@ -643,9 +642,12 @@ export default function ProductDetailPage() {
                       className="w-full bg-black text-white py-2 px-4 rounded mb-2 hover:bg-gray-800 text-xs"
                       showIcon={true}
                     />
+                  </div>
+
                 </div>
                 
               ))}
+
             </div>
           </div>
         </div>

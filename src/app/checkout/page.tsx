@@ -37,6 +37,7 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [isCartEmpty, setIsCartEmpty] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
   
   // Load cart items from localStorage
   useEffect(() => {
@@ -71,6 +72,62 @@ export default function CheckoutPage() {
     // Clear error for this field
     if (errors[name as keyof FormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+
+    // If pincode is entered and it's 6 digits, fetch city and state
+    if (name === 'pincode' && value.length === 6) {
+      fetchCityAndStateByPincode(value);
+    }
+  };
+
+  // Fetch city and state by pincode
+  const fetchCityAndStateByPincode = async (pincode: string) => {
+    try {
+      console.log('Fetching city and state for pincode:', pincode);
+      const response = await fetch(`/api/checkout/pincode-lookup?pincode=${pincode}`);
+      const data = await response.json();
+      console.log('Pincode lookup response:', data);
+      
+      if (data.success) {
+        console.log('Setting city to:', data.data.city);
+        console.log('Setting state to:', data.data.state);
+        
+        // Get the state value from the API response
+        const stateValue = data.data.state;
+        
+        // Check if the state from API matches any option in our select dropdown
+        const stateExists = [
+          "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+          "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+          "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+          "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+          "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
+        ].includes(stateValue);
+        
+        console.log('State exists in dropdown:', stateExists);
+        
+        // Update form data with city and state
+        setFormData(prev => {
+          const updated = {
+            ...prev,
+            city: data.data.city,
+            state: stateExists ? stateValue : prev.state
+          };
+          console.log('Updated form data:', updated);
+          return updated;
+        });
+        
+        // Clear any errors for city and state
+        setErrors(prev => ({
+          ...prev,
+          city: undefined,
+          state: undefined
+        }));
+      } else {
+        console.error('Pincode lookup failed:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching city and state:', error);
     }
   };
   
@@ -114,6 +171,7 @@ export default function CheckoutPage() {
     
     if (validateForm()) {
       setIsLoading(true);
+      setOtpError(null);
       
       try {
         // Send OTP via 2Factor
@@ -132,11 +190,11 @@ export default function CheckoutPage() {
           setShowOTPModal(true);
         } else {
           // Show error
-          alert(data.error || 'Failed to send OTP. Please try again.');
+          setOtpError(data.error || 'Failed to send OTP. Please try again.');
         }
       } catch (error) {
         console.error('Error sending OTP:', error);
-        alert('An error occurred. Please try again.');
+        setOtpError('An error occurred. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -176,6 +234,15 @@ export default function CheckoutPage() {
         <h2 className="text-xl font-medium mb-6">Your Information</h2>
         
         <form onSubmit={handleSubmit}>
+          {otpError && (
+            <div className="mb-4 flex items-start bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+              <FiAlertCircle className="mt-1 text-yellow-500 mr-3 w-6 h-6 flex-shrink-0" />
+              <div>
+                <div className="font-semibold text-yellow-800">Warning</div>
+                <div className="text-yellow-700 text-sm">{otpError}</div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Full Name */}
             <div className="col-span-2 md:col-span-1">
@@ -318,7 +385,8 @@ export default function CheckoutPage() {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-md ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
+                readOnly={formData.city !== ''}
+                className={`w-full p-2 border rounded-md ${errors.city ? 'border-red-500' : formData.city ? 'border-gray-300 bg-gray-50' : 'border-gray-300'}`}
               />
               {errors.city && (
                 <p className="mt-1 text-sm text-red-500 flex items-center">
@@ -337,7 +405,8 @@ export default function CheckoutPage() {
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-md ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
+                disabled={formData.state !== ''}
+                className={`w-full p-2 border rounded-md ${errors.state ? 'border-red-500' : formData.state ? 'border-gray-300 bg-gray-50' : 'border-gray-300'}`}
               >
                 <option value="">Select State</option>
                 <option value="Andhra Pradesh">Andhra Pradesh</option>
@@ -380,16 +449,36 @@ export default function CheckoutPage() {
             {/* Pincode */}
             <div className="col-span-2 md:col-span-1">
               <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-1">
-                Pincode*
+                Pincode* <span className="text-xs text-gray-500">(Auto-fills city & state)</span>
               </label>
               <input
                 type="text"
                 id="pincode"
                 name="pincode"
                 value={formData.pincode}
-                onChange={handleChange}
+                onChange={(e) => {
+                  // Only allow numbers and max 6 digits
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setFormData(prev => ({
+                    ...prev,
+                    pincode: value
+                  }));
+                  
+                  if (errors.pincode) {
+                    setErrors(prev => ({
+                      ...prev,
+                      pincode: undefined
+                    }));
+                  }
+                  
+                  // If pincode is 6 digits, fetch city and state
+                  if (value.length === 6) {
+                    fetchCityAndStateByPincode(value);
+                  }
+                }}
                 className={`w-full p-2 border rounded-md ${errors.pincode ? 'border-red-500' : 'border-gray-300'}`}
                 maxLength={6}
+                placeholder="Enter 6-digit pincode"
               />
               {errors.pincode && (
                 <p className="mt-1 text-sm text-red-500 flex items-center">

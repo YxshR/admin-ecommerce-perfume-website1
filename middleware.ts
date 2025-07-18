@@ -2,21 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from './src/app/lib/auth-utils';
 
 // Protected paths that require authentication
-const protectedPaths = [
-  '/account',
-  '/account/wishlist',
-  '/account/orders'
-];
+// const protectedPaths = [
+//   '/account',
+//   '/account/wishlist',
+//   '/account/orders'
+// ];
 
 // Admin-only paths
-const adminPaths = [
-  '/admin/dashboard',
-  '/admin/products',
-  '/admin/orders',
-  '/admin/users',
-  '/admin/contacts',
+// const adminPaths = [
+//   '/admin/dashboard',
+//   '/admin/products',
+//   '/admin/orders',
+//   '/admin/users',
+//   '/admin/contacts',
+// ];
 
-];
+// Protect all /admin pages and subpages
+const adminBasePath = '/admin';
 
 // Paths that should always be accessible
 const publicPaths = [
@@ -40,13 +42,13 @@ export async function middleware(request: NextRequest) {
 
   // Get session from cookies for protected routes
   if (
-    adminPaths.some(path => pathname.startsWith(path)) || 
+    pathname.startsWith(adminBasePath) || 
     protectedPaths.some(path => pathname.startsWith(path))
   ) {
     const session = await getSessionFromRequest(request);
 
     // Check if the path is admin-only
-    const isAdminPath = adminPaths.some(path => pathname.startsWith(path));
+    const isAdminPath = pathname.startsWith(adminBasePath);
 
     // Check if the path is protected
     const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));

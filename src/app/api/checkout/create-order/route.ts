@@ -57,12 +57,56 @@ export async function POST(request: NextRequest) {
       // Find product in database to get reference
       const product = await Product.findById(item._id);
       
+      if (!product) {
+        console.log('Checkout API: Product not found by ID:', item._id, 'for item:', item.name);
+        // Try to find by name as fallback
+        const productByName = await Product.findOne({ name: item.name });
+        if (productByName) {
+          console.log('Checkout API: Found product by name:', productByName.name);
+          return {
+            product: productByName._id,
+            name: item.name,
+            price: item.discountedPrice || item.price,
+            quantity: item.quantity,
+            image: item.image,
+            // Add complete product details
+            sku: productByName.sku || '',
+            productType: productByName.productType || '',
+            category: productByName.category || '',
+            subCategory: Array.isArray(productByName.subCategories) && productByName.subCategories.length > 0 
+              ? productByName.subCategories[0] 
+              : '',
+            volume: productByName.volume || '',
+            gender: productByName.gender || ''
+          };
+        }
+      } else {
+        console.log('Checkout API: Found product details:', {
+          id: product._id.toString(),
+          name: product.name,
+          sku: product.sku,
+          productType: product.productType,
+          category: product.category,
+          subCategories: product.subCategories,
+          volume: product.volume
+        });
+      }
+      
       return {
         product: product ? product._id : null,
         name: item.name,
         price: item.discountedPrice || item.price,
         quantity: item.quantity,
-        image: item.image
+        image: item.image,
+        // Add complete product details
+        sku: product?.sku || '',
+        productType: product?.productType || '',
+        category: product?.category || '',
+        subCategory: Array.isArray(product?.subCategories) && product?.subCategories.length > 0 
+          ? product?.subCategories[0] 
+          : '',
+        volume: product?.volume || '',
+        gender: product?.gender || ''
       };
     }));
     

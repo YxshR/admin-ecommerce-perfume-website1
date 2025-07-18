@@ -2,7 +2,7 @@ import ProductListing from '../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Unisex Perfumes | Avito Scent',
+  title: 'Unisex Perfumes | A V I T O   S C E N T S',
   description: 'Explore our exclusive collection of premium unisex fragrances. Find the perfect scent for every occasion.',
 };
 

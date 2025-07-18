@@ -21,7 +21,7 @@ export const sendOTP = async (phoneNumber: string, otp: string): Promise<boolean
     
     // Send SMS
     await client.messages.create({
-      body: `Your Avito Scent verification code is: ${otp}. Valid for 10 minutes.`,
+      body: `Your A V I T O   S C E N T S verification code is: ${otp}. Valid for 10 minutes.`,
       from: twilioPhoneNumber,
       to: formattedPhoneNumber
     });

@@ -22,6 +22,31 @@ const GuestOrderItemSchema = new Schema({
   image: {
     type: String,
     required: false
+  },
+  // Complete product details fields
+  sku: {
+    type: String,
+    required: false
+  },
+  productType: {
+    type: String,
+    required: false
+  },
+  category: {
+    type: String,
+    required: false
+  },
+  subCategory: {
+    type: String,
+    required: false
+  },
+  volume: {
+    type: String,
+    required: false
+  },
+  gender: {
+    type: String,
+    required: false
   }
 });
 

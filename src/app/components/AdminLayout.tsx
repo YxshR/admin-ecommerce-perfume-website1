@@ -105,7 +105,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
               <FiShoppingBag className="text-indigo-600" />
             </div>
-            <h2 className="text-xl font-bold text-white">Avito Scent Admin</h2>
+            <h2 className="text-xl font-bold text-white">A V I T O   S C E N T S Admin</h2>
           </div>
         </div>
         

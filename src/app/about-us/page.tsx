@@ -149,18 +149,18 @@ export default function AboutUsPage() {
       
       {/* Hero Section */}
       <div className="relative">
-        <div className="w-full h-[50vh] bg-gray-100 flex items-center justify-center overflow-hidden">
+        <div className="w-full h-[80vh] bg-gray-100 flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-black to-transparent opacity-70 z-10"></div>
           <img 
-            src="https://placehold.co/1200x600/272420/FFFFFF?text=About+Avito+Scent" 
+            src="/2.svg" 
             alt="About Us"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="text-center px-4 z-20 relative text-white">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">Our Story</h1>
-            <p className="text-lg md:text-xl max-w-lg mx-auto">
+            <h1 className="text-3xl md:text-5xl text-red-100 font-bold mb-4">Our Story</h1>
+            {/* <p className="text-lg md:text-xl max-w-lg mx-auto">
               Crafting memorable fragrances since 2015
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function AboutUsPage() {
               <div>
                 <img 
                   src="/ARVIND SONI.jpeg.jpg" 
-                  alt="Avito Scent Founder"
+                  alt="A V I T O   S C E N T S Founder"
                   className="w-full h-auto rounded-lg shadow-md"
                 />
               </div>
@@ -216,7 +216,7 @@ export default function AboutUsPage() {
                 We're always looking for passionate individuals to join our growing team. If you share our love for fragrances and our commitment to quality and sustainability, we'd love to hear from you.
               </p>
               <p className="text-gray-600 mb-6">
-                Explore current opportunities and discover what it's like to be part of the Avito Scent family.
+                Explore current opportunities and discover what it's like to be part of the A V I T O   S C E N T S family.
               </p>
               <Link 
                 href="/careers"

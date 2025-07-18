@@ -148,7 +148,7 @@ export default function SignupPage() {
         <div className="w-full h-full bg-gradient-to-r from-black via-black/50 to-transparent flex items-center">
           <div className="px-12 md:px-20 lg:px-28">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl lg:text-5xl font-serif font-bold mb-6 text-white">Join Avito Scent</h1>
+              <h1 className="text-4xl lg:text-5xl font-serif font-bold mb-6 text-white">Join A V I T O   S C E N T S</h1>
             </div>
             <p className="text-lg mb-8 max-w-md text-white">Create an account to explore our exclusive collection of premium fragrances.</p>
           </div>
@@ -159,7 +159,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-serif font-bold">Create Account</h2>
-            <p className="text-gray-600 mt-2">Join the Avito Scent community</p>
+            <p className="text-gray-600 mt-2">Join the A V I T O   S C E N T S community</p>
           </div>
           
           {error && (

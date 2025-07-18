@@ -2,7 +2,7 @@ import ProductListing from '../../components/ProductListing';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Luxury Aesthetic Attars | Avito Scent',
+  title: 'Luxury Aesthetic Attars | A V I T O   S C E N T S',
   description: 'Indulge in our exclusive collection of luxury aesthetic attars, handcrafted with rare and precious ingredients.',
 };
 

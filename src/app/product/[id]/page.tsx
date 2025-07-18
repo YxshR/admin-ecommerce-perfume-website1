@@ -371,7 +371,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <div>
             <h1 className="text-3xl font-medium text-black">{product.name}</h1>
             <div className="text-sm text-gray-500 mt-1">
-              {product.brand || 'Avito Scent'} | {product.volume || '50ml'} | {product.gender || 'Unisex'}
+              {product.brand || 'A V I T O   S C E N T S'} | {product.volume || '50ml'} | {product.gender || 'Unisex'}
             </div>
           </div>
           
@@ -457,7 +457,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 text-gray-500">Brand</td>
-                  <td className="py-2">{product.brand || 'Avito Scent'}</td>
+                  <td className="py-2">{product.brand || 'A V I T O   S C E N T S'}</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-2 text-gray-500">Volume</td>
@@ -504,7 +504,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         {relatedProduct.name}
                       </Link>
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">{relatedProduct.brand || 'Avito Scent'}</p>
+                    <p className="mt-1 text-sm text-gray-500">{relatedProduct.brand || 'A V I T O   S C E N T S'}</p>
                   </div>
                   <div>
                     {relatedProduct.comparePrice && relatedProduct.comparePrice > relatedProduct.price ? (
