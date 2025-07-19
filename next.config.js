@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  assetPrefix: 'https://admin.avitoluxury.in',
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
