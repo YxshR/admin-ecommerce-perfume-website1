@@ -109,21 +109,11 @@ const nextConfig = {
       
       // Non-admin redirects from admin subdomain to main domain
       redirects.push({
-        source: '/:path*',
+        source: '/((?!admin|_next).*)',
         has: [
           {
             type: 'host',
             value: 'admin.avitoluxury.in'
-          }
-        ],
-        missing: [
-          {
-            type: 'path',
-            value: '^/admin.*'
-          },
-          {
-            type: 'path',
-            value: '^/_next.*'
           }
         ],
         destination: 'https://avitoluxury.in/:path*',

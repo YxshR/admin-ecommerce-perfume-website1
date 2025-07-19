@@ -18,8 +18,7 @@ import {
   FiSettings,
   FiLogOut,
   FiGrid,
-  FiChevronLeft,
-  FiChevronRight
+  FiChevronLeft
 } from 'react-icons/fi';
 import AdminLayout from '@/app/components/AdminLayout';
 import { useAdminAuth, getAdminToken, getAdminUser } from '@/app/lib/admin-auth';
