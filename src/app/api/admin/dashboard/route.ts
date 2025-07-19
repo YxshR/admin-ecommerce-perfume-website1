@@ -8,10 +8,10 @@ import { verifyAdminToken } from '@/app/lib/auth-utils';
 
 export async function GET(request: Request) {
   // Subdomain restriction: Only allow requests from admin.avitoluxury.in
-  const host = request.headers.get('host');
-  if (host !== 'admin.avitoluxury.in') {
-    return NextResponse.json({ error: 'Forbidden: Admin panel only accessible via admin.avitoluxury.in' }, { status: 403 });
-  }
+  // const host = request.headers.get('host');
+  // if (host !== 'admin.avitoluxury.in') {
+  //   return NextResponse.json({ error: 'Forbidden: Admin panel only accessible via admin.avitoluxury.in' }, { status: 403 });
+  // }
   try {
     // Verify admin authorization
     const authHeader = request.headers.get('authorization');

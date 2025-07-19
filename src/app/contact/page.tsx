@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import { FiSend, FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import Footer from '../components/Footer';
+import Nav from '../components/Nav';
 
 export default function ContactPage() {
   // Form state
@@ -34,7 +35,7 @@ export default function ContactPage() {
     e.preventDefault();
     
     // Validate form
-    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message) {
       setSubmitError('Please fill in all required fields');
       return;
     }
@@ -84,6 +85,7 @@ export default function ContactPage() {
   
   return (
     <div className="bg-white">
+      <Nav />
       {/* Hero Section */}
       <div
         className="relative h-[400px] bg-gray-900 bg-center bg-cover"
@@ -156,7 +158,7 @@ export default function ContactPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
+                    Phone Number *
                   </label>
                   <input
                     type="tel"
@@ -165,6 +167,7 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                    required
                   />
                 </div>
                 

@@ -95,9 +95,9 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
       <div 
         className={`
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-          md:translate-x-0 fixed md:static inset-y-0 left-0 z-50
+          md:translate-x-0 fixed md:sticky md:top-0 md:h-screen inset-y-0 left-0 z-50
           w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out
-          flex flex-col
+          flex flex-col overflow-hidden
         `}
       >
         <div className="p-6 bg-gradient-to-r from-blue-700 to-indigo-800">
@@ -105,7 +105,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
               <FiShoppingBag className="text-indigo-600" />
             </div>
-            <h2 className="text-xl font-bold text-white">A V I T O   S C E N T S Admin</h2>
+            <h2 className="text-xl font-bold text-white">A V I T O   S C E N T S Admin</h2>
           </div>
         </div>
         
@@ -197,7 +197,7 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
       </div>
       
       {/* Main Content */}
-      <div className="flex-1 p-4 md:p-8 overflow-x-hidden">
+      <div className="flex-1 p-4 md:p-8 overflow-x-hidden overflow-y-auto">
         {/* Header with user info */}
         <div className="hidden md:block mb-6">
           <h1 className="text-xl font-bold text-gray-900">Welcome, {user?.name || 'Admin'}</h1>

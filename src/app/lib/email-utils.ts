@@ -29,29 +29,85 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
     }
 
     const mailOptions = {
-      from: `AVITO LUXURY Admin <${process.env.EMAIL_USER || 'avitoluxury@gmail.com'}>`,
+      from: `Admin Panel <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
       to: email,
-      subject: 'Admin Login OTP Verification',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background-color: #1a202c; color: white; padding: 20px; text-align: center;">
-            <h1>AVITO LUXURY Admin Portal</h1>
-          </div>
-          <div style="padding: 20px; border: 1px solid #e2e8f0; border-top: none;">
-            <p>Hello Admin,</p>
-            <p>Your one-time password (OTP) for admin login is:</p>
-            <div style="background-color: #f7fafc; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-              ${otp}
-            </div>
-            <p>This OTP is valid for 10 minutes. Please do not share this with anyone.</p>
-            <p>If you did not request this OTP, please ignore this email and ensure your account is secure.</p>
-            <p>Thank you,<br> Team</p>
-          </div>
-          <div style="background-color: #f7fafc; padding: 10px; text-align: center; font-size: 12px; color: #718096;">
-            &copy; ${new Date().getFullYear()} AVITO LUXURY. All rights reserved.
-          </div>
-        </div>
-      `
+      subject: 'Admin Panel OTP Verification',
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel OTP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f9fc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+    }
+    .header img {
+      max-height: 50px;
+    }
+    .otp-box {
+      font-size: 32px;
+      font-weight: bold;
+      letter-spacing: 6px;
+      text-align: center;
+      background-color: #f2f4f8;
+      padding: 15px 0;
+      border-radius: 6px;
+      color: #333;
+      margin: 20px 0;
+    }
+    .message {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #444;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://avitoluxury.in/logo.png" alt="AvitoLuxury Logo" />
+      <h2>Admin OTP Verification</h2>
+    </div>
+    <p class="message">
+      Hello Admin,<br><br>
+      Your One-Time Password (OTP) to access the Admin Panel is:
+    </p>
+    <div class="otp-box">
+      ${otp}
+    </div>
+    <p class="message">
+      This OTP is valid for the next <strong>10 minutes</strong>. Please do not share this code with anyone.
+    </p>
+    <p class="message">
+      If you did not request this OTP, please ignore this email.
+    </p>
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} AvitoLuxury.in • Secure Admin Access
+    </div>
+  </div>
+</body>
+</html>`
     };
 
     const info = await transporter.sendMail(mailOptions);

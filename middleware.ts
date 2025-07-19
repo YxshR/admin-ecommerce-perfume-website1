@@ -41,38 +41,30 @@ export async function middleware(request: NextRequest) {
   // Skip domain-based routing for development or localhost
   const isDevOrLocal = isDevelopmentOrLocalhost(hostname);
   
-  // Handle domain-based routing only in production and not on localhost
-  if (!isDevOrLocal) {
-    // Admin subdomain handling
-    if (hostname === 'admin.avitoluxury.in') {
-      // If accessing the root of admin subdomain, redirect to admin dashboard or login
-      if (pathname === '/') {
-        const session = await getSessionFromRequest(request);
-        if (session && session.role === 'admin') {
-          return applySecurityHeaders(NextResponse.redirect(new URL('/admin/dashboard', request.url)));
-        } else {
-          return applySecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)));
-        }
-      }
-      
-      // If trying to access non-admin paths on admin subdomain, redirect to main site
-      if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next')) {
-        return applySecurityHeaders(
-          NextResponse.redirect(new URL(`https://avitoluxury.in${pathname}`, request.url))
-        );
-      }
-    }
-    
-    // Main domain and www subdomain handling
-    else if (hostname === 'avitoluxury.in' || hostname === 'www.avitoluxury.in') {
-      // If trying to access admin paths on main domain, redirect to admin subdomain
-      if (pathname.startsWith('/admin')) {
-        return applySecurityHeaders(
-          NextResponse.redirect(new URL(`https://admin.avitoluxury.in${pathname}`, request.url))
-        );
-      }
-    }
-  }
+  // Remove domain-based routing logic for admin.avitoluxury.in
+  // if (!isDevOrLocal) {
+  //   if (hostname === 'admin.avitoluxury.in') {
+  //     if (pathname === '/') {
+  //       const session = await getSessionFromRequest(request);
+  //       if (session && session.role === 'admin') {
+  //         return applySecurityHeaders(NextResponse.redirect(new URL('/admin/dashboard', request.url)));
+  //       } else {
+  //         return applySecurityHeaders(NextResponse.redirect(new URL('/admin/login', request.url)));
+  //       }
+  //     }
+  //     if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next')) {
+  //       return applySecurityHeaders(
+  //         NextResponse.redirect(new URL(`https://avitoluxury.in${pathname}`, request.url))
+  //       );
+  //     }
+  //   } else if (hostname === 'avitoluxury.in' || hostname === 'www.avitoluxury.in') {
+  //     if (pathname.startsWith('/admin')) {
+  //       return applySecurityHeaders(
+  //         NextResponse.redirect(new URL(`https://admin.avitoluxury.in${pathname}`, request.url))
+  //       );
+  //     }
+  //   }
+  // }
 
   // Skip middleware for static files and certain API routes
   if (

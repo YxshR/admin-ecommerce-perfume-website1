@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     // Check if the email matches the configured admin email
-    const adminEmail = process.env.ADMIN_EMAIL || 'avitoluxury@gmail.com';
+    const adminEmail = 'chineshsoni2@gmail.com';
     
     if (email.toLowerCase() !== adminEmail.toLowerCase()) {
       // For security, we use a generic error message to avoid email enumeration

@@ -8,21 +8,8 @@ export default function Home() {
   const router = useRouter();
   
   useEffect(() => {
-    // On the client side, check if user is logged in
-    if (isAuthenticated()) {
-      const user = getUser();
-      
-      if (user && user.role === 'admin') {
-        // If user is admin, redirect to admin dashboard
-        router.push('/admin/dashboard');
-      } else {
-        // For regular users, redirect to store
-        router.push('/store-routes');
-      }
-    } else {
-      // For non-logged-in users, redirect to store
-      router.push('/store-routes');
-    }
+    // For all users, redirect to store-routes
+    router.push('/store-routes');
   }, [router]);
   
   // Return a loading state while redirecting

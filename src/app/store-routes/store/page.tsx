@@ -183,9 +183,11 @@ export default function HomePage() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-medium mb-4">About A V I T O   S C E N T S</h2>
+            <h3 className="text-xl md:text-2xl font-medium mb-2">About</h3>
+            <h2 className="text-2xl md:text-3xl font-medium mb-4 whitespace-pre"> A V I T O    S C E N T S</h2>
+
             <p className="text-gray-600 mb-8">
-              A V I T O   S C E N T S is a premium fragrance brand that offers high-quality perfumes inspired by the world's most iconic scents.
+            AVITO is a luxury brand renowned for its exquisite collection of premium perfumes, organic aromatic fragrances, and high-end bath and skincare products. Crafted with the finest natural and certified ingredients, AVITO’s offerings embody sophistication and indulgence, delivering long-lasting scents and nourishing care. Inspired by elegance and sustainability, the brand creates cruelty-free, paraben-free, and alcohol-free products, blending global expertise with timeless luxury to elevate everyday rituals.
             </p>
             <Link href="/about-us" className="inline-block border border-black px-6 py-2 hover:bg-black hover:text-white transition duration-300">
               Learn More
