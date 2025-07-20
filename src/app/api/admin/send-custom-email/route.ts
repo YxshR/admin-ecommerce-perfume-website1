@@ -19,6 +19,33 @@ const createTransporter = () => {
   });
 };
 
+// Helper function to ensure recipients are properly processed
+function processRecipients(recipients: any): string[] {
+  if (!recipients) return [];
+  
+  // If already an array, filter out any empty strings
+  if (Array.isArray(recipients)) {
+    return recipients.filter(email => typeof email === 'string' && email.trim() !== '');
+  }
+  
+  // If it's a string, split by commas
+  if (typeof recipients === 'string') {
+    return recipients.split(',').map(email => email.trim()).filter(email => email !== '');
+  }
+  
+  // If it's an object but not an array, try to extract values
+  if (typeof recipients === 'object') {
+    const values = Object.values(recipients);
+    if (values.length > 0) {
+      return values
+        .filter(val => val && typeof val === 'string' && val.trim() !== '')
+        .map(val => val.trim());
+    }
+  }
+  
+  return [];
+}
+
 // POST handler to send custom emails to subscribers
 export async function POST(request: NextRequest) {
   try {
@@ -61,11 +88,23 @@ export async function POST(request: NextRequest) {
     let targetEmails: string[] = [];
     
     // Handle custom recipients if provided
-    if (customRecipients && Array.isArray(customRecipients) && customRecipients.length > 0) {
-      console.log('Using custom recipients array:', customRecipients);
-      targetEmails = customRecipients;
+    if (customRecipients) {
+      console.log('Processing custom recipients:', customRecipients);
+      const processedRecipients = processRecipients(customRecipients);
+      console.log('Processed custom recipients:', processedRecipients);
+      
+      if (processedRecipients.length > 0) {
+        targetEmails = processedRecipients;
+      } else {
+        console.log('No valid custom recipients found after processing');
+      }
     } else {
-      console.log('No valid custom recipients array found, using subscribers');
+      console.log('No custom recipients provided');
+    }
+    
+    // If no custom recipients, use subscribers
+    if (targetEmails.length === 0) {
+      console.log('Using subscribers instead');
       // Get subscribers based on selection
       let targetSubscribers = [];
       

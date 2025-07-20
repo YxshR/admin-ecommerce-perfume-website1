@@ -66,10 +66,34 @@ export async function GET(request: NextRequest) {
         
         console.log(`[EMAIL PROCESSOR] Processing email ${email._id} scheduled for ${new Date(email.scheduledTime).toISOString()}`);
         console.log(`[EMAIL PROCESSOR] Email subject: "${email.template.subject}"`);
-        console.log(`[EMAIL PROCESSOR] Recipients: ${email.recipients.length}`);
+        console.log(`[EMAIL PROCESSOR] Recipients count: ${email.recipients.length}`);
+        console.log(`[EMAIL PROCESSOR] Recipients list:`, email.recipients);
+        
+        // Verify recipients array is valid
+        if (!Array.isArray(email.recipients) || email.recipients.length === 0) {
+          console.error(`[EMAIL PROCESSOR] Invalid recipients array for email ${email._id}`);
+          
+          await ScheduledEmail.findByIdAndUpdate(email._id, {
+            status: 'failed',
+            sentAt: now
+          });
+          
+          results.push({
+            id: email._id,
+            subject: email.template.subject,
+            recipients: 0,
+            sent: 0,
+            status: 'failed',
+            error: 'Invalid recipients array'
+          });
+          
+          continue;
+        }
         
         // Send the email
+        console.log(`[EMAIL PROCESSOR] Calling sendCustomEmail with ${email.recipients.length} recipients`);
         const result = await sendCustomEmail(email.recipients, email.template, email.attachments);
+        console.log(`[EMAIL PROCESSOR] sendCustomEmail result:`, result);
         
         // Update the scheduled email status
         const status = result.success ? 'sent' : 'failed';
@@ -99,7 +123,7 @@ export async function GET(request: NextRequest) {
         results.push({
           id: email._id,
           subject: email.template.subject,
-          recipients: email.recipients.length,
+          recipients: email.recipients ? email.recipients.length : 0,
           sent: 0,
           status: 'failed',
           error: error instanceof Error ? error.message : 'Unknown error'

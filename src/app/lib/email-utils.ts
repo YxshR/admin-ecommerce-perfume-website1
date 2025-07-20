@@ -750,10 +750,12 @@ export const sendCustomEmail = async (
   }>
 ): Promise<{success: boolean; sentCount: number}> => {
   try {
+    console.log(`[EMAIL SENDING] Starting to send emails to ${recipients.length} recipients:`, recipients);
+    
     const transporter = createTransporter();
 
     if (!process.env.EMAIL_PASSWORD) {
-      console.error('Email password not configured. Please set EMAIL_PASSWORD in .env.local');
+      console.error('[EMAIL SENDING] Email password not configured. Please set EMAIL_PASSWORD in .env.local');
       return { success: false, sentCount: 0 };
     }
 
@@ -777,61 +779,47 @@ export const sendCustomEmail = async (
     // Create email HTML
     const emailHtml = generateCustomEmailHtml(template, styles);
 
-    // Method 1: Send to all recipients in a single email using BCC
-    try {
-      const mailOptions = {
-        from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
-        to: process.env.EMAIL_USER || 'info@avitoluxury.in', // Send to ourselves
-        bcc: recipients, // BCC all recipients
-        subject: template.subject,
-        html: emailHtml,
-        attachments: emailAttachments
-      };
+    let sentCount = 0;
+    const failedRecipients: string[] = [];
 
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`Bulk email sent to ${recipients.length} recipients:`, info.response);
+    // Send to each recipient individually
+    console.log(`[EMAIL SENDING] Will now attempt to send ${recipients.length} individual emails`);
+    
+    for (let i = 0; i < recipients.length; i++) {
+      const recipient = recipients[i];
+      console.log(`[EMAIL SENDING] Processing recipient ${i+1}/${recipients.length}: ${recipient}`);
       
-      return {
-        success: true,
-        sentCount: recipients.length
-      };
-    } catch (bulkError) {
-      console.error('Error sending bulk email, falling back to individual emails:', bulkError);
-      
-      // Method 2: Fall back to individual emails if bulk sending fails
-      let sentCount = 0;
-      const failedRecipients: string[] = [];
+      try {
+        const mailOptions = {
+          from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+          to: recipient,
+          subject: template.subject,
+          html: emailHtml,
+          attachments: emailAttachments
+        };
 
-      // Send to each recipient individually
-      for (const recipient of recipients) {
-        try {
-          const mailOptions = {
-            from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
-            to: recipient,
-            subject: template.subject,
-            html: emailHtml,
-            attachments: emailAttachments
-          };
-
-          const info = await transporter.sendMail(mailOptions);
-          console.log(`Email sent to ${recipient}:`, info.response);
-          sentCount++;
-        } catch (error) {
-          console.error(`Error sending email to ${recipient}:`, error);
-          failedRecipients.push(recipient);
-        }
+        console.log(`[EMAIL SENDING] Sending email to: ${recipient}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[EMAIL SENDING] Success! Email sent to ${recipient}:`, info.response);
+        sentCount++;
+      } catch (error) {
+        console.error(`[EMAIL SENDING] Error sending email to ${recipient}:`, error);
+        failedRecipients.push(recipient);
       }
-
-      // Log results
-      console.log(`Custom email campaign sent to ${sentCount} recipients, failed for ${failedRecipients.length} recipients`);
-      
-      return {
-        success: sentCount > 0,
-        sentCount
-      };
     }
+
+    // Log results
+    console.log(`[EMAIL SENDING] Campaign completed: sent to ${sentCount} recipients, failed for ${failedRecipients.length} recipients`);
+    if (failedRecipients.length > 0) {
+      console.log(`[EMAIL SENDING] Failed recipients:`, failedRecipients);
+    }
+    
+    return {
+      success: sentCount > 0,
+      sentCount
+    };
   } catch (error) {
-    console.error('Error sending custom emails:', error);
+    console.error('[EMAIL SENDING] Error in sendCustomEmail function:', error);
     return { success: false, sentCount: 0 };
   }
 };
