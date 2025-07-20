@@ -240,13 +240,17 @@ export default function SubscribersPage() {
   };
 
   const handleSendCustomEmail = async () => {
+    // Validate template fields
     if (!emailTemplate.subject || !emailTemplate.heading || !emailTemplate.content) {
-      alert('Please fill in all required fields');
+      alert('Please fill in all required template fields (subject, heading, content)');
       return;
     }
 
-    // Validate custom recipients if that option is selected
-    if (recipientType === 'custom') {
+    // Validate recipients
+    if (recipientType === 'subscribers' && !sendToAll && selectedSubscribers.length === 0) {
+      alert('Please select at least one subscriber or choose "Send to all active subscribers"');
+      return;
+    } else if (recipientType === 'custom') {
       if (!customRecipients.trim()) {
         alert('Please enter at least one email address');
         return;
@@ -315,7 +319,11 @@ export default function SubscribersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send custom email');
+        if (response.status === 500 && errorData.message.includes('MongoDB')) {
+          throw new Error('Database connection error. Please check your MongoDB connection settings.');
+        } else {
+          throw new Error(errorData.message || 'Failed to send custom email');
+        }
       }
 
       const result = await response.json();
@@ -328,8 +336,16 @@ export default function SubscribersPage() {
       
       setShowEmailComposer(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send custom email');
-      alert('Error sending email campaign: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send custom email';
+      setError(errorMessage);
+      
+      // Check if it's a MongoDB connection error
+      if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('MongoDB') || errorMessage.includes('Database connection')) {
+        alert('Error: Database connection failed. Please check your MongoDB connection settings in .env.local file.');
+      } else {
+        alert('Error sending email campaign: ' + errorMessage);
+      }
+      
       console.error('Send email error:', err);
     } finally {
       setSendingEmail(false);

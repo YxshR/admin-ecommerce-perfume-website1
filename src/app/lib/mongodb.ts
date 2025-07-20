@@ -9,7 +9,9 @@ if (process.env.NODE_ENV === 'development') {
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
+  console.error('MONGODB_URI environment variable is not defined');
+  console.error('Please create or update your .env.local file with a valid MongoDB connection string');
+  console.error('Example: MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority');
 }
 
 // Global interface
@@ -45,18 +47,25 @@ async function connectMongoDB(): Promise<typeof mongoose> {
     
     if (!MONGODB_URI) {
       console.error('MONGODB_URI is undefined or empty!');
-      throw new Error('MONGODB_URI environment variable is not defined');
+      throw new Error('MongoDB connection error: MONGODB_URI environment variable is not defined. Please check your .env.local file.');
     }
     
     console.log('MongoDB URI format check:', 
-      MONGODB_URI.startsWith('mongodb+srv://') ? 'Valid format' : 'Invalid format');
+      MONGODB_URI.startsWith('mongodb+srv://') || MONGODB_URI.startsWith('mongodb://') ? 'Valid format' : 'Invalid format');
     
-    globalWithMongoose.mongoose.promise = mongoose.connect(MONGODB_URI, {
+    if (!MONGODB_URI.startsWith('mongodb+srv://') && !MONGODB_URI.startsWith('mongodb://')) {
+      throw new Error('MongoDB connection error: Invalid MongoDB URI format. URI should start with mongodb:// or mongodb+srv://');
+    }
+    
+    const connectionOptions = {
       bufferCommands: true,
-      // Add any other connection options if needed
       serverSelectionTimeoutMS: 30000, // 30 seconds
       connectTimeoutMS: 30000,
-    })
+      socketTimeoutMS: 45000,
+      family: 4, // Use IPv4, skip trying IPv6
+    };
+    
+    globalWithMongoose.mongoose.promise = mongoose.connect(MONGODB_URI, connectionOptions)
     .then((mongoose) => {
       console.log('MongoDB connected successfully');
       return mongoose;
@@ -64,14 +73,21 @@ async function connectMongoDB(): Promise<typeof mongoose> {
     .catch((error) => {
       console.error('MongoDB connection error:', error);
       console.error('Connection error details:', error.message);
+      
+      // Provide more specific error messages based on error type
       if (error.name === 'MongoNetworkError') {
         console.error('Network error - check your connection and MongoDB URI');
+        throw new Error('MongoDB connection error: Network issue. Check your internet connection and MongoDB URI.');
       } else if (error.name === 'MongoServerSelectionError') {
         console.error('Server selection error - MongoDB server may be down or unreachable');
+        if (error.message.includes('ENOTFOUND')) {
+          throw new Error('MongoDB connection error: Could not find the database server. Please check the hostname in your connection string.');
+        } else {
+          throw new Error('MongoDB connection error: Could not connect to the database server. It may be down or unreachable.');
+        }
+      } else {
+        throw new Error(`MongoDB connection error: ${error.message}`);
       }
-      
-      globalWithMongoose.mongoose.promise = null;
-      throw error;
     });
   }
 

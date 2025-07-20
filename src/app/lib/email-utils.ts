@@ -777,36 +777,59 @@ export const sendCustomEmail = async (
     // Create email HTML
     const emailHtml = generateCustomEmailHtml(template, styles);
 
-    let sentCount = 0;
-    const failedRecipients: string[] = [];
+    // Method 1: Send to all recipients in a single email using BCC
+    try {
+      const mailOptions = {
+        from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+        to: process.env.EMAIL_USER || 'info@avitoluxury.in', // Send to ourselves
+        bcc: recipients, // BCC all recipients
+        subject: template.subject,
+        html: emailHtml,
+        attachments: emailAttachments
+      };
 
-    // Send to each recipient individually
-    for (const recipient of recipients) {
-      try {
-        const mailOptions = {
-          from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
-          to: recipient,
-          subject: template.subject,
-          html: emailHtml,
-          attachments: emailAttachments
-        };
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`Bulk email sent to ${recipients.length} recipients:`, info.response);
+      
+      return {
+        success: true,
+        sentCount: recipients.length
+      };
+    } catch (bulkError) {
+      console.error('Error sending bulk email, falling back to individual emails:', bulkError);
+      
+      // Method 2: Fall back to individual emails if bulk sending fails
+      let sentCount = 0;
+      const failedRecipients: string[] = [];
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${recipient}:`, info.response);
-        sentCount++;
-      } catch (error) {
-        console.error(`Error sending email to ${recipient}:`, error);
-        failedRecipients.push(recipient);
+      // Send to each recipient individually
+      for (const recipient of recipients) {
+        try {
+          const mailOptions = {
+            from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+            to: recipient,
+            subject: template.subject,
+            html: emailHtml,
+            attachments: emailAttachments
+          };
+
+          const info = await transporter.sendMail(mailOptions);
+          console.log(`Email sent to ${recipient}:`, info.response);
+          sentCount++;
+        } catch (error) {
+          console.error(`Error sending email to ${recipient}:`, error);
+          failedRecipients.push(recipient);
+        }
       }
-    }
 
-    // Log results
-    console.log(`Custom email campaign sent to ${sentCount} recipients, failed for ${failedRecipients.length} recipients`);
-    
-    return {
-      success: sentCount > 0,
-      sentCount
-    };
+      // Log results
+      console.log(`Custom email campaign sent to ${sentCount} recipients, failed for ${failedRecipients.length} recipients`);
+      
+      return {
+        success: sentCount > 0,
+        sentCount
+      };
+    }
   } catch (error) {
     console.error('Error sending custom emails:', error);
     return { success: false, sentCount: 0 };

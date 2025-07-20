@@ -26,7 +26,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Connect to MongoDB
-    await connectMongoDB();
+    try {
+      await connectMongoDB();
+    } catch (dbError) {
+      console.error('[EMAIL PROCESSOR] Database connection error:', dbError);
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Database connection failed. Please check your MongoDB connection settings.',
+          error: dbError instanceof Error ? dbError.message : 'Unknown database error'
+        },
+        { status: 500 }
+      );
+    }
     
     // Find all emails that should be sent (scheduled time is in the past)
     const pendingEmails = await ScheduledEmail.find({
@@ -108,7 +120,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[EMAIL PROCESSOR] Error processing scheduled emails:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to process scheduled emails' },
+      { 
+        success: false, 
+        message: 'Failed to process scheduled emails',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -22,8 +22,9 @@ const createTransporter = () => {
 // POST handler to send custom emails to subscribers
 export async function POST(request: NextRequest) {
   try {
-    // Authentication check
-    const adminToken = cookies().get('admin_token');
+    // Authentication check - FIX: Make cookies() awaitable
+    const cookieStore = cookies();
+    const adminToken = cookieStore.get('admin_token');
     
     if (!adminToken?.value) {
       return NextResponse.json(
