@@ -116,11 +116,5 @@
       "destination": "https://admin.avitoluxury.in/admin/login",
       "permanent": false
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/process-scheduled-emails",
-      "schedule": "* * * * *"
-    }
   ]
 } 

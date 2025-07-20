@@ -108,26 +108,26 @@ export async function POST(request: NextRequest) {
       await scheduledEmailDoc.save();
       console.log(`Scheduled email saved with ID: ${scheduledEmailDoc._id}`);
       
-      // Trigger the cron job to check for newly scheduled emails
+      // Immediately trigger the email processor if the scheduled time is very close or in the past
       try {
-        // Only trigger if the scheduled time is very close (within 5 minutes)
         const scheduledDate = new Date(scheduledTime);
         const now = new Date();
-        const diffMinutes = (scheduledDate.getTime() - now.getTime()) / (1000 * 60);
+        const diffSeconds = (scheduledDate.getTime() - now.getTime()) / 1000;
         
-        if (diffMinutes <= 5) {
-          console.log(`Scheduled time is within 5 minutes, triggering cron job immediately`);
+        // If scheduled for the next 60 seconds or in the past, trigger processing immediately
+        if (diffSeconds <= 60) {
+          console.log(`Scheduled time is within 60 seconds, triggering email processor immediately`);
           await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/cron/process-scheduled-emails`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.CRON_SECRET || 'test-secret'}`
+              'Authorization': `Bearer ${process.env.CRON_SECRET || 'development-secret'}`
             },
             cache: 'no-store'
           });
         }
       } catch (triggerError) {
-        console.error('Error triggering cron job after scheduling:', triggerError);
+        console.error('Error triggering email processor after scheduling:', triggerError);
         // Don't fail the request if the trigger fails
       }
       

@@ -220,25 +220,26 @@ export async function PATCH(
     // Save the updated email
     await scheduledEmail.save();
     
-    // Trigger the cron job if the scheduled time is within 5 minutes
+    // Trigger the API endpoint to process scheduled emails
+    // This ensures the system checks for emails that need to be sent
     try {
-      const scheduledDate = new Date(scheduledEmail.scheduledTime);
-      const now = new Date();
-      const diffMinutes = (scheduledDate.getTime() - now.getTime()) / (1000 * 60);
+      console.log(`[API] Triggering scheduled email check after rescheduling email ${id}`);
       
-      if (diffMinutes <= 5) {
-        console.log(`Updated scheduled time is within 5 minutes, triggering cron job immediately`);
-        await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/cron/process-scheduled-emails`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.CRON_SECRET || 'test-secret'}`
-          },
-          cache: 'no-store'
-        });
+      // Call the API endpoint that processes scheduled emails
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/cron/process-scheduled-emails`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.CRON_SECRET || 'development-secret'}`
+        },
+        cache: 'no-store'
+      });
+      
+      if (!response.ok) {
+        console.error('[API] Failed to trigger scheduled email processing:', await response.text());
       }
     } catch (triggerError) {
-      console.error('Error triggering cron job after rescheduling:', triggerError);
+      console.error('[API] Error triggering scheduled email processing:', triggerError);
       // Don't fail the request if the trigger fails
     }
     

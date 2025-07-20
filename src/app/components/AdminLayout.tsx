@@ -47,6 +47,35 @@ export default function AdminLayout({ children, activeRoute = '/admin/dashboard'
     checkAdminAuthState();
   }, []);
   
+  // Add a scheduled task to check for emails that need to be sent
+  useEffect(() => {
+    // Set up interval to check for emails every minute
+    const emailCheckInterval = setInterval(async () => {
+      try {
+        // Call the API endpoint to process scheduled emails
+        const response = await fetch('/api/cron/process-scheduled-emails', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer development-secret`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.results && result.results.length > 0) {
+            console.log('[Admin Layout] Processed scheduled emails:', result.message);
+          }
+        }
+      } catch (err) {
+        console.error('[Admin Layout] Error checking for scheduled emails:', err);
+      }
+    }, 60000); // Check every minute
+    
+    // Clean up interval on unmount
+    return () => clearInterval(emailCheckInterval);
+  }, []);
+
   const handleLogout = () => {
     adminLogout(router);
   };

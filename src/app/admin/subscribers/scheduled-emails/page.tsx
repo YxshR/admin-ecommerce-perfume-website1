@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/app/components/AdminLayout';
-import { FiClock, FiCheck, FiX, FiTrash2, FiSend, FiEdit, FiCalendar } from 'react-icons/fi';
+import { FiClock, FiCheck, FiX, FiTrash2, FiSend, FiEdit, FiCalendar, FiRefreshCw } from 'react-icons/fi';
 
 interface ScheduledEmail {
   _id: string;
@@ -43,6 +43,8 @@ export default function ScheduledEmailsPage() {
   const [processingManually, setProcessingManually] = useState(false);
   const [timeRange, setTimeRange] = useState(5); // Default to 5 minutes
   const [showTimeRangeModal, setShowTimeRangeModal] = useState(false);
+  const [cronStatus, setCronStatus] = useState<any>(null);
+  const [loadingCronStatus, setLoadingCronStatus] = useState(false);
   const router = useRouter();
 
   const handleDeleteScheduledEmail = async (id: string) => {
@@ -262,9 +264,73 @@ export default function ScheduledEmailsPage() {
     }
   };
 
+  const fetchCronStatus = async () => {
+    try {
+      setLoadingCronStatus(true);
+      const response = await fetch('/api/admin/cron-status');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch cron status');
+      }
+      
+      const data = await response.json();
+      setCronStatus(data);
+    } catch (err) {
+      console.error('Error fetching cron status:', err);
+    } finally {
+      setLoadingCronStatus(false);
+    }
+  };
+
   useEffect(() => {
     fetchScheduledEmails();
+    fetchCronStatus();
+    
+    // Refresh cron status every minute
+    const statusInterval = setInterval(fetchCronStatus, 60000);
+    
+    return () => {
+      clearInterval(statusInterval);
+    };
   }, [router]);
+
+  // Add useEffect to periodically check for emails that need to be sent
+  useEffect(() => {
+    // Initial fetch
+    fetchScheduledEmails();
+    
+    // Set up interval to check for emails every 30 seconds
+    const checkInterval = setInterval(async () => {
+      try {
+        // Call the API endpoint to process scheduled emails
+        const response = await fetch('/api/cron/process-scheduled-emails', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer development-secret`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.results && result.results.length > 0) {
+            console.log('Processed emails:', result.message);
+            // Refresh the list if emails were processed
+            fetchScheduledEmails();
+          }
+        }
+      } catch (err) {
+        console.error('Error checking for scheduled emails:', err);
+      }
+    }, 30000); // Check every 30 seconds
+    
+    // Clean up interval on unmount
+    return () => clearInterval(checkInterval);
+  }, []);
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -282,7 +348,7 @@ export default function ScheduledEmailsPage() {
               className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center"
               disabled={triggeringCron}
             >
-              <FiClock className="mr-2" /> {triggeringCron ? 'Processing...' : 'Run Cron Job'}
+              <FiClock className="mr-2" /> {triggeringCron ? 'Processing...' : 'Check Scheduled Emails'}
             </button>
             <button
               onClick={handleShowTimeRangeModal}
@@ -312,6 +378,81 @@ export default function ScheduledEmailsPage() {
             {error}
           </div>
         )}
+
+        {/* Cron Status */}
+        <div className="bg-white shadow-md rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-semibold mb-2 flex items-center">
+            <span className="mr-2">Cron Job Status</span>
+            <button 
+              onClick={fetchCronStatus}
+              className="text-blue-500 hover:text-blue-700"
+              disabled={loadingCronStatus}
+            >
+              <FiRefreshCw className={`${loadingCronStatus ? 'animate-spin' : ''}`} />
+            </button>
+          </h2>
+          
+          {cronStatus ? (
+            <div className="text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-xs text-gray-500">Server Time</div>
+                  <div>{new Date(cronStatus.serverTime).toLocaleString()}</div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-xs text-gray-500">Indian Time (IST)</div>
+                  <div>{new Date(cronStatus.istTime).toLocaleString()}</div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-xs text-gray-500">Active Cron Jobs</div>
+                  <div>{cronStatus.cronJobs.length}</div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-xs text-gray-500">Status</div>
+                  <div className="flex items-center">
+                    <span className="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
+                    Running
+                  </div>
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Name</th>
+                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Run</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {cronStatus.cronJobs.map((job: any) => (
+                      <tr key={job.name}>
+                        <td className="py-2 px-3 whitespace-nowrap">{job.name}</td>
+                        <td className="py-2 px-3 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${job.running ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {job.running ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(job.lastRun).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="mt-3 text-xs text-gray-500">
+                <p>Emails are automatically processed every 30 seconds by the node-cron service.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-gray-500 text-sm">
+              {loadingCronStatus ? 'Loading cron status...' : 'Cron status not available'}
+            </div>
+          )}
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">

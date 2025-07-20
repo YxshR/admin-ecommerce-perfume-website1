@@ -3,27 +3,22 @@ import connectMongoDB from '@/app/lib/mongodb';
 import ScheduledEmail from '@/app/models/ScheduledEmail';
 import { sendCustomEmail } from '@/app/lib/email-utils';
 
-// This endpoint is called by a cron job every minute
-// The cron job is configured in vercel.json
+// This endpoint processes scheduled emails
+// It can be called by a cron job or manually triggered
 export async function GET(request: NextRequest) {
-  // Get current time in Indian timezone (IST = UTC+5:30)
-  const now = new Date();
-  // Adjust to Indian Standard Time (UTC+5:30)
-  const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-  const istNow = new Date(now.getTime() + istOffset);
-  
-  const timestamp = istNow.toISOString();
-  console.log(`[CRON ${timestamp}] Processing scheduled emails (Indian Time)`);
-  
   try {
-    // Verify cron secret to ensure only authorized calls are processed
-    // For testing purposes, we'll allow access without the secret if in development mode
+    // Get current time
+    const now = new Date();
+    const timestamp = now.toISOString();
+    console.log(`[EMAIL PROCESSOR ${timestamp}] Processing scheduled emails`);
+    
+    // Verify authorization for non-development environments
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+    const cronSecret = process.env.CRON_SECRET || 'development-secret';
     const isDev = process.env.NODE_ENV === 'development';
     
     if (!isDev && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
-      console.log('[CRON] Unauthorized access attempt');
+      console.log('[EMAIL PROCESSOR] Unauthorized access attempt');
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
@@ -33,39 +28,16 @@ export async function GET(request: NextRequest) {
     // Connect to MongoDB
     await connectMongoDB();
     
-    // Calculate the time window: 2 minutes in the past to 2 minutes in the future
-    // This wider window ensures we don't miss emails due to cron timing issues
-    const pastWindow = new Date(now.getTime() - 2 * 60 * 1000); // 2 minutes ago
-    const futureWindow = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes in the future
-    
-    console.log(`[CRON ${timestamp}] Looking for emails scheduled between ${pastWindow.toISOString()} and ${futureWindow.toISOString()}`);
-    console.log(`[CRON ${timestamp}] Current server time: ${now.toISOString()}`);
-    console.log(`[CRON ${timestamp}] Current IST time: ${istNow.toISOString()}`);
-    
-    // Find scheduled emails that are due to be sent (scheduled time is within our window)
-    const scheduledEmails = await ScheduledEmail.find({
-      scheduledTime: { 
-        $gte: pastWindow,
-        $lte: futureWindow 
-      },
-      status: 'pending'
-    }).lean();
-    
-    console.log(`[CRON ${timestamp}] Found ${scheduledEmails.length} scheduled emails to process in the time window`);
-    
-    // Also check for any missed emails (scheduled in the past but still pending)
-    const missedEmails = await ScheduledEmail.find({
-      scheduledTime: { $lt: pastWindow },
+    // Find all emails that should be sent (scheduled time is in the past)
+    const pendingEmails = await ScheduledEmail.find({
+      scheduledTime: { $lte: now },
       status: 'pending'
     }).sort({ scheduledTime: 1 }).lean(); // Process oldest first
     
-    console.log(`[CRON ${timestamp}] Found ${missedEmails.length} missed emails from the past`);
+    console.log(`[EMAIL PROCESSOR] Found ${pendingEmails.length} pending emails to process`);
     
-    // Combine missed emails and scheduled emails, with missed emails first
-    const emailsToProcess = [...missedEmails, ...scheduledEmails];
-    
-    if (emailsToProcess.length === 0) {
-      console.log(`[CRON ${timestamp}] No emails to process at this time`);
+    if (pendingEmails.length === 0) {
+      console.log('[EMAIL PROCESSOR] No emails to process at this time');
       return NextResponse.json(
         { success: true, message: 'No scheduled emails to process' },
         { status: 200 }
@@ -75,15 +47,14 @@ export async function GET(request: NextRequest) {
     // Process each scheduled email
     const results = [];
     
-    for (const email of emailsToProcess) {
+    for (const email of pendingEmails) {
       try {
         // First, update the status to 'processing' to prevent duplicate processing
         await ScheduledEmail.findByIdAndUpdate(email._id, { status: 'processing' });
         
-        const scheduledTimeIST = new Date(new Date(email.scheduledTime).getTime() + istOffset);
-        console.log(`[CRON ${timestamp}] Processing email ${email._id} scheduled for ${scheduledTimeIST.toISOString()} (Indian Time)`);
-        console.log(`[CRON ${timestamp}] Email subject: "${email.template.subject}"`);
-        console.log(`[CRON ${timestamp}] Recipients: ${email.recipients.length}`);
+        console.log(`[EMAIL PROCESSOR] Processing email ${email._id} scheduled for ${new Date(email.scheduledTime).toISOString()}`);
+        console.log(`[EMAIL PROCESSOR] Email subject: "${email.template.subject}"`);
+        console.log(`[EMAIL PROCESSOR] Recipients: ${email.recipients.length}`);
         
         // Send the email
         const result = await sendCustomEmail(email.recipients, email.template, email.attachments);
@@ -95,7 +66,7 @@ export async function GET(request: NextRequest) {
           sentAt: now
         });
         
-        console.log(`[CRON ${timestamp}] Email ${email._id} processed with status: ${status}, sent to ${result.sentCount} recipients`);
+        console.log(`[EMAIL PROCESSOR] Email ${email._id} processed with status: ${status}, sent to ${result.sentCount} recipients`);
         
         results.push({
           id: email._id,
@@ -105,7 +76,7 @@ export async function GET(request: NextRequest) {
           status: status
         });
       } catch (error) {
-        console.error(`[CRON ${timestamp}] Error processing scheduled email ${email._id}:`, error);
+        console.error(`[EMAIL PROCESSOR] Error processing scheduled email ${email._id}:`, error);
         
         // Update status to failed
         await ScheduledEmail.findByIdAndUpdate(email._id, {
@@ -124,18 +95,18 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    console.log(`[CRON ${timestamp}] Completed processing ${emailsToProcess.length} scheduled emails`);
+    console.log(`[EMAIL PROCESSOR] Completed processing ${pendingEmails.length} scheduled emails`);
     
     return NextResponse.json(
       { 
         success: true, 
-        message: `Processed ${emailsToProcess.length} scheduled emails`,
+        message: `Processed ${pendingEmails.length} scheduled emails`,
         results
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('[CRON] Error processing scheduled emails:', error);
+    console.error('[EMAIL PROCESSOR] Error processing scheduled emails:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to process scheduled emails' },
       { status: 500 }
@@ -143,9 +114,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Ensure this endpoint is always freshly evaluated
-export const dynamic = 'force-dynamic';
-// Don't cache this endpoint
-export const fetchCache = 'force-no-store';
-// Revalidate this endpoint immediately
-export const revalidate = 0; 
+export const dynamic = 'force-dynamic'; 

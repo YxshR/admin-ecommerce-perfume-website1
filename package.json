@@ -9,13 +9,17 @@
     "lint": "node node_modules/next/dist/bin/next lint",
     "seed": "node scripts/seed-database.js",
     "setup": "node setup-and-run.js",
-    "seed-leadership": "node scripts/populate-leadership.js"
+    "seed-leadership": "node scripts/populate-leadership.js",
+    "cron:start": "node src/scripts/start-cron-service.js",
+    "cron:test": "node src/scripts/test-cron.js",
+    "cron:process": "npx ts-node src/server/process-emails-standalone.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
     "@hookform/resolvers": "^3.10.0",
     "@react-email/components": "^0.0.41",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "@types/uuid": "^10.0.0",
     "axios": "^1.10.0",
@@ -31,6 +35,7 @@
     "mongoose": "^8.15.0",
     "motion-utils": "^12.12.1",
     "next": "^15.3.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
     "razorpay": "^2.9.6",
     "react": "^19.0.0",
@@ -58,6 +63,7 @@
     "mongodb-memory-server": "^10.1.4",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
