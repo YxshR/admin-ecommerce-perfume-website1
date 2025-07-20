@@ -448,7 +448,7 @@ export default function Nav() {
             <div className="flex-shrink-0 flex flex-col items-center">
               <Link href="/store-routes" className="flex gap-2 items-center">
                 <img
-                  src="/logoo1.png"
+                  src="/avito3-16.png"
                   alt="A V I T O   S C E N T S"
                   className="h-12 xs:h-16 sm:h-20 w-auto"
                 />

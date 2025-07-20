@@ -20,7 +20,7 @@ Add the following variables to your `.env.local` file:
 ```
 # Razorpay Configuration
 RAZORPAY_KEY_ID=rzp_live_ZhhzXPVJwyHfxu
-RAZORPAY_KEY_SECRET=OQmkoO5AB107WZw0oLt3dyrO
+RAZORPAY_KEY_SECRET=
 ```
 
 Replace the placeholder values with your actual Razorpay API keys.

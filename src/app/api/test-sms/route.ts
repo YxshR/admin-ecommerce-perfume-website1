@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if API key is configured
-    const apiKey = process.env.TWO_FACTOR_API_KEY || "d4b37114-5f02-11f0-a562-0200cd936042";
+    const apiKey = process.env.TWO_FACTOR_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { success: false, error: 'TWO_FACTOR_API_KEY is not configured in environment variables' },

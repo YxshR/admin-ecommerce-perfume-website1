@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import Product from '../../models/Product';
+import Subscriber from '../../models/Subscriber';
 import connectMongoDB from '@/app/lib/mongodb';
+import { sendProductNotificationEmail } from '@/app/lib/email-utils';
 
 // GET all products with optional filtering
 export async function GET(request: NextRequest) {
@@ -135,7 +137,7 @@ export async function POST(request: Request) {
       isBestBuy: productInfo.isBestBuy || false,
       
       // Keep existing fields
-      brand: productInfo.brand || 'A V I T O   S C E N T S',
+      brand: productInfo.brand || 'A V I T O   S C E N T S',
       sku: productInfo.sku,
       quantity: parseInt(productInfo.quantity.toString() || '0'),
       featured: productInfo.featured || false,
@@ -147,6 +149,50 @@ export async function POST(request: Request) {
     
     // Save to database
     const product = await Product.create(productData);
+
+    // Send notification to subscribers
+    try {
+      // Get all active subscribers
+      const activeSubscribers = await Subscriber.find({ isActive: true });
+      
+      if (activeSubscribers.length > 0) {
+        console.log(`Sending notifications to ${activeSubscribers.length} subscribers`);
+        
+        // Prepare product data for notification
+        const notificationData = {
+          name: product.name,
+          type: product.productType,
+          subCategory: product.subCategories.length > 0 ? product.subCategories[0] : product.category,
+          volume: product.volume,
+          image: product.mainImage,
+          slug: product.slug
+        };
+        
+        // Send emails in the background without waiting for completion
+        setTimeout(async () => {
+          try {
+            // Send emails to all active subscribers
+            const emailPromises = activeSubscribers.map(subscriber => 
+              sendProductNotificationEmail(subscriber.email, notificationData)
+            );
+            
+            // Wait for all emails to be sent
+            const results = await Promise.allSettled(emailPromises);
+            
+            // Count successful and failed emails
+            const successful = results.filter(r => r.status === 'fulfilled' && (r as PromiseFulfilledResult<boolean>).value === true).length;
+            const failed = activeSubscribers.length - successful;
+            
+            console.log(`Notifications sent to ${successful} subscribers${failed > 0 ? `, ${failed} failed` : ''}`);
+          } catch (error) {
+            console.error('Error sending product notifications:', error);
+          }
+        }, 0);
+      }
+    } catch (notifyError) {
+      // Log error but don't fail the product creation
+      console.error('Error notifying subscribers:', notifyError);
+    }
     
     return NextResponse.json({ 
       success: true, 
@@ -162,4 +208,4 @@ export async function POST(request: Request) {
   }
 }
 
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';

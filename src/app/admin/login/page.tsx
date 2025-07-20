@@ -16,13 +16,6 @@ export default function AdminLoginPage() {
   const [debug, setDebug] = useState<string[]>([]);
   const router = useRouter();
   
-  // For development purposes only
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      setPassword('chinesh@123');
-    }
-  }, []);
-  
   const addDebug = (message: string) => {
     setDebug(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };

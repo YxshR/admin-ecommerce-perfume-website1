@@ -29,7 +29,7 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
     }
 
     const mailOptions = {
-      from: `Admin Panel <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+      from: `Admin Panel <${process.env.EMAIL_USER || 'info@avitoluxury.in' || 'admin@avitoluxury.in'}>`,
       to: email,
       subject: 'Admin Panel OTP Verification',
       html: `<!DOCTYPE html>
@@ -86,7 +86,7 @@ export const sendAdminOTP = async (email: string, otp: string): Promise<boolean>
 <body>
   <div class="email-container">
     <div class="header">
-      <img src="https://avitoluxury.in/logo.png" alt="AvitoLuxury Logo" />
+      <img src="https://res.cloudinary.com/dzzxpyqif/image/upload/v1752956166/avito3-16_fst8wm.png" alt="AvitoLuxury Logo" />
       <h2>Admin OTP Verification</h2>
     </div>
     <p class="message">
@@ -433,5 +433,382 @@ export const sendOrderConfirmationEmail = async (
   } catch (error) {
     console.error('Error sending order confirmation email:', error);
     return false;
+  }
+};
+
+// Send product notification email to subscribers
+export const sendProductNotificationEmail = async (
+  subscriberEmail: string,
+  productData: {
+    name: string;
+    type: string;
+    subCategory: string;
+    volume: string;
+    image: string;
+    slug: string;
+  }
+): Promise<boolean> => {
+  try {
+    const transporter = createTransporter();
+
+    if (!process.env.EMAIL_PASSWORD) {
+      console.error('Email password not configured. Please set EMAIL_PASSWORD in .env.local');
+      return false;
+    }
+
+    const { name, type, subCategory, volume, image, slug } = productData;
+    const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://avitoluxury.in'}/product/${slug}`;
+    const unsubscribeUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://avitoluxury.in'}/unsubscribe?email=${encodeURIComponent(subscriberEmail)}`;
+
+    const mailOptions = {
+      from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+      to: subscriberEmail,
+      subject: `New Product Alert: ${name} is now available!`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Product Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
+    .email-wrapper {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .header {
+      background-color: #000;
+      text-align: center;
+      padding: 30px;
+    }
+    .header img {
+      max-width: 180px;
+      height: auto;
+    }
+    .content {
+      padding: 30px 20px;
+      color: #333333;
+    }
+    .content h2 {
+      color: #c19b6c;
+      margin-bottom: 20px;
+    }
+    .product-img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .product-details p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+    .product-details strong {
+      color: #000;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 25px;
+      background-color: #c19b6c;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .footer {
+      background-color: #f1f1f1;
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      padding: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="header">
+      <img src="https://res.cloudinary.com/dzzxpyqif/image/upload/v1752956166/avito3-16_fst8wm.png" alt="AvitoLuxury Logo">
+    </div>
+
+    <div class="content">
+      <h2>🎉 New Product Added to AvitoLuxury</h2>
+      <p>Hey there,</p>
+      <p>We just added a new premium perfume to our collection. Here are the details:</p>
+
+      <img src="${image}" alt="${name}" class="product-img">
+
+      <div class="product-details">
+        <p><strong>Product Name:</strong> ${name}</p>
+        <p><strong>Product Type:</strong> ${type}</p>
+        <p><strong>Sub-Category:</strong> ${subCategory}</p>
+        <p><strong>Volume:</strong> ${volume}</p>
+      </div>
+
+      <a href="${productUrl}" class="btn">View Product</a>
+    </div>
+
+    <div class="footer">
+      You are receiving this email because you subscribed to AvitoLuxury product notifications.<br />
+      <a href="${unsubscribeUrl}" style="color: #c19b6c;">Unsubscribe</a> if you no longer wish to receive these updates.
+    </div>
+  </div>
+</body>
+</html>`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Product notification email sent:', info.response);
+    return true;
+  } catch (error) {
+    console.error('Error sending product notification email:', error);
+    return false;
+  }
+};
+
+// Generate HTML for custom email templates
+function generateCustomEmailHtml(
+  template: {
+    subject: string;
+    heading: string;
+    content: string;
+    imageUrl: string;
+    buttonText?: string;
+    buttonLink?: string;
+    buttons?: Array<{ text: string; link: string }>;
+  },
+  styles: {
+    backgroundColor: string;
+    textColor: string;
+    accentColor: string;
+    headingAlignment: 'left' | 'center' | 'right';
+    logoAlignment: 'left' | 'center' | 'right';
+    contentAlignment: 'left' | 'center' | 'right';
+  }
+): string {
+  // Generate buttons HTML
+  let buttonsHtml = '';
+  
+  // Handle single button
+  if (template.buttonText && template.buttonLink) {
+    buttonsHtml = `
+      <a href="${template.buttonLink}" 
+         style="display: inline-block; background-color: ${styles.accentColor}; color: white; 
+                padding: 12px 25px; text-decoration: none; border-radius: 4px; 
+                margin-top: 20px; font-weight: bold;">
+        ${template.buttonText}
+      </a>
+    `;
+  } 
+  // Handle multiple buttons
+  else if (template.buttons && template.buttons.length > 0) {
+    buttonsHtml = template.buttons.map(button => `
+      <a href="${button.link}" 
+         style="display: inline-block; background-color: ${styles.accentColor}; color: white; 
+                padding: 12px 25px; text-decoration: none; border-radius: 4px; 
+                margin: 10px 5px; font-weight: bold;">
+        ${button.text}
+      </a>
+    `).join('');
+  }
+
+  // Generate the full email HTML
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${template.subject}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: #f7f7f7;
+          color: ${styles.textColor};
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: ${styles.backgroundColor};
+          padding: 20px;
+        }
+        .header {
+          text-align: ${styles.logoAlignment};
+          padding: 20px 0;
+        }
+        .header img {
+          max-width: 200px;
+          height: auto;
+        }
+        .content {
+          padding: 20px 0;
+          text-align: ${styles.contentAlignment};
+        }
+        h1 {
+          color: ${styles.accentColor};
+          text-align: ${styles.headingAlignment};
+          margin-bottom: 20px;
+        }
+        .image {
+          width: 100%;
+          max-height: 300px;
+          object-fit: cover;
+          margin: 20px 0;
+        }
+        .button-container {
+          text-align: center;
+          margin: 20px 0;
+        }
+        .footer {
+          text-align: center;
+          padding: 20px 0;
+          font-size: 12px;
+          color: #888888;
+          border-top: 1px solid #eeeeee;
+          margin-top: 20px;
+        }
+        .footer a {
+          color: ${styles.accentColor};
+          text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .container {
+            width: 100% !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <img src="https://res.cloudinary.com/dzzxpyqif/image/upload/v1752956166/avito3-16_fst8wm.png" alt="AVITO LUXURY Logo">
+        </div>
+        
+        <div class="content">
+          <h1>${template.heading}</h1>
+          
+          ${template.imageUrl ? `<img src="${template.imageUrl}" alt="Email Image" class="image">` : ''}
+          
+          <div style="line-height: 1.6;">
+            ${template.content}
+          </div>
+          
+          <div class="button-container">
+            ${buttonsHtml}
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} AVITO LUXURY. All rights reserved.</p>
+          <p>
+            <a href="https://avitoluxury.in/privacy-policy">Privacy Policy</a> | 
+            <a href="https://avitoluxury.in/terms-of-service">Terms of Service</a>
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// Send custom email to multiple recipients
+export const sendCustomEmail = async (
+  recipients: string[],
+  template: {
+    subject: string;
+    heading: string;
+    content: string;
+    imageUrl: string;
+    buttonText?: string;
+    buttonLink?: string;
+    buttons?: Array<{ text: string; link: string }>;
+    styles?: {
+      backgroundColor?: string;
+      textColor?: string;
+      accentColor?: string;
+      headingAlignment?: 'left' | 'center' | 'right';
+      logoAlignment?: 'left' | 'center' | 'right';
+      contentAlignment?: 'left' | 'center' | 'right';
+    };
+  },
+  attachments?: Array<{
+    filename: string;
+    path: string;
+    mimeType: string;
+    url: string;
+  }>
+): Promise<{success: boolean; sentCount: number}> => {
+  try {
+    const transporter = createTransporter();
+
+    if (!process.env.EMAIL_PASSWORD) {
+      console.error('Email password not configured. Please set EMAIL_PASSWORD in .env.local');
+      return { success: false, sentCount: 0 };
+    }
+
+    // Default styles
+    const styles = {
+      backgroundColor: template.styles?.backgroundColor || '#ffffff',
+      textColor: template.styles?.textColor || '#333333',
+      accentColor: template.styles?.accentColor || '#c19b6c',
+      headingAlignment: template.styles?.headingAlignment || 'center',
+      logoAlignment: template.styles?.logoAlignment || 'center',
+      contentAlignment: template.styles?.contentAlignment || 'left'
+    };
+
+    // Process attachments for nodemailer format
+    const emailAttachments = attachments ? attachments.map(attachment => ({
+      filename: attachment.filename,
+      path: attachment.path,
+      contentType: attachment.mimeType
+    })) : [];
+
+    // Create email HTML
+    const emailHtml = generateCustomEmailHtml(template, styles);
+
+    let sentCount = 0;
+    const failedRecipients: string[] = [];
+
+    // Send to each recipient individually
+    for (const recipient of recipients) {
+      try {
+        const mailOptions = {
+          from: `AVITO LUXURY <${process.env.EMAIL_USER || 'info@avitoluxury.in'}>`,
+          to: recipient,
+          subject: template.subject,
+          html: emailHtml,
+          attachments: emailAttachments
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Email sent to ${recipient}:`, info.response);
+        sentCount++;
+      } catch (error) {
+        console.error(`Error sending email to ${recipient}:`, error);
+        failedRecipients.push(recipient);
+      }
+    }
+
+    // Log results
+    console.log(`Custom email campaign sent to ${sentCount} recipients, failed for ${failedRecipients.length} recipients`);
+    
+    return {
+      success: sentCount > 0,
+      sentCount
+    };
+  } catch (error) {
+    console.error('Error sending custom emails:', error);
+    return { success: false, sentCount: 0 };
   }
 };

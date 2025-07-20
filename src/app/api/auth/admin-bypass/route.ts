@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     
     console.log('Admin bypass attempt for:', email);
     
-    // Only accept specific hardcoded credentials
-    if (email === 'admin@example.com' && password === 'admin123') {
+    // Only accept specific credentials from environment variables
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
       console.log('Admin bypass successful');
       
       // Try connecting to MongoDB in the background, but don't require it
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       
       // Create JWT token
       const token = await encrypt({ 
-        email: 'admin@example.com',
+        email: process.env.ADMIN_EMAIL,
         name: 'Admin User',
         role: 'admin',
         userId: 'admin-bypass-user-id'
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
           success: true,
           token,
           user: {
-            email: 'admin@example.com',
+            email: process.env.ADMIN_EMAIL,
             name: 'Admin User',
             role: 'admin',
             userId: 'admin-bypass-user-id'
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       // Set authentication cookies
       const mockUser = {
         _id: 'admin-bypass-user-id',
-        email: 'admin@example.com',
+        email: process.env.ADMIN_EMAIL,
         name: 'Admin User',
         role: 'admin'
       };

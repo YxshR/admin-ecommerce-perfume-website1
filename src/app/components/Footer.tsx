@@ -4,9 +4,61 @@ import Link from 'next/link';
 import { useAuth } from './AuthProvider';
 import { FaInstagram, FaFacebook, FaWhatsapp } from 'react-icons/fa';
 import Image from 'next/image';
+import { useState } from 'react';
 
 export default function Footer() {
   const { isAuthenticated } = useAuth();
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<{
+    type: 'idle' | 'loading' | 'success' | 'error';
+    message: string;
+  }>({
+    type: 'idle',
+    message: '',
+  });
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic email validation
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setStatus({
+        type: 'error',
+        message: 'Please enter a valid email address',
+      });
+      return;
+    }
+
+    try {
+      setStatus({ type: 'loading', message: 'Subscribing...' });
+      
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setStatus({
+          type: 'success',
+          message: data.message || 'Subscribed successfully!',
+        });
+        setEmail(''); // Clear the input field
+      } else {
+        setStatus({
+          type: 'error',
+          message: data.message || 'Failed to subscribe. Please try again.',
+        });
+      }
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message: 'An error occurred. Please try again later.',
+      });
+    }
+  };
   
   return (
     <footer className="bg-white border-t border-gray-200 pt-4 pb-8">
@@ -72,54 +124,71 @@ export default function Footer() {
             </ul>
           </div>
           
-          {/* Stay Connected Section - Kept unchanged */}
+          {/* Stay Connected Section - Updated with subscription form */}
           <div className="col-span-1">
             <h3 className="text-lg font-medium mb-4">Stay Connected</h3>
             <p className="text-sm text-gray-600 mb-4">
               Subscribe to receive updates, access to exclusive deals, and more.
             </p>
-            <div className="flex mb-4">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
-                className="px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black flex-grow text-sm"
-              />
-              <button className="bg-black text-white px-4 py-2 text-sm">
-                Subscribe
-              </button>
-            </div>
-            <div className="flex flex-col space-y-3 mt-4">
-              <div className="flex items-center">
-                <a href="https://www.instagram.com/avitoscents?igsh=M2E0bG5yNnNhNm11" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-gray-600 hover:text-black flex items-center"
+            <form onSubmit={handleSubscribe} className="flex flex-col">
+              <div className="flex mb-2">
+                <input 
+                  type="email" 
+                  placeholder="Your email address" 
+                  className="px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black flex-grow text-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={status.type === 'loading'}
+                />
+                <button 
+                  type="submit" 
+                  className={`bg-black text-white px-4 py-2 text-sm ${status.type === 'loading' ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-800'}`}
+                  disabled={status.type === 'loading'}
                 >
-                  <FaInstagram className="h-6 w-6 mr-2" />
-                  <span className="text-sm">Instagram</span>
-                </a>
+                  {status.type === 'loading' ? 'Subscribing...' : 'Subscribe'}
+                </button>
               </div>
-              <div className="flex items-center">
-                <a href="https://www.facebook.com/profile.php?id=61576015962692&mibextid=ZbWKwL" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-gray-600 hover:text-black flex items-center"
-                >
-                  <FaFacebook className="h-6 w-6 mr-2" />
-                  <span className="text-sm">Facebook</span>
-                </a>
+              
+              {/* Status message */}
+              {status.message && (
+                <p className={`text-sm ${status.type === 'success' ? 'text-green-600' : status.type === 'error' ? 'text-red-600' : 'text-gray-600'} mt-1 mb-3`}>
+                  {status.message}
+                </p>
+              )}
+              
+              <div className="flex flex-col space-y-3 mt-4">
+                <div className="flex items-center">
+                  <a href="https://www.instagram.com/avitoscents?igsh=M2E0bG5yNnNhNm11" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-600 hover:text-black flex items-center"
+                  >
+                    <FaInstagram className="h-6 w-6 mr-2" />
+                    <span className="text-sm">Instagram</span>
+                  </a>
+                </div>
+                <div className="flex items-center">
+                  <a href="https://www.facebook.com/profile.php?id=61576015962692&mibextid=ZbWKwL" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-600 hover:text-black flex items-center"
+                  >
+                    <FaFacebook className="h-6 w-6 mr-2" />
+                    <span className="text-sm">Facebook</span>
+                  </a>
+                </div>
+                <div className="flex items-center">
+                  <a href="https://wa.me/919928200900" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-600 hover:text-black flex items-center"
+                  >
+                    <FaWhatsapp className="h-6 w-6 mr-2" />
+                    <span className="text-sm">WhatsApp</span>
+                  </a>
+                </div>
               </div>
-              <div className="flex items-center">
-                <a href="https://wa.me/919928200900" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-gray-600 hover:text-black flex items-center"
-                >
-                  <FaWhatsapp className="h-6 w-6 mr-2" />
-                  <span className="text-sm">WhatsApp</span>
-                </a>
-              </div>
-            </div>
+            </form>
           </div>
         </div>
         
@@ -128,7 +197,7 @@ export default function Footer() {
           <div className="flex flex-col items-center">
             <p className="text-lg font-bold bg-gradient-to-r from-pink-500 via-yellow-400 to-red-500 bg-clip-text text-transparent drop-shadow-md tracking-wide mb-1 animate-pulse">Crafted in France, Bottled in India</p>
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} A V I T O   S C E N T S. All rights reserved.
+              &copy; {new Date().getFullYear()} A V I T O   S C E N T S. All rights reserved.
             </p>
           </div>
         </div>

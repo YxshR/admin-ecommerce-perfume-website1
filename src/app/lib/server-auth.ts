@@ -6,12 +6,7 @@ import User from '../models/User';
 
 // Secret used for JWT signing
 const getSecret = () => {
-  const secretKey = process.env.JWT_SECRET;
-  
-  if (!secretKey) {
-    // Fallback for development only - DO NOT use in production
-    return new TextEncoder().encode('your_jwt_secret_key_should_be_very_long_and_random');
-  }
+  const secretKey = process.env.JWT_SECRET || 'fallback_jwt_secret_for_development_only';
   
   return new TextEncoder().encode(secretKey);
 };
@@ -21,8 +16,8 @@ export const expTime = '24h';
 // Token expiration in milliseconds (24 hours)
 export const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default-jwt-secret-key-change-in-production';
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'admin-jwt-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_jwt_secret_for_development_only';
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'fallback_admin_jwt_secret_for_development_only';
 
 /**
  * Generate a JWT token containing user data
@@ -39,6 +34,7 @@ export async function encrypt(payload: any) {
     
     return token;
   } catch (error) {
+    console.error('Token generation error:', error);
     throw new Error('Failed to generate token');
   }
 }

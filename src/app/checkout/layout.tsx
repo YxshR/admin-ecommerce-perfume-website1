@@ -17,9 +17,9 @@ export default function CheckoutLayout({
              {/* Logo */}
              <Link href="/" className="flex-shrink-0 flex gap-2 items-center">
               <img
-                src="/avitologo2.png"
+                src="/avito3-16.png"
                 alt="A V I T O   S C E N T S"
-                className="h-12 w-auto"
+                className="h-20 w-auto"
               />
               
              
