@@ -557,7 +557,7 @@ export default function AdminOrdersPage() {
                       
                       {/* View order details */}
                       <Link 
-                        href={`/admin/orders/${order.id || order._id}`}
+                        href={`/admin/orders/view/${order.id || order._id}`}
                         className="text-blue-600 hover:text-blue-900 inline-flex items-center"
                       >
                         View

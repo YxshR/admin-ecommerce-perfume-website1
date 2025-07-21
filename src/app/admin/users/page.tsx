@@ -17,7 +17,8 @@ import {
   FiXCircle,
   FiEdit,
   FiTrash2,
-  FiX
+  FiX,
+  FiMail
 } from 'react-icons/fi';
 
 // Define the User type
@@ -238,8 +239,8 @@ export default function AdminUsers() {
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
-        <div className="p-6 bg-gradient-to-r from-blue-700 to-indigo-800">
-          <h2 className="text-xl font-bold text-white">A V I T O   S C E N T S Admin</h2>
+        <div className="p-6 bg-gradient-to-r from-blue-900 to-indigo-800">
+        <img src="/logoo1.png" alt="Logo" className="h-20 mx-auto" />
         </div>
         <nav className="mt-6">
           <Link href="/admin/dashboard" className="block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900">
@@ -262,7 +263,13 @@ export default function AdminUsers() {
               <FiUsers className="mr-3" /> Users
             </div>
           </Link>
-          {/* <Link href="/admin/settings" className="block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900">
+          <Link href="/admin/contacts" className="block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900">
+            <div className="flex items-center">
+              <FiMail className="mr-3" /> Contacts
+            </div>
+          </Link>
+          {/* Settings link commented out
+          <Link href="/admin/settings" className="block py-3 px-4 text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900">
             <div className="flex items-center">
               <FiSettings className="mr-3" /> Settings
             </div>

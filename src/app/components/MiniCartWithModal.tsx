@@ -290,7 +290,7 @@ export default function MiniCartWithModal({ isOpen, onClose }: MiniCartWithModal
                   
                   <div className="ml-4 flex-grow">
                     <div className="flex justify-between">
-                      <h3 className="font-medium">{item.name}</h3>
+                      <h3 className="font-lastica text-sm">{item.name}</h3>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
